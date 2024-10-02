@@ -1,5 +1,7 @@
 # HarnessUI
 
+_NOTE:_ As of 10/2/24, this project is not ready for standalone use. It is the underlying architecture for another project currently being built, and is in the process of being abtracted for use across many other projects. If this note is still here, then the library is probably not yet ready for general use.
+
 HarnessUI is a TypeScript-based front-end framework designed to streamline the development of dynamic, data-driven web applications. It provides a robust architecture centered around models, collections, and views, enabling developers to build scalable and maintainable applications with ease.
 
 ## Key Features
