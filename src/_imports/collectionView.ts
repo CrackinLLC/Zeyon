@@ -1,10 +1,10 @@
-import type { CollectionLike } from '../../../model/collection/_imports/_baseCollection';
-import type { BaseViewOptions } from '../../_imports/_baseView';
+import type { CollectionLike } from "../_imports/collection";
+import type { ViewOptions } from "./view";
 
-export interface BaseCollectionViewOptions<
+export interface CollectionViewOptions<
   C extends CollectionLike = CollectionLike,
-  CVO extends BaseViewOptions = BaseViewOptions,
-> extends BaseViewOptions {
+  CVO extends ViewOptions = ViewOptions
+> extends ViewOptions {
   collection?: C;
   childViewOptions?: Partial<CVO>;
 }

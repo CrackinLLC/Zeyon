@@ -1,8 +1,8 @@
-import type { CollectionLike } from "../_imports/collection";
-import type { BaseCollectionViewOptions } from "../_imports/collectionView";
-import { debounce } from "../util/throttle";
-import BaseView from "./_baseView";
+import type { CollectionLike } from "./_imports/collection";
+import type { CollectionViewOptions } from "./_imports/collectionView";
 import type ApplicationCore from "./app";
+import { debounce } from "./util/throttle";
+import BaseView from "./view";
 
 const collectionViewEvents = [
   "change", // General event whenever the size of our collection changes. More granular events available on the collection itself.
@@ -11,13 +11,13 @@ const collectionViewEvents = [
 export default class CollectionView<
   C extends CollectionLike = CollectionLike
 > extends BaseView {
-  declare options: BaseCollectionViewOptions<C>;
+  declare options: CollectionViewOptions<C>;
 
   collection: C | undefined;
   protected childView?: typeof BaseView;
   private childItems: BaseView[] = [];
 
-  constructor(options: BaseCollectionViewOptions<C>, app: ApplicationCore) {
+  constructor(options: CollectionViewOptions<C>, app: ApplicationCore) {
     super(
       {
         ...options,

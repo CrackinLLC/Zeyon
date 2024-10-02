@@ -1,9 +1,9 @@
-import { AttributeDefinition, AttributeType } from "../../util/types";
-import type { BaseModelOptions } from "./model";
+import { AttributeDefinition, AttributeType } from "../util/types";
+import type { ModelOptions } from "./model";
 import { UserAttributes, userAttributes } from "./user";
 
 export interface SessionUserModelOptions
-  extends BaseModelOptions<SessionUserAttributes> {
+  extends ModelOptions<SessionUserAttributes> {
   // Add custom options here
 }
 

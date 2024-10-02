@@ -1,8 +1,8 @@
-import { AttributeDefinition, AttributeType } from "../../util/types";
-import type { BaseModelOptions } from "./model";
+import { AttributeDefinition, AttributeType } from "../util/types";
+import type { ModelOptions } from "./model";
 
 export interface UserModelOptions<A extends UserAttributes = UserAttributes>
-  extends BaseModelOptions<A> {
+  extends ModelOptions<A> {
   attributeDefinition?: UserAttributes;
 }
 

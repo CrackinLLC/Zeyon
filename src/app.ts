@@ -1,10 +1,10 @@
-import { EmitterOptions } from "../_imports/emitter";
-import { SessionUserAttributes } from "../_imports/sessionUser";
-import { loaderTemplate } from "../_imports/view";
-import type { BinaryClass, BinaryClassDefinition } from "../util/types";
+import { EmitterOptions } from "./_imports/emitter";
+import { SessionUserAttributes } from "./_imports/sessionUser";
+import { loaderTemplate } from "./_imports/view";
 import Emitter from "./emitter";
 import type Router from "./router";
 import type SessionUserModel from "./sessionUser";
+import type { BinaryClass, BinaryClassDefinition } from "./util/types";
 
 // import CacheController from './controller/cacheController';
 // import DialogController from './controller/dialogController';

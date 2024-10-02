@@ -1,18 +1,18 @@
 import {
-  BaseCollectionOptions,
   collectionEvents,
   CollectionFilterDefinition,
   CollectionFilterOptions,
   CollectionLike,
-} from "../_imports/collection";
-import { ModelType } from "../_imports/model";
-import { fetchAllData } from "../util/api";
-import type { Attributes } from "../util/attributes";
-import BaseModel from "./_baseModel";
+  CollectionOptions,
+} from "./_imports/collection";
+import { ModelType } from "./_imports/model";
 import type ApplicationCore from "./app";
 import Emitter from "./emitter";
+import BaseModel from "./model";
+import { fetchAllData } from "./util/api";
+import type { Attributes } from "./util/attributes";
 
-export default class BaseCollection<
+export default class Collection<
     M extends BaseModel<any> = BaseModel<any>,
     F extends CollectionFilterOptions = CollectionFilterOptions
   >
@@ -30,12 +30,12 @@ export default class BaseCollection<
 
   length: number = 0;
   visibleLength: number = 0;
-  isReady: Promise<BaseCollection<M>>;
+  isReady: Promise<Collection<M>>;
 
   isDestroyed: boolean = false;
 
   constructor(
-    public options: BaseCollectionOptions,
+    public options: CollectionOptions,
     public attributeDefinition: M["attributeDefinition"],
     protected app: ApplicationCore
   ) {
@@ -155,7 +155,7 @@ export default class BaseCollection<
     return this;
   }
 
-  add(items: M | M[], silent = false): BaseCollection<M> {
+  add(items: M | M[], silent = false): Collection<M> {
     if (!Array.isArray(items)) {
       items = [items];
     }
@@ -335,7 +335,7 @@ export default class BaseCollection<
 
   // Retreive available filter options for this collection from its static method
   getFilterOptions() {
-    const constructor = this.constructor as typeof BaseCollection;
+    const constructor = this.constructor as typeof Collection;
     return constructor.getFilterOptions();
   }
 

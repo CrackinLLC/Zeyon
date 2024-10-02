@@ -1,4 +1,3 @@
-import { ModelType } from "../_imports/model";
 import {
   SessionUserAttributes,
   sessionUserAttributes,
@@ -7,12 +6,13 @@ import {
 import type { ApiResponse } from "../util/api";
 import * as api from "../util/api";
 import { getDefaultsFromDefinition } from "../util/attributes";
-import type GuideDialog from "../view/dialog/guide";
-import { TextNotificationTheme } from "../view/notification/_imports/text";
-import type TextNotification from "../view/notification/text";
+import { ModelType } from "./_imports/model";
+// import type GuideDialog from "../view/dialog/guide";
+// import { TextNotificationTheme } from "../view/notification/_imports/text";
+// import type TextNotification from "../view/notification/text";
 import type ApplicationCore from "./app";
-import type TeamCollection from "./collection/teams";
-import type TeamModel from "./team";
+// import type TeamCollection from "./collection/teams";
+// import type TeamModel from "./team";
 import UserModel from "./user";
 
 export default class SessionUser extends UserModel<SessionUserAttributes> {
@@ -20,8 +20,8 @@ export default class SessionUser extends UserModel<SessionUserAttributes> {
 
   declare options: SessionUserModelOptions;
 
-  private teamsCollection: TeamCollection | undefined | null = null;
-  private activeTeam: TeamModel | null = null;
+  // private teamsCollection: TeamCollection | undefined | null = null;
+  // private activeTeam: TeamModel | null = null;
 
   constructor(options: SessionUserModelOptions, app: ApplicationCore) {
     super(
@@ -33,13 +33,13 @@ export default class SessionUser extends UserModel<SessionUserAttributes> {
       app
     );
 
-    this.isReady = new Promise(async (resolve) => {
-      await Promise.all([
-        this.isReady,
-        new Promise((resolve) => this.loadTeams().then(resolve)),
-      ]);
-      resolve(this);
-    });
+    // this.isReady = new Promise(async (resolve) => {
+    //   await Promise.all([
+    //     this.isReady,
+    //     new Promise((resolve) => this.loadTeams().then(resolve)),
+    //   ]);
+    //   resolve(this);
+    // });
   }
 
   isLoggedIn(): boolean {
@@ -72,14 +72,14 @@ export default class SessionUser extends UserModel<SessionUserAttributes> {
       }
 
       this.set(response.data);
-      await this.loadTeams();
+      // await this.loadTeams();
       this.emit("login");
       this.app.navigate("/");
     } catch (error) {
       return this.throwError("Problem logging in", error);
     }
 
-    this.app.notificationController.closeAll();
+    // this.app.notificationController.closeAll();
 
     // TODO: Should we defer if the user has already seen this dialog and dismissed but has not added property yet?
     setTimeout(() => this.promptForWelcomeDialog(), 1000);
@@ -127,14 +127,14 @@ export default class SessionUser extends UserModel<SessionUserAttributes> {
         )
       );
       await this.save(); // Push our default values into the newly created user record
-      await this.loadTeams();
+      // await this.loadTeams();
       this.emit("login");
       this.app.navigate("/");
     } catch (error) {
       return this.throwError("Problem creating account", error);
     }
 
-    this.app.notificationController.closeAll();
+    // this.app.notificationController.closeAll();
     setTimeout(() => this.promptForWelcomeDialog(), 1000);
 
     return true;
@@ -143,24 +143,23 @@ export default class SessionUser extends UserModel<SessionUserAttributes> {
   promptForWelcomeDialog() {
     // If user has no properties, display the "Welcome" guide dialog
     // TODO: Make our navigation actions use promises, and display this dialog after successfully navigating to root
-    const propertyIds = this.getActiveTeam()?.get("property_ids");
-
-    if (!propertyIds || !propertyIds.length) {
-      this.app.dialogController.load<GuideDialog>("guide", {
-        title: "Welcome to RentalGuru!",
-        image: {
-          src: "/img/guru_welcome.jpg",
-          alt: "Welcome to RentalGuru!",
-          width: 610,
-          height: 280,
-        },
-        text: "Glad to see you here! Let's get started by adding your first property.",
-        primaryLabel: "Add Your First Property",
-        onPrimary: () => this.app.navigate("/properties/new/"),
-        secondaryLabel: "Import Properties",
-        onSecondary: () => this.app.navigate("/properties/import/"),
-      });
-    }
+    // const propertyIds = this.getActiveTeam()?.get("property_ids");
+    // if (!propertyIds || !propertyIds.length) {
+    //   this.app.dialogController.load<GuideDialog>("guide", {
+    //     title: "Welcome to RentalGuru!",
+    //     image: {
+    //       src: "/img/guru_welcome.jpg",
+    //       alt: "Welcome to RentalGuru!",
+    //       width: 610,
+    //       height: 280,
+    //     },
+    //     text: "Glad to see you here! Let's get started by adding your first property.",
+    //     primaryLabel: "Add Your First Property",
+    //     onPrimary: () => this.app.navigate("/properties/new/"),
+    //     secondaryLabel: "Import Properties",
+    //     onSecondary: () => this.app.navigate("/properties/import/"),
+    //   });
+    // }
   }
 
   async logout(): Promise<void> {
@@ -254,10 +253,10 @@ export default class SessionUser extends UserModel<SessionUserAttributes> {
 
     this.set(resetAttributes);
 
-    this.teamsCollection?.destroy();
-    this.teamsCollection = null;
-    this.activeTeam?.destroy();
-    this.activeTeam = null;
+    // this.teamsCollection?.destroy();
+    // this.teamsCollection = null;
+    // this.activeTeam?.destroy();
+    // this.activeTeam = null;
 
     if (!silent) {
       this.emit("reset");
@@ -274,22 +273,22 @@ export default class SessionUser extends UserModel<SessionUserAttributes> {
 
     try {
       response = await api.changePassword(oldPassword, newPassword);
-      if (response.ok) {
-        this.app.notificationController.load<TextNotification>("text", {
-          message: "Password changed successfully.",
-          theme: TextNotificationTheme.Success,
-        });
-      } else {
-        this.app.notificationController.load<TextNotification>("text", {
-          message: "Failed to change password.",
-          theme: TextNotificationTheme.Error,
-        });
-      }
+      // if (response.ok) {
+      //   this.app.notificationController.load<TextNotification>("text", {
+      //     message: "Password changed successfully.",
+      //     theme: TextNotificationTheme.Success,
+      //   });
+      // } else {
+      //   this.app.notificationController.load<TextNotification>("text", {
+      //     message: "Failed to change password.",
+      //     theme: TextNotificationTheme.Error,
+      //   });
+      // }
     } catch (error) {
-      this.app.notificationController.load<TextNotification>("text", {
-        message: "Failed to change password.",
-        theme: TextNotificationTheme.Error,
-      });
+      // this.app.notificationController.load<TextNotification>("text", {
+      //   message: "Failed to change password.",
+      //   theme: TextNotificationTheme.Error,
+      // });
     }
 
     return response;
@@ -325,79 +324,79 @@ export default class SessionUser extends UserModel<SessionUserAttributes> {
     }
   }
 
-  getTeams(): TeamCollection | undefined | null {
-    return this.teamsCollection;
-  }
+  // getTeams(): TeamCollection | undefined | null {
+  //   return this.teamsCollection;
+  // }
 
-  getTeamById(id: number): TeamModel | undefined {
-    return this.teamsCollection?.findById(id);
-  }
+  // getTeamById(id: number): TeamModel | undefined {
+  //   return this.teamsCollection?.findById(id);
+  // }
 
-  getActiveTeam(): TeamModel | null {
-    // TODO: Better handling of requests to this function when user is logged out
+  // getActiveTeam(): TeamModel | null {
+  //   // TODO: Better handling of requests to this function when user is logged out
 
-    return this.activeTeam;
-  }
+  //   return this.activeTeam;
+  // }
 
-  async loadTeams(force = false): Promise<this> {
-    if (!this.isLoggedIn()) return this;
+  // async loadTeams(force = false): Promise<this> {
+  //   if (!this.isLoggedIn()) return this;
 
-    const teamIds = this.get("team_ids");
+  //   const teamIds = this.get("team_ids");
 
-    if (!teamIds || !teamIds.length) {
-      this.throwError(
-        "Problem getting team",
-        "No team IDs associated with this user."
-      );
-      return this;
-    }
+  //   if (!teamIds || !teamIds.length) {
+  //     this.throwError(
+  //       "Problem getting team",
+  //       "No team IDs associated with this user."
+  //     );
+  //     return this;
+  //   }
 
-    // If we already have a collection and force is not true, refetch data for all teams.
-    if (this.teamsCollection && !force) {
-      await this.teamsCollection.fetchAll();
-      return this;
-    }
+  //   // If we already have a collection and force is not true, refetch data for all teams.
+  //   if (this.teamsCollection && !force) {
+  //     await this.teamsCollection.fetchAll();
+  //     return this;
+  //   }
 
-    // If force is true or collection doesn't exist, destroy any existing collection
-    if (this.teamsCollection || force) {
-      this.teamsCollection?.destroy();
-      this.teamsCollection = null;
-    }
+  //   // If force is true or collection doesn't exist, destroy any existing collection
+  //   if (this.teamsCollection || force) {
+  //     this.teamsCollection?.destroy();
+  //     this.teamsCollection = null;
+  //   }
 
-    // Create a new teams collection with the IDs
-    this.teamsCollection = await this.app.newInstance<TeamCollection>(
-      "collection-teams",
-      {
-        ids: teamIds,
-      }
-    );
+  //   // Create a new teams collection with the IDs
+  //   this.teamsCollection = await this.app.newInstance<TeamCollection>(
+  //     "collection-teams",
+  //     {
+  //       ids: teamIds,
+  //     }
+  //   );
 
-    // Wait for teamsCollection to be ready before returning
-    await this.teamsCollection.isReady;
-    await this.setActiveTeam(this.get("active_team_id") || teamIds[0]);
+  //   // Wait for teamsCollection to be ready before returning
+  //   await this.teamsCollection.isReady;
+  //   await this.setActiveTeam(this.get("active_team_id") || teamIds[0]);
 
-    return this;
-  }
+  //   return this;
+  // }
 
-  async setActiveTeam(id: number): Promise<void> {
-    if (!this.teamsCollection) {
-      return console.warn(
-        "Teams collection is not loaded. Please call loadTeams() first."
-      );
-    }
+  // async setActiveTeam(id: number): Promise<void> {
+  //   if (!this.teamsCollection) {
+  //     return console.warn(
+  //       "Teams collection is not loaded. Please call loadTeams() first."
+  //     );
+  //   }
 
-    // Ensure the teams collection is fully loaded
-    await this.teamsCollection.isReady;
+  //   // Ensure the teams collection is fully loaded
+  //   await this.teamsCollection.isReady;
 
-    const team = this.teamsCollection.findById(id);
-    if (team) {
-      if (!this.activeTeam || this.activeTeam.getId() !== id) {
-        this.activeTeam = team;
-      }
+  //   const team = this.teamsCollection.findById(id);
+  //   if (team) {
+  //     if (!this.activeTeam || this.activeTeam.getId() !== id) {
+  //       this.activeTeam = team;
+  //     }
 
-      return;
-    } else {
-      console.warn(`Team with ID ${id} not found in the collection.`);
-    }
-  }
+  //     return;
+  //   } else {
+  //     console.warn(`Team with ID ${id} not found in the collection.`);
+  //   }
+  // }
 }

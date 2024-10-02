@@ -1,9 +1,9 @@
 import "../util/polyfill";
 
-import type { ScreenMap } from "../_imports/router";
-import { BinaryClassDefinition } from "../util/types";
+import type { ScreenMap } from "./_imports/router";
 import ApplicationCore from "./app";
 import Router from "./router";
+import { BinaryClassDefinition } from "./util/types";
 
 const screenMap: ScreenMap = {
   // root: {

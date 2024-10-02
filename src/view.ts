@@ -7,16 +7,16 @@ import {
   LoaderMarkup,
   LoaderType,
   RenderOptions,
-} from "../_imports/view";
-import BaseModel from "./_baseModel";
+} from "./_imports/view";
 import type ApplicationCore from "./app";
 import Emitter from "./emitter";
+import BaseModel from "./model";
 // import { TipDirection } from "./tip/_imports/_baseTip";
 // import type SimpleTip from "./tip/simple";
-import { getAttributesType } from "../util/attributes";
-import { convertToRootElement, RootElement } from "../util/element";
-import { IconType } from "../util/icons";
-import { getUniqueId, toHyphenCase } from "../util/string";
+import { getAttributesType } from "./util/attributes";
+import { convertToRootElement, RootElement } from "./util/element";
+import { IconType } from "./util/icons";
+import { getUniqueId, toHyphenCase } from "./util/string";
 
 export default class BaseView extends Emitter {
   static tagName = "div";

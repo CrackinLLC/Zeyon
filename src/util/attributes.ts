@@ -1,55 +1,41 @@
-import { AgentAttributes, agentAttributes } from '../model/_imports/agent';
-import { ApplicationAttributes, applicationAttributes } from '../model/_imports/application';
-import { DocumentAttributes, documentAttributes } from '../model/_imports/document';
-import { FlowAttributes, flowAttributes } from '../model/_imports/flow';
-import { LeaseAttributes, leaseAttributes } from '../model/_imports/lease';
-import { PropertyAttributes, propertyAttributes } from '../model/_imports/property';
-import { SessionUserAttributes, sessionUserAttributes } from '../model/_imports/sessionUser';
-import { StepAttributes, stepAttributes } from '../model/_imports/step';
-import { TeamAttributes, teamAttributes } from '../model/_imports/team';
-import { TenantAttributes, tenantAttributes } from '../model/_imports/tenant';
-import { TicketAttributes, ticketAttributes } from '../model/_imports/ticket';
-import { TodoAttributes, todoAttributes } from '../model/_imports/todo';
-import { UserAttributes, userAttributes } from '../model/_imports/user';
-import { VendorAttributes, vendorAttributes } from '../model/_imports/vendor';
-import { AttributeType } from './types';
+import { AttributeType } from "./types";
 
-export type Attributes =
-  | AgentAttributes
-  | ApplicationAttributes
-  | DocumentAttributes
-  | FlowAttributes
-  | LeaseAttributes
-  | PropertyAttributes
-  | SessionUserAttributes
-  | StepAttributes
-  | TeamAttributes
-  | TenantAttributes
-  | TicketAttributes
-  | TodoAttributes
-  | UserAttributes
-  | VendorAttributes;
+export type Attributes = unknown;
+// | AgentAttributes
+// | ApplicationAttributes
+// | DocumentAttributes
+// | FlowAttributes
+// | LeaseAttributes
+// | PropertyAttributes
+// | SessionUserAttributes
+// | StepAttributes
+// | TeamAttributes
+// | TenantAttributes
+// | TicketAttributes
+// | TodoAttributes
+// | UserAttributes
+// | VendorAttributes;
 
 const typeMap: { [string: string]: Attributes } = {
-  agent: agentAttributes,
-  application: applicationAttributes,
-  document: documentAttributes,
-  flow: flowAttributes,
-  lease: leaseAttributes,
-  property: propertyAttributes,
-  sessionUser: sessionUserAttributes,
-  step: stepAttributes,
-  team: teamAttributes,
-  tenant: tenantAttributes,
-  ticket: ticketAttributes,
-  todo: todoAttributes,
-  user: userAttributes,
-  vendor: vendorAttributes,
+  // agent: agentAttributes,
+  // application: applicationAttributes,
+  // document: documentAttributes,
+  // flow: flowAttributes,
+  // lease: leaseAttributes,
+  // property: propertyAttributes,
+  // sessionUser: sessionUserAttributes,
+  // step: stepAttributes,
+  // team: teamAttributes,
+  // tenant: tenantAttributes,
+  // ticket: ticketAttributes,
+  // todo: todoAttributes,
+  // user: userAttributes,
+  // vendor: vendorAttributes,
 };
 
 export function getDefaultsFromDefinition<T extends Attributes>(
   attributeDefinitions: T,
-  prefill?: Partial<T>,
+  prefill?: Partial<T>
 ): Partial<T> {
   const result: Partial<T> = {};
 
@@ -57,9 +43,18 @@ export function getDefaultsFromDefinition<T extends Attributes>(
     const definition = attributeDefinitions[key];
 
     // Ensure the key exists on the object and the definition has a default value
-    if (prefill && key in prefill && prefill[key as keyof T] !== undefined && prefill[key as keyof T] !== null) {
+    if (
+      prefill &&
+      key in prefill &&
+      prefill[key as keyof T] !== undefined &&
+      prefill[key as keyof T] !== null
+    ) {
       result[key as keyof T] = prefill[key as keyof T];
-    } else if (definition && typeof definition === 'object' && 'default' in definition) {
+    } else if (
+      definition &&
+      typeof definition === "object" &&
+      "default" in definition
+    ) {
       result[key as keyof T] = definition.default as T[keyof T];
     } else {
       result[key as keyof T] = undefined;
@@ -72,7 +67,7 @@ export function getDefaultsFromDefinition<T extends Attributes>(
 export function validateAndCoerceAttributes<A extends Attributes>(
   attributes: Partial<A>,
   attributeDefinitions: A,
-  silent = false,
+  silent = false
 ): Partial<A> {
   if (!attributes) return attributes;
 
@@ -97,58 +92,71 @@ export function validateAndCoerceAttributes<A extends Attributes>(
   return coercedAttributes;
 }
 
-export function coerceAttributeValue(key: string, value: any, definition: any, silent = false): any {
+export function coerceAttributeValue(
+  key: string,
+  value: any,
+  definition: any,
+  silent = false
+): any {
   const expectedType = definition.type;
   let coercedValue = value;
   let wasCoerced = false;
 
   if (value === undefined || value === null) {
-    if (!('default' in definition) && !definition.optional) {
-      throw new Error(`INVALID: '${key}' is required but not provided and has no default value.`);
+    if (!("default" in definition) && !definition.optional) {
+      throw new Error(
+        `INVALID: '${key}' is required but not provided and has no default value.`
+      );
     }
     return value;
   }
 
   switch (expectedType) {
     case AttributeType.String:
-      if (typeof value !== 'string') {
+      if (typeof value !== "string") {
         coercedValue = String(value);
         wasCoerced = true;
       }
-      if (typeof coercedValue !== 'string') {
+      if (typeof coercedValue !== "string") {
         throw new Error(`INVALID: '${key}' could not be coerced to a string.`);
       }
       break;
 
     case AttributeType.Number:
-      if (typeof value !== 'number') {
+      if (typeof value !== "number") {
         const parsedNumber = Number(value);
         if (!isNaN(parsedNumber)) {
           coercedValue = parsedNumber;
           wasCoerced = true;
         } else {
-          throw new Error(`INVALID: '${key}' could not be coerced to a number.`);
+          throw new Error(
+            `INVALID: '${key}' could not be coerced to a number.`
+          );
         }
       }
       break;
 
     case AttributeType.Boolean:
-      if (typeof value !== 'boolean') {
-        if (typeof value === 'string') {
-          if (value.toLowerCase() === 'true') {
+      if (typeof value !== "boolean") {
+        if (typeof value === "string") {
+          if (value.toLowerCase() === "true") {
             coercedValue = true;
             wasCoerced = true;
-          } else if (value.toLowerCase() === 'false') {
+          } else if (value.toLowerCase() === "false") {
             coercedValue = false;
             wasCoerced = true;
           } else {
-            throw new Error(`INVALID: '${key}' could not be coerced to a boolean.`);
+            throw new Error(
+              `INVALID: '${key}' could not be coerced to a boolean.`
+            );
           }
-        } else if (typeof value === 'number') {
+        } else if (typeof value === "number") {
           coercedValue = value !== 0;
           wasCoerced = true;
         } else {
-          throw new Error(`INVALID: '${key}' could not be coerced to a boolean.`);
+          throw new Error(
+            `INVALID: '${key}' could not be coerced to a boolean.`
+          );
         }
       }
       break;
@@ -170,15 +178,17 @@ export function coerceAttributeValue(key: string, value: any, definition: any, s
 
     case AttributeType.ArrayString:
       if (!Array.isArray(value)) {
-        if (typeof value === 'string') {
+        if (typeof value === "string") {
           coercedValue = [value];
           wasCoerced = true;
         } else {
-          throw new Error(`INVALID: '${key}' could not be coerced to an array of strings.`);
+          throw new Error(
+            `INVALID: '${key}' could not be coerced to an array of strings.`
+          );
         }
       }
       coercedValue = coercedValue.map((item: any) => {
-        if (typeof item !== 'string') {
+        if (typeof item !== "string") {
           wasCoerced = true;
           return String(item);
         }
@@ -193,17 +203,21 @@ export function coerceAttributeValue(key: string, value: any, definition: any, s
           coercedValue = [parsedNumber];
           wasCoerced = true;
         } else {
-          throw new Error(`INVALID: '${key}' could not be coerced to an array of numbers.`);
+          throw new Error(
+            `INVALID: '${key}' could not be coerced to an array of numbers.`
+          );
         }
       } else {
         coercedValue = coercedValue.map((item: any) => {
-          if (typeof item !== 'number') {
+          if (typeof item !== "number") {
             const parsedNumber = Number(item);
             if (!isNaN(parsedNumber)) {
               wasCoerced = true;
               return parsedNumber;
             } else {
-              throw new Error(`INVALID: '${key}' array contains values that could not be coerced to numbers.`);
+              throw new Error(
+                `INVALID: '${key}' array contains values that could not be coerced to numbers.`
+              );
             }
           }
           return item;
@@ -213,26 +227,41 @@ export function coerceAttributeValue(key: string, value: any, definition: any, s
 
     case AttributeType.ArrayObject:
       if (!Array.isArray(value)) {
-        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        if (
+          typeof value === "object" &&
+          value !== null &&
+          !Array.isArray(value)
+        ) {
           coercedValue = [value];
           wasCoerced = true;
         } else {
-          throw new Error(`INVALID: '${key}' could not be coerced to an array of objects.`);
+          throw new Error(
+            `INVALID: '${key}' could not be coerced to an array of objects.`
+          );
         }
       }
-      if (!coercedValue.every((item: any) => typeof item === 'object' && item !== null && !Array.isArray(item))) {
-        throw new Error(`INVALID: '${key}' array contains values that are not objects.`);
+      if (
+        !coercedValue.every(
+          (item: any) =>
+            typeof item === "object" && item !== null && !Array.isArray(item)
+        )
+      ) {
+        throw new Error(
+          `INVALID: '${key}' array contains values that are not objects.`
+        );
       }
       break;
 
     case AttributeType.Object:
-      if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      if (typeof value !== "object" || value === null || Array.isArray(value)) {
         throw new Error(`INVALID: '${key}' could not be coerced to an object.`);
       }
       break;
 
     default:
-      throw new Error(`INVALID: '${key}' has an unrecognized attribute type '${expectedType}'.`);
+      throw new Error(
+        `INVALID: '${key}' has an unrecognized attribute type '${expectedType}'.`
+      );
   }
 
   if (wasCoerced && !silent) {
@@ -245,8 +274,10 @@ export function coerceAttributeValue(key: string, value: any, definition: any, s
 
 // Checks the attribute keys against our list of defined data types to determine which type this is.
 // For incomplete attribute objects, we can return an array of all possible types.
-export function getAttributesType(attributes: unknown): string | string[] | undefined {
-  if (typeof attributes !== 'object' || attributes === null) return undefined;
+export function getAttributesType(
+  attributes: unknown
+): string | string[] | undefined {
+  if (typeof attributes !== "object" || attributes === null) return undefined;
 
   const potentialMatches: string[] = [];
   const providedKeys = Object.keys(attributes);
@@ -255,7 +286,9 @@ export function getAttributesType(attributes: unknown): string | string[] | unde
     const attributeKeys = Object.keys(attributeList);
 
     // Check if all keys in the provided attributes are valid keys in the attribute definition
-    const hasAllValidKeys = providedKeys.every((key) => attributeKeys.includes(key));
+    const hasAllValidKeys = providedKeys.every((key) =>
+      attributeKeys.includes(key)
+    );
 
     if (hasAllValidKeys) {
       potentialMatches.push(type);
@@ -282,7 +315,7 @@ export function isEqual(a: any, b: any): boolean {
   }
 
   // Handle Objects (but not arrays or functions)
-  if (typeof a === 'object' && typeof b === 'object') {
+  if (typeof a === "object" && typeof b === "object") {
     return compareObjects(a, b);
   }
 
@@ -302,7 +335,10 @@ function compareArrays(a: any[], b: any[]): boolean {
   return true;
 }
 
-function compareObjects(a: Record<string, any>, b: Record<string, any>): boolean {
+function compareObjects(
+  a: Record<string, any>,
+  b: Record<string, any>
+): boolean {
   const keysA = Object.keys(a);
   const keysB = Object.keys(b);
 
@@ -329,7 +365,7 @@ export function getCopy<T>(value: T): T {
     return value.map((item) => getCopy(item)) as unknown as T;
   }
 
-  if (typeof value === 'object') {
+  if (typeof value === "object") {
     const clone = {} as Record<string, any>;
     for (const key in value) {
       if (Object.prototype.hasOwnProperty.call(value, key)) {

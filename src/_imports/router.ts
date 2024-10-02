@@ -1,5 +1,5 @@
-import type { IconType } from '../util/icons';
-import type BaseView from '../view/_baseView';
+import type { IconType } from "../util/icons";
+import type View from "../view";
 
 export interface SectionConfig {
   id: string; // Unique identifier for the section. All lowercase and does not contain spaces.
@@ -16,7 +16,7 @@ export interface ScreenConfig {
   name: string; // Human-friendly display string for screen
   shortName?: string; // Abbreviated display string for screen
   url: string;
-  view: typeof BaseView;
+  view: typeof View;
   hidden?: boolean; // Prevents screen from showing up rendered navigation lists or menus
 }
 
@@ -28,7 +28,7 @@ type Section = {
 export type ScreenMap = Record<string, Section>;
 
 export interface UrlMapEntry {
-  view: typeof BaseView;
+  view: typeof View;
   sectionId: string;
   screenId: string;
 }

@@ -1,4 +1,4 @@
-import type BaseView from '../view/_baseView.ts';
+import type BaseView from "../view";
 
 export interface RootElement extends HTMLElement {
   view: BaseView;
@@ -7,14 +7,19 @@ export interface RootElement extends HTMLElement {
 }
 
 export function elIsRootEl(el: Element): el is RootElement {
-  return el instanceof HTMLElement && Object.keys(el).includes('view');
+  return el instanceof HTMLElement && Object.keys(el).includes("view");
 }
 
-export function convertToRootElement(el: HTMLElement, context: BaseView): RootElement {
+export function convertToRootElement(
+  el: HTMLElement,
+  context: BaseView
+): RootElement {
   const newEl = el as RootElement;
   newEl.view = context;
 
-  newEl.removeClassByPrefix = function removeClassByPrefix(prefix: string): RootElement {
+  newEl.removeClassByPrefix = function removeClassByPrefix(
+    prefix: string
+  ): RootElement {
     if (this.el) {
       this.el.classList.forEach((value: string) => {
         if (value.startsWith(prefix)) {
@@ -32,7 +37,7 @@ export function convertToRootElement(el: HTMLElement, context: BaseView): RootEl
     // @ts-ignore
     delete newEl.removeClassByPrefix;
 
-    newEl.innerHTML = '';
+    newEl.innerHTML = "";
     newEl.remove();
   };
 

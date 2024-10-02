@@ -6,11 +6,11 @@ import type {
   SectionConfig,
   UrlMap,
   UrlMapEntry,
-} from "../_imports/router";
+} from "./_imports/router";
 import type ApplicationCore from "./app";
 import Emitter from "./emitter";
-import type BaseView from "./view/_baseView";
-import type TextNotification from "./view/notification/text";
+import type BaseView from "./view";
+// import type TextNotification from "./view/notification/text";
 
 export default class Router extends Emitter {
   private currentSectionId: string;
@@ -220,7 +220,7 @@ export default class Router extends Emitter {
     }
 
     if (instance) {
-      this.app.tipController.closeAll();
+      // this.app.tipController.closeAll();
 
       this.app.sectionElement.innerHTML = "";
 
@@ -373,10 +373,10 @@ export default class Router extends Emitter {
   }
 
   private notifyUserToLogIn() {
-    this.app.notificationController.load<TextNotification>("text", {
-      id: "login-notification",
-      message: "You need to login or create an account first!",
-    });
+    // this.app.notificationController.load<TextNotification>("text", {
+    //   id: "login-notification",
+    //   message: "You need to login or create an account first!",
+    // });
   }
 
   private isUserLoggedIn(): boolean {

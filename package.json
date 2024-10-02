@@ -2,7 +2,7 @@
   "name": "harness-ui",
   "version": "0.0.1",
   "description": "HarnessUI is a TypeScript front-end framework focused on modularity and strong data management, offering advanced handling of models and collections for building scalable, data-driven applications.",
-  "main": "index.js",
+  "main": "index.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

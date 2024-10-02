@@ -1,25 +1,25 @@
-import type BaseModel from "../model/_baseModel";
-import type { BaseModelOptions } from "../model/_imports/_baseModel";
-import type BaseCollection from "../model/collection/_baseCollection";
-import type { BaseCollectionOptions } from "../model/collection/_imports/_baseCollection";
-import type Emitter from "../src/emitter";
-import type BaseView from "../view/_baseView";
-import type { BaseViewOptions } from "../view/_imports/_baseView";
-import type BaseCollectionView from "../view/collection/_baseCollectionView";
-import type { BaseCollectionViewOptions } from "../view/collection/_imports/_baseCollectionView";
+import type { CollectionOptions } from "../_imports/collection";
+import type { CollectionViewOptions } from "../_imports/collectionView";
+import type { ModelOptions } from "../_imports/model";
+import type { ViewOptions } from "../_imports/view";
+import type Collection from "../collection";
+import type CollectionView from "../collectionView";
+import type Emitter from "../emitter";
+import type Model from "../model";
+import type View from "../view";
 
 type BinaryClass =
   | Emitter
-  | BaseView
-  | BaseModel
-  | BaseCollection<BaseModel>
-  | BaseCollectionView<BaseCollection<BaseModel>>;
+  | View
+  | Model
+  | Collection<Model>
+  | CollectionView<Collection<Model>>;
 
 type BinaryOptions =
-  | BaseModelOptions
-  | BaseCollectionOptions
-  | BaseViewOptions
-  | BaseCollectionViewOptions<BaseCollection<BaseModel>>;
+  | ModelOptions
+  | CollectionOptions
+  | ViewOptions
+  | CollectionViewOptions<Collection<Model>>;
 
 interface BinaryClassDefinition {
   new (...args: any[]): BinaryClass;
@@ -71,14 +71,14 @@ export {
   AttributeDefinition,
   AttributeType,
   BankingDetails,
-  BaseCollection,
-  BaseCollectionView,
-  BaseModel,
-  BaseView,
   BinaryClass,
   BinaryClassDefinition,
   BinaryOptions,
+  Collection,
+  CollectionView,
   ControllerDefinition,
+  Model,
   Note,
   Priority,
+  View,
 };

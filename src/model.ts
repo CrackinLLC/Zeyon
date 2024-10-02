@@ -1,28 +1,28 @@
 import {
-  BaseModelOptions,
   FetchCollectionOptions,
+  ModelOptions,
   ModelType,
-} from "../_imports/model";
+} from "./_imports/model";
+import type ApplicationCore from "./app";
+import type BaseCollection from "./collection";
 import {
   ApiResponse,
   createData,
   deleteDataById,
   fetchDataById,
   updateDataById,
-} from "../util/api";
+} from "./util/api";
 import {
   Attributes,
   getCopy,
   getDefaultsFromDefinition,
   isEqual,
   validateAndCoerceAttributes,
-} from "../util/attributes";
-import type BaseCollection from "./_baseCollection";
-import type ApplicationCore from "./app";
-import type { CachedModel } from "./controller/cacheController";
+} from "./util/attributes";
+// import type { CachedModel } from "./controller/cacheController";
 import Emitter from "./emitter";
-import { TextNotificationTheme } from "./view/notification/_imports/text";
-import type TextNotification from "./view/notification/text";
+// import { TextNotificationTheme } from "./view/notification/_imports/text";
+// import type TextNotification from "./view/notification/text";
 
 const modelEvents = [
   "add", // When the model is added to a collection.
@@ -59,7 +59,7 @@ export default class BaseModel<
   collection: BaseCollection<BaseModel<A>> | null = null;
 
   constructor(
-    public options: BaseModelOptions<A>,
+    public options: ModelOptions<A>,
     public attributeDefinition: A,
     protected app: ApplicationCore
   ) {

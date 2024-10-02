@@ -1,9 +1,6 @@
-import type {
-  CustomEventHandler,
-  EmitterOptions,
-} from "../_imports/emitter.ts";
-import type { RootElement } from "../util/element.ts";
-import { debounce } from "../util/throttle.ts";
+import type { CustomEventHandler, EmitterOptions } from "./_imports/emitter.ts";
+import type { RootElement } from "./util/element.ts";
+import { debounce } from "./util/throttle.ts";
 
 // Constants for different supported event types
 const generalEvents = [

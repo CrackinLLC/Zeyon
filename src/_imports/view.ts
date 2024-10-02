@@ -1,13 +1,13 @@
-import type Model from '../../model/_baseModel';
-import type { Attributes } from '../../util/attributes';
-import type BaseView from '../_baseView';
+import type Model from "../model";
+import type { Attributes } from "../util/attributes";
+import type View from "../view";
 
 export interface AttachReference {
-  view: BaseView;
+  view: View;
   id: string;
 }
 
-export interface BaseViewOptions {
+export interface ViewOptions {
   id?: string;
   classNames?: string[];
   attributes?: Record<string, string | undefined>; // Inline DOM attributes, not to be confused with model attributes
@@ -30,29 +30,29 @@ export interface ErrorStateOptions {
 }
 
 export const enum LoaderType {
-  Slosh = 'slosh-loader',
+  Slosh = "slosh-loader",
 }
 
 export const LoaderMarkup = {
-  'slosh-loader': '<div class="inner"></div>',
+  "slosh-loader": '<div class="inner"></div>',
 };
 
 export const errorTemplate = (msg: string): HTMLElement => {
-  const errorEl = document.createElement('div');
-  errorEl.classList.add('error-message');
+  const errorEl = document.createElement("div");
+  errorEl.classList.add("error-message");
   errorEl.innerText = msg;
   return errorEl;
 };
 
 export const chipTemplate = (label: string, includeX = false): HTMLElement => {
-  const chipEl = document.createElement('div');
-  chipEl.classList.add('chip');
+  const chipEl = document.createElement("div");
+  chipEl.classList.add("chip");
   chipEl.innerText = label;
 
   if (includeX) {
-    const X = document.createElement('span');
-    X.classList.add('chip-remove');
-    X.innerText = '×';
+    const X = document.createElement("span");
+    X.classList.add("chip-remove");
+    X.innerText = "×";
     chipEl.appendChild(X);
   }
 
@@ -66,8 +66,12 @@ export const loaderTemplate = ({
   type?: LoaderType;
   wrapped?: boolean;
 } = {}): HTMLElement => {
-  const loadingStateEl = document.createElement('div');
-  loadingStateEl.classList.add('loading-state');
-  loadingStateEl.innerHTML = `<span class="${['loader', type, wrapped ? 'loader-wrapped' : ''].join(' ')}" aria-hidden="true">${LoaderMarkup[type]}</span>`;
+  const loadingStateEl = document.createElement("div");
+  loadingStateEl.classList.add("loading-state");
+  loadingStateEl.innerHTML = `<span class="${[
+    "loader",
+    type,
+    wrapped ? "loader-wrapped" : "",
+  ].join(" ")}" aria-hidden="true">${LoaderMarkup[type]}</span>`;
   return loadingStateEl;
 };
