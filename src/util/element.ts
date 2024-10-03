@@ -1,7 +1,7 @@
-import type BaseView from "../view";
+import type View from "../view";
 
 export interface RootElement extends HTMLElement {
-  view: BaseView;
+  view: View;
   removeClassByPrefix: (prefex: string) => RootElement;
   destroy: () => void;
 }
@@ -12,7 +12,7 @@ export function elIsRootEl(el: Element): el is RootElement {
 
 export function convertToRootElement(
   el: HTMLElement,
-  context: BaseView
+  context: View
 ): RootElement {
   const newEl = el as RootElement;
   newEl.view = context;

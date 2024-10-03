@@ -1,215 +1,169 @@
-import { EmitterOptions } from "./_imports/emitter";
-import { SessionUserAttributes } from "./_imports/sessionUser";
-import { loaderTemplate } from "./_imports/view";
-import Emitter from "./emitter";
-import type Router from "./router";
-import type SessionUserModel from "./sessionUser";
-import type { BinaryClass, BinaryClassDefinition } from "./util/types";
+import '../util/polyfill';
+import '../util/template';
 
-// import CacheController from './controller/cacheController';
-// import DialogController from './controller/dialogController';
-// import NotificationController from './controller/notificationController';
-// import TipController from './controller/tipController';
-// import ValidationController from './controller/validationController';
+import Emitter from './emitter';
+import type { EmitterOptions } from './imports/emitter';
+import { loaderTemplate } from './imports/view';
+import type Router from './router';
+import type { BinaryClass, BinaryClassDefinition } from './util/type';
 
 declare global {
   interface Window {
     APP: ApplicationCore;
-    dataOnLoad: {
-      sessionuser: SessionUserAttributes;
-    };
-    model: { [name: string]: any };
   }
 }
 
 export interface ApplicationOptions extends EmitterOptions {
   name?: string;
-  user: SessionUserAttributes;
   router: Router;
-  header?: string;
-  sidebar?: string;
   classMap: Map<string, BinaryClassDefinition>;
 }
 
-// const controllers: { [id: string]: ControllerDefinition } = {
-//   'controller-dialog': DialogController,
-//   'controller-notification': NotificationController,
-//   'controller-tip': TipController,
-//   'controller-validation': ValidationController,
-//   'controller-cache': CacheController,
-// };
-
+/**
+ * The central hub of the application, managing interactions between components.
+ */
 export default class ApplicationCore extends Emitter {
-  started = false;
+  /**
+   * Indicates whether the application has started.
+   */
+  public started = false;
 
-  name = ""; // Identifier for the current application running.
-  user: SessionUserModel;
-  router: Router;
-  // cache: CacheController;
-  // sidebar: BaseView | undefined;
-  // header: BaseView | undefined;
+  /**
+   * Identifier for the current application running.
+   */
+  public name = '';
 
-  // TODO: Replace map storage method with server request by binaryId
+  /**
+   * The application's router.
+   */
+  public router: Router;
+
+  /**
+   * A map of class definitions for dynamic instantiation.
+   */
   private classMap: Map<string, BinaryClassDefinition>;
 
-  sectionElement: HTMLElement;
-  private bodyClassList = document.body.classList;
+  /**
+   * The main section element of the application.
+   */
+  private sectionElement: HTMLElement;
+
+  /**
+   * The body element's class list for global class manipulation.
+   */
+  private bodyClassList: DOMTokenList = document.body.classList;
+
+  /**
+   * The loading state element.
+   */
   private loadingState: HTMLElement | null = null;
 
-  // dialogController: DialogController;
-  // notificationController: NotificationController;
-  // tipController: TipController;
+  /**
+   * A promise that resolves when the application is ready.
+   */
+  public isReady: Promise<this>;
 
-  isReady: Promise<ApplicationCore>;
-
+  /**
+   * Initializes a new instance of the ApplicationCore class.
+   * @param options - The application options.
+   */
   constructor(public options: ApplicationOptions) {
-    const { name, user, router, header, sidebar, classMap } = options;
+    super({ customEvents: ['loaded:screen', 'loaded:section', 'click'] });
 
-    super({ customEvents: ["loaded:screen", "loaded:section", "click"] });
+    const { name, router, classMap } = options;
 
-    if (name) {
-      this.name = name;
-    }
-
+    this.name = name || '';
     this.router = router;
     this.classMap = classMap;
-    this.sectionElement = document.querySelector("#Views") as HTMLElement;
+    this.sectionElement = document.querySelector('#app') as HTMLElement;
 
-    this.isReady = new Promise(async (resolve) => {
-      // Object.entries(controllers).forEach(([id, def]) =>
-      //   this.classMap.set(id, def)
-      // );
-
-      const loading: Promise<unknown>[] = [];
-
-      loading.push(
-        this.newInstance<SessionUserModel>("model-sessionuser", {
-          attributes: user,
-        }).then((user) => (this.user = user))
-        // this.newInstance<CacheController>("controller-cache", {
-        //   currentPath: this.router.getCurrentPath(),
-        // }).then((cache) => (this.cache = cache)),
-        // this.newInstance<DialogController>("controller-dialog").then(
-        //   (dialogController) => (this.dialogController = dialogController)
-        // ),
-        // this.newInstance<NotificationController>(
-        //   "controller-notification"
-        // ).then(
-        //   (notificationController) =>
-        //     (this.notificationController = notificationController)
-        // ),
-        // this.newInstance<TipController>("controller-tip").then(
-        //   (tipController) => (this.tipController = tipController)
-        // )
-      );
-
-      // if (header) {
-      //   loading.push(
-      //     this.newInstance<BaseView>(header, {
-      //       attachTo: document.querySelector("#Header") as HTMLElement,
-      //     }).then((header) => (this.header = header))
-      //   );
-      // }
-
-      // if (sidebar) {
-      //   loading.push(
-      //     this.newInstance<BaseView>(sidebar, {
-      //       attachTo: document.querySelector("#Sidebar") as HTMLElement,
-      //     }).then((sidebar) => (this.sidebar = sidebar))
-      //   );
-      // }
-
-      await Promise.all(loading);
-
-      this.user.on(["login", "logout"], {
-        handler: () =>
-          this.toggleGlobalClass("is-loggedin", this.user.isLoggedIn()),
-        listener: this,
-      });
-      this.toggleGlobalClass("is-loggedin", this.user.isLoggedIn());
-
-      resolve(this);
-    });
+    this.isReady = Promise.resolve(this);
   }
 
-  async initialize() {
+  /**
+   * Initializes the application.
+   * @returns The application instance.
+   */
+  public async initialize(): Promise<this> {
     await this.isReady;
 
     if (!this.started) {
       this.started = true;
 
-      // const navigationHandler: CustomEventHandler = (event: Event | CustomEvent, type?: string) => {
-      //   if (event.detail?.sectionConfig) {
-      //     // this.cache.clearAll();
-      //   }
-      // }
-
       this.router.start(this);
-      // this.router.on("navigate", {
-      //   handler: navigationHandler,
-      //   listener: this,
-      // });
 
-      // if (this.sidebar) {
-      //   this.sidebar.render();
-      // }
-
-      // if (this.header) {
-      //   this.header.render();
-      // }
-
-      document.body.addEventListener("click", (ev) => this.emit("click", ev));
+      document.body.addEventListener('click', (ev) => this.emit('click', ev));
     }
 
     return this;
   }
 
-  navigate(urlFragment: string, openNewTab = false) {
+  /**
+   * Navigates to a specified URL fragment.
+   * @param urlFragment - The URL fragment to navigate to.
+   * @param openNewTab - Whether to open the URL in a new tab.
+   */
+  public navigate(urlFragment: string, openNewTab = false): void {
     const baseUrl = new URL(document.baseURI);
     const url = new URL(urlFragment, baseUrl);
 
     if (url.origin !== baseUrl.origin || openNewTab) {
-      const a = document.createElement("a");
-      a.href = urlFragment;
-      a.setAttribute("target", "_blank");
-      a.click();
+      window.open(url.href, '_blank');
     } else {
       this.router.navigate({ path: urlFragment });
     }
   }
 
-  // Used to instantiate a new class and returns the instantiated instance.
-  async newInstance<B extends BinaryClass>(
+  /**
+   * Instantiates a new class by its identifier.
+   * @param id - The class identifier.
+   * @param options - The options for the class instance.
+   * @param more - Additional arguments.
+   * @returns The instantiated class.
+   */
+  public async newInstance<B extends BinaryClass>(
     id: string,
-    options: B["options"] = {},
+    options: B['options'] = {},
     ...more: unknown[]
   ): Promise<B> {
-    const def = this.classMap.get(id) as BinaryClassDefinition;
+    const def = this.classMap.get(id);
 
-    if (def) {
-      try {
-        const instance = new def(options, this, ...more) as B;
-        return (instance["isReady"] || instance) as Promise<B>;
-      } catch (e: unknown) {
-        console.error(new Error(`Failed to instantiate new class!! ${id}`));
-        console.error(e);
-        throw e;
+    if (!def) {
+      const errorMessage = `Failed to locate class with id "${id}".`;
+      console.error(errorMessage);
+      throw new Error(errorMessage);
+    }
+
+    try {
+      const instance = new def(options, this, ...more) as B;
+      if (instance.isReady instanceof Promise) {
+        await instance.isReady;
       }
-    } else {
-      const errorMessage = `Failed to locate class!! ${id}`;
-      const error = new Error(errorMessage);
-      console.error(error);
-      throw error;
+      return instance;
+    } catch (e) {
+      console.error(`Failed to instantiate class with id "${id}".`, e);
+      throw e;
     }
   }
 
-  toggleGlobalClass(className: string, add?: boolean) {
+  /**
+   * Toggles a global class on the body element.
+   * @param className - The class name to toggle.
+   * @param add - Whether to add or remove the class.
+   * @returns The application instance.
+   */
+  public toggleGlobalClass(className: string, add?: boolean): this {
     this.bodyClassList.toggle(className, add);
     return this;
   }
 
-  setLoadingState(show?: boolean): boolean {
-    if (show === undefined) {
+  /**
+   * Sets or toggles the loading state of the application.
+   * @param show - Whether to show or hide the loading state.
+   * @returns The current loading state.
+   */
+  public setLoadingState(show?: boolean): boolean {
+    if (typeof show !== 'boolean') {
       show = !this.loadingState;
     }
 

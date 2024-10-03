@@ -8,12 +8,25 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/CrackinLLC/HarnessUI.git"
+    "url": "https://github.com/CrackinLLC/HarnessUI.git"
   },
-  "author": "Dave Coykendall",
+  "keywords": [
+    "FE",
+    "front-end",
+    "front end",
+    "frontend",
+    "framework",
+    "typescript",
+    "modularity",
+    "data management"
+  ],
+  "author": "Crackin Studios <support@crackinstudios.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/CrackinLLC/HarnessUI/issues"
   },
-  "homepage": "https://github.com/CrackinLLC/HarnessUI#readme"
+  "homepage": "https://github.com/CrackinLLC/HarnessUI#readme",
+  "dependencies": {
+    "handlebars": "^4.7.8"
+  }
 }

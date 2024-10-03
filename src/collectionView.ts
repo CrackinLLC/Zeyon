@@ -1,42 +1,59 @@
-import type { CollectionLike } from "./_imports/collection";
-import type { CollectionViewOptions } from "./_imports/collectionView";
-import type ApplicationCore from "./app";
-import { debounce } from "./util/throttle";
-import BaseView from "./view";
+import type ApplicationCore from './app';
+import type { CollectionLike } from './imports/collection';
+import type { CollectionViewOptions } from './imports/collectionView';
+import Model from './model';
+import { debounce } from './util/debounce';
+import View from './view';
 
-const collectionViewEvents = [
-  "change", // General event whenever the size of our collection changes. More granular events available on the collection itself.
-];
-
+/**
+ * CollectionView manages a collection of models and renders them using a specified child view.
+ * @template C The type of the collection.
+ * @template V The type of the child view.
+ */
 export default class CollectionView<
-  C extends CollectionLike = CollectionLike
-> extends BaseView {
-  declare options: CollectionViewOptions<C>;
+  C extends CollectionLike<Model> = CollectionLike<Model>,
+  CV extends View = View,
+> extends View {
+  declare options: CollectionViewOptions<C, CV>;
 
-  collection: C | undefined;
-  protected childView?: typeof BaseView;
-  private childItems: BaseView[] = [];
+  /**
+   * The collection being managed by this view.
+   */
+  protected collection?: C;
 
-  constructor(options: CollectionViewOptions<C>, app: ApplicationCore) {
-    super(
-      {
-        ...options,
-        customEvents: collectionViewEvents,
-      },
-      app
-    );
+  /**
+   * The view class used to render each child item.
+   */
+  protected childView?: new (options: any, app: ApplicationCore) => CV;
 
+  /**
+   * An array of instantiated child views.
+   */
+  protected childItems: CV[] = [];
+
+  constructor(options: CollectionViewOptions<C, CV>, app: ApplicationCore) {
+    super(options, app);
+
+    this.extendValidEvents(['change']);
     this.renderChildItems = debounce(this.renderChildItems.bind(this));
-    this.collection = this.options.collection;
+    this.collection = options.collection;
+    this.childView = options.childView;
   }
 
+  /**
+   * Renders the collection view and loads the collection if provided.
+   */
   async render() {
     await super.render();
 
-    if (this.options.collection) {
-      await this.loadCollection(this.collection);
-    } else {
-      this.renderChildItems(); // Allow for rendering empty states
+    try {
+      if (this.collection) {
+        await this.loadCollection(this.collection);
+      } else {
+        this.renderChildItems();
+      }
+    } catch (error) {
+      console.error('Error rendering collection view:', error);
     }
 
     this.setEmptyClass();
@@ -44,12 +61,23 @@ export default class CollectionView<
     return this;
   }
 
+  /**
+   * Provides template options, including the collection's visible attributes and type.
+   */
+  protected getTemplateOptions(): Record<string, unknown> {
+    return super.getTemplateOptions({
+      ...(this.collection ? { collection: this.collection.getVisibleAttributes() } : {}),
+      ...(this.collection ? { collectionType: this.collection.getType() } : {}),
+    });
+  }
+
+  /**
+   * Renders each item in the collection using the specified child view.
+   */
   protected renderChildItems() {
     if (this.isDestroyed || !this.collection) return;
 
-    if (this.childItems.length) {
-      this.destroyChildItems();
-    }
+    this.destroyChildItems();
 
     this.collection.getVisibleItems().forEach((model) => {
       if (this.childView) {
@@ -59,7 +87,7 @@ export default class CollectionView<
             attachTo: this.el,
             ...this.options.childViewOptions,
           },
-          this.app
+          this.app,
         );
 
         childView.render();
@@ -71,27 +99,30 @@ export default class CollectionView<
     this.setEmptyClass();
   }
 
+  /**
+   * Loads a new collection, replacing any existing one.
+   * @param collection The new collection to load.
+   */
   async loadCollection(collection?: C): Promise<void> {
-    if (!collection) return;
-
     if (this.collection) {
-      this.collection.destroy();
+      this.collection.off({ listener: this });
     }
 
-    this.collection = collection as C;
+    this.collection = collection;
 
     if (this.collection) {
-      await this.collection.isReady.then(() => {
-        this.listenToCollection();
-      });
-
-      await this.isRendered.then(() => {
-        this.renderChildItems();
-      });
+      await this.collection.isReady;
+      this.listenToCollection();
+      await this.isRendered;
+      this.renderChildItems();
     }
   }
 
-  destroyChildItems(ids?: string[]) {
+  /**
+   * Destroys all or specific child views.
+   * @param ids Optional array of child view IDs to destroy.
+   */
+  protected destroyChildItems(ids?: string[]) {
     if (ids && ids.length) {
       ids.forEach((id) => {
         this.destroyChildById(id);
@@ -100,50 +131,56 @@ export default class CollectionView<
       this.childItems.forEach((child) => {
         this.destroyChildById(child.getViewId());
       });
-
       this.childItems = [];
     }
   }
 
-  private listenToCollection() {
+  /**
+   * Sets up event listeners on the collection to respond to updates.
+   */
+  protected listenToCollection() {
     if (!this.collection) return;
 
-    this.collection
-      .on("update", {
-        handler: () => {
-          this.renderChildItems();
-          this.emit("change", this.collection);
-        },
-        listener: this,
-      })
-      .on("filter", {
-        handler: () => {
-          this.renderChildItems();
-          this.emit("change", this.collection);
-        },
-        listener: this,
-      })
-      .on("sort", {
-        handler: () => {
-          this.renderChildItems();
-          this.emit("change", this.collection);
-        },
-        listener: this,
-      });
+    this.collection.on('update', {
+      handler: () => {
+        this.renderChildItems();
+        this.emit('change', this.collection);
+      },
+      listener: this,
+    });
+
+    this.collection.on('filter', {
+      handler: () => {
+        this.renderChildItems();
+        this.emit('change', this.collection);
+      },
+      listener: this,
+    });
+
+    this.collection.on('sort', {
+      handler: () => {
+        this.renderChildItems();
+        this.emit('change', this.collection);
+      },
+      listener: this,
+    });
   }
 
-  private setEmptyClass() {
-    this.toggleClass(
-      "is-empty",
-      !this.collection || this.collection.visibleLength === 0
-    );
+  /**
+   * Toggles an 'is-empty' class based on whether the collection has visible items.
+   */
+  protected setEmptyClass() {
+    this.toggleClass('is-empty', !this.collection || this.collection.visibleLength === 0);
   }
 
+  /**
+   * Destroys the collection view, removing event listeners and child views.
+   */
   destroy() {
     this.destroyChildItems();
-    this.collection?.off({ listener: this });
-
-    // @ts-ignore: Inentionally removing properties for clean up, but normally this is not allowed
+    if (this.collection) {
+      this.collection.off({ listener: this });
+    }
     delete this.collection;
 
     return super.destroy();

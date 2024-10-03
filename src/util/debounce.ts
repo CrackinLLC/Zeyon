@@ -5,7 +5,10 @@
 // - Aggregation can be disabled by passing "false" as the third argument to the factory.
 export function debounce<T>(
   func: (aggregatedArgs: T, collectedPrimitives?: T[]) => void,
-  { wait = 50, shouldAggregate = true }: { wait?: number; shouldAggregate?: boolean } = {},
+  {
+    wait = 50,
+    shouldAggregate = true,
+  }: { wait?: number; shouldAggregate?: boolean } = {}
 ): (...args: T[]) => void {
   let timeout: ReturnType<typeof setTimeout>;
   let argsAccumulator: any = shouldAggregate ? undefined : {}; // Accumulates objects or arrays
@@ -25,7 +28,7 @@ export function debounce<T>(
           if (Array.isArray(arg)) {
             // Concatenate arrays
             argsAccumulator = [...argsAccumulator, ...arg];
-          } else if (typeof arg === 'object') {
+          } else if (typeof arg === "object") {
             // Push objects into the accumulator array
             argsAccumulator.push(arg);
           } else {
@@ -39,7 +42,10 @@ export function debounce<T>(
 
     clearTimeout(timeout);
     timeout = setTimeout(() => {
-      func(argsAccumulator, primitiveAccumulator.length ? primitiveAccumulator : undefined);
+      func(
+        argsAccumulator,
+        primitiveAccumulator.length ? primitiveAccumulator : undefined
+      );
       argsAccumulator = shouldAggregate ? undefined : {}; // Reset after invoking the function
       primitiveAccumulator = []; // Clear primitive accumulator
     }, wait);

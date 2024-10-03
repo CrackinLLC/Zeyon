@@ -18,17 +18,19 @@ Extensibility: Designed to be modular, allowing developers to add or replace com
 
 HarnessUI is designed to be extended with additional modules that enhance its capabilities:
 
-### Interface
+### Client-side
 
+- _SPA Package_: A more opinionated expansion of HarnessUI specifically to facilitate single-page applications, providing and expanded toolkit for routing and state management.
+  **The SPA Package has a server-side component for dynamic module loading and currently requires a node environment running on the server.**
 - _Notifications Package_: Implement real-time notifications within your application.
 - _Tip Package_: Support for dynamically generated and responsive tips (commonly and tragically referred to as "tooltips").
+- _Cache Package_: Automatic client-side caching of all state related data, as well as automatic rehydration on refresh.
 
-### Server
+### Server-side
 
-- _HarnessAPI_: A server-side framework optimized to work seamlessly with HarnessUI, providing a PostgreSQL integration and API services.
-- _SPA Package_: A more opinionated expansion of HarnessUI specifically to facilitate single-page applications, providing and expanded toolkit for routing and state management.
-- _Login Package_: Full support for creating new user-accounts, along with session management using PassportJS.
-- _Payments Package_: Allow for the transaction of payments through your platform in a clean an unobtrusive way. Integrates with multiple third-party payment gateways.
+- _HarnessAPI_: A server-side library optimized to work seamlessly with HarnessUI, providing a PostgreSQL integration and API services. HarnessAPI is currently dependant on Express.js.
+- _Login/Session Package_: Full support for creating new user-accounts, along with session management using PassportJS.
+- _Payments Package_: Allow for the payments through your platform in a clean an unobtrusive way. Integrates with multiple third-party gateways.
 
 Names for all packages/modules beyond HarnessUI and HarnessAPI are subject to change.
 

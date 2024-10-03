@@ -1,146 +1,114 @@
-import Handlebars from "handlebars"; // TODO: Research and Consider moving to Template7
-import {
-  AttachReference,
-  BaseViewOptions,
-  ErrorStateOptions,
-  errorTemplate,
-  LoaderMarkup,
-  LoaderType,
-  RenderOptions,
-} from "./_imports/view";
-import type ApplicationCore from "./app";
-import Emitter from "./emitter";
-import BaseModel from "./model";
-// import { TipDirection } from "./tip/_imports/_baseTip";
-// import type SimpleTip from "./tip/simple";
-import { getAttributesType } from "./util/attributes";
-import { convertToRootElement, RootElement } from "./util/element";
-import { IconType } from "./util/icons";
-import { getUniqueId, toHyphenCase } from "./util/string";
+import type ApplicationCore from './app';
+import Emitter from './emitter';
+import { AttachReference, ErrorStateOptions, errorTemplate, RenderOptions, ViewOptions } from './imports/view';
+import Model from './model';
+import { convertToRootElement, RootElement } from './util/element';
+import { getUniqueId, toHyphenCase } from './util/string';
 
-export default class BaseView extends Emitter {
-  static tagName = "div";
-  static binaryId: string; // TODO: Not needed until we move back into dynamic modular loading of classes
+export default abstract class View extends Emitter {
+  static tagName = 'div';
   static isComponent: boolean;
   static isScreen: boolean;
+  static defaultOptions: ViewOptions = {};
 
   declare el: RootElement;
   protected ui: { [key: string]: string } = {};
-  protected errorEl: HTMLElement | undefined;
+  protected errorEl?: HTMLElement;
   protected renderOptions: RenderOptions = {};
 
   private _viewId: string = getUniqueId();
   private _ui: { [key: string]: NodeListOf<HTMLElement> | HTMLElement } = {};
 
-  protected children: { [id: string]: BaseView } = {};
-  model: BaseModel | undefined;
-  isReady: Promise<BaseView>;
-  isRendered: Promise<BaseView>;
-  resolveIsRendered: (value: BaseView | PromiseLike<BaseView>) => void;
-  isDestroyed: boolean = false;
+  protected children: { [id: string]: View } = {};
+  protected model?: Model;
+  public isReady?: Promise<this>;
+  public isRendered?: Promise<this>;
+  private resolveIsRendered!: (value: this) => void;
+  protected isDestroyed: boolean = false;
 
-  protected compiledTemplate: HandlebarsTemplateDelegate | undefined;
-  protected template: string | undefined;
-  protected templateOptions: string[] | undefined = [];
-  protected templateWrapper: string | undefined; // Allows for a parent to wrap the template, for extending views. Will not render unless we have a template.
-  protected templateWrapperOptions: string[] | undefined = [];
+  protected compiledTemplate?: HandlebarsTemplateDelegate;
+  protected template?: string;
+  protected templateOptions: string[] = [];
+  protected templateWrapper?: string;
+  protected templateWrapperOptions: string[] = [];
 
-  constructor(
-    public options: BaseViewOptions = {},
-    protected app: ApplicationCore
-  ) {
+  readonly options: ViewOptions;
+
+  constructor(options: ViewOptions = {}, protected app: ApplicationCore) {
     super({ customEvents: options.customEvents, includeNativeEvents: true });
 
-    // Store our resolver seperately so different extending views can resolve as approproate
-    const { promise: isRenderedPromise, resolve: isRenderedResolve } =
-      Promise.withResolvers<BaseView>();
+    // Merge default options
+    const defaultOptions = (this.constructor as typeof View).defaultOptions || {};
+    this.options = { ...defaultOptions, ...options };
+
+    // Initialize promises for readiness and rendering
+    const { promise: isRenderedPromise, resolve: isRenderedResolve } = Promise.withResolvers<this>();
     this.isRendered = isRenderedPromise;
     this.resolveIsRendered = isRenderedResolve;
 
+    if (this.options.id) {
+      this.setViewId(this.options.id);
+    }
+
     this.isReady = new Promise(async (resolve) => {
-      if (this.options.id) {
-        this.setViewId(this.options.id);
-      }
-
-      if (this.options.model) {
-        this.model = await this.setModel();
-      }
-
-      return resolve(this);
-    }).then(async () => {
-      await this.initialize();
-      return this;
+      await Promise.all([this.initialize(), this.setModel().then((model) => (this.model = model))]);
+      resolve(this);
     });
   }
 
-  // Override this method in child views to conduct additional asyncronous processes before rendering begins
-  async initialize(): Promise<void> {}
+  /**
+   * Initializes the view. Subclasses should override this method to perform asynchronous operations before rendering.
+   */
+  protected async initialize(): Promise<void> {}
 
-  async render(): Promise<BaseView> {
+  public async render(): Promise<this> {
     if (this.isDestroyed) {
-      return Promise.reject(new Error("Component is destroyed"));
+      return Promise.reject(new Error('Component is destroyed'));
     }
 
     await this.isReady;
 
-    if (!this.compiledTemplate) {
-      let template: HandlebarsTemplateDelegate | undefined;
-
-      if (this.template) {
-        if (!this.templateWrapper) {
-          template = BaseView.getCompiledTemplate(this.template);
-        } else {
-          template = BaseView.getCompiledTemplate(
-            this.templateWrapper.replace("{{content}}", this.template)
-          );
-        }
-      }
-
-      this.compiledTemplate = template;
+    if (!this.compiledTemplate && this.template) {
+      const templateContent = this.templateWrapper
+        ? this.templateWrapper.replace('{{content}}', this.template)
+        : this.template;
+      this.compiledTemplate = Handlebars.compile(templateContent);
     }
 
-    this.el = convertToRootElement(
-      document.createElement(
-        this.renderOptions.tagName || this.getStaticProperty("tagName")
-      ),
-      this
-    );
-    let name = this.getStaticProperty("name");
-    name = name.charAt(0) === "_" ? name.slice(1) : name;
+    const tagName = this.renderOptions.tagName || (this.constructor as typeof View).tagName;
+    this.el = convertToRootElement(document.createElement(tagName), this);
 
-    const isScreen = this.getStaticProperty("isScreen");
+    let name = (this.constructor as any).name;
+    name = name.charAt(0) === '_' ? name.slice(1) : name;
+
+    const isScreen = (this.constructor as any).isScreen;
 
     if (isScreen) {
-      this.addClass("is-standard-screen");
+      this.addClass('is-standard-screen');
     }
-    if (this.getStaticProperty("isComponent") && !isScreen) {
+    if ((this.constructor as any).isComponent && !isScreen) {
       this.addClass(`component-${toHyphenCase(name)}`);
     } else {
-      this.el.setAttribute("id", name);
+      this.el.setAttribute('id', name);
     }
 
     this.addClass(...(this.options.classNames || []));
     this.setAttributes(this.options.attributes);
 
-    // These methods can be overridden for views that need special handling
     this.renderTemplate();
     this.attachViewElement();
     this.generateUiSelections();
 
     if (this.options.preventDefault) {
-      this.el.addEventListener("click", (event: MouseEvent) =>
-        event.preventDefault()
-      );
+      this.el.addEventListener('click', (event: MouseEvent) => event.preventDefault());
     }
 
-    // Handle subsequent re-renders of the view running only required processes
-    // If child view is overwritting "render", this will overwrite that
-    // Should always try and use an onRender method in extending views instead of render
+    // Override render to handle re-rendering
     this.render = async () => {
       if (this.isDestroyed) return this;
 
       this.off({ listener: this });
-      this.el.innerHTML = "";
+      this.el.innerHTML = '';
       this.renderTemplate();
       this.generateUiSelections();
       await this.onRender();
@@ -151,19 +119,17 @@ export default class BaseView extends Emitter {
     await this.onRender();
 
     if (this.isDestroyed) {
-      // View can potentially be destroyed while awaiting onRender
-      return Promise.reject(new Error("Component is destroyed"));
+      return Promise.reject(new Error('Component is destroyed'));
     }
 
     this.resolveIsRendered(this);
     return this;
   }
 
-  protected async onRender() {}
-
-  static getCompiledTemplate(template: string) {
-    return Handlebars.compile(template);
-  }
+  /**
+   * Hook called after rendering. Subclasses can override this method to perform actions after the view is rendered.
+   */
+  protected async onRender(): Promise<void> {}
 
   setErrorState(msg: string, options: ErrorStateOptions = {}) {
     if (this.errorEl) {
@@ -171,13 +137,13 @@ export default class BaseView extends Emitter {
     }
 
     (options.attachTo || this.el).append((this.errorEl = errorTemplate(msg)));
-    this.addClass("is-error");
+    this.addClass('is-error');
   }
 
   protected removeErrorState() {
     this.errorEl?.remove();
     this.errorEl = undefined;
-    this.removeClass("is-error");
+    this.removeClass('is-error');
   }
 
   attachViewElement() {
@@ -186,12 +152,12 @@ export default class BaseView extends Emitter {
 
     // We have an attachTo value that is something other than a DOM element
     if (!(attachTo instanceof HTMLElement)) {
-      if (typeof attachTo === "string") {
-        attachTo = this.getElementBySelector(attachTo) || "";
+      if (typeof attachTo === 'string') {
+        attachTo = this.getElementBySelector(attachTo) || '';
       } else if (attachTo instanceof NodeList) {
         attachTo = attachTo[0];
       } else if (isAttachReference(attachTo)) {
-        attachTo = attachTo.view.getSingleUiById(attachTo.id) || "";
+        attachTo = attachTo.view.getSingleUiById(attachTo.id) || '';
       }
     }
 
@@ -218,9 +184,7 @@ export default class BaseView extends Emitter {
     return this.el;
   }
 
-  getSingleUiById<T extends HTMLElement = HTMLElement>(
-    id: string
-  ): T | undefined {
+  getSingleUiById<T extends HTMLElement = HTMLElement>(id: string): T | undefined {
     const el = this._ui[id];
 
     if (el instanceof NodeList) {
@@ -232,9 +196,7 @@ export default class BaseView extends Emitter {
     return undefined;
   }
 
-  getListUiById<T extends HTMLElement = HTMLElement>(
-    id: string
-  ): NodeListOf<T> | undefined {
+  getListUiById<T extends HTMLElement = HTMLElement>(id: string): NodeListOf<T> | undefined {
     const els = this._ui[id];
 
     if (els && els instanceof NodeList) {
@@ -248,12 +210,10 @@ export default class BaseView extends Emitter {
     return (this.el && this.el.querySelector(selector)) || null;
   }
 
-  protected generateUiSelections(selectorAttribute: string = "js") {
+  protected generateUiSelections(selectorAttribute: string = 'js') {
     if (this.ui) {
       Object.entries(this.ui).forEach(([id, selector]) => {
-        const selection = this.el.querySelectorAll(
-          `[data-${selectorAttribute}=${selector}]`
-        );
+        const selection = this.el.querySelectorAll(`[data-${selectorAttribute}=${selector}]`);
         const isMultiSelect = selection.length > 1;
 
         if (selection.length > 0) {
@@ -269,15 +229,10 @@ export default class BaseView extends Emitter {
 
   protected renderTemplate() {
     if (this.compiledTemplate && !this.isDestroyed) {
-      this.el.innerHTML = this.compiledTemplate(
-        this.getTemplateOptions([
-          ...(this.templateWrapperOptions || []),
-          ...(this.templateOptions || []),
-        ])
-      );
+      this.el.innerHTML = this.compiledTemplate(this.getTemplateOptions());
 
       // Intercept anchor tag clicks and handle them in the app
-      this.el.addEventListener("click", (event: MouseEvent) => {
+      this.el.addEventListener('click', (event: MouseEvent) => {
         // Ignore, if the event's default action has already been prevented
         if (event.defaultPrevented) {
           return;
@@ -286,97 +241,48 @@ export default class BaseView extends Emitter {
         // Traverse up the DOM tree to find the nearest ancestor 'a' tag
         let targetElement = event.target as HTMLElement | null;
         while (targetElement && targetElement !== this.el) {
-          if (targetElement.tagName.toLowerCase() === "a") break;
+          if (targetElement.tagName.toLowerCase() === 'a') break;
           targetElement = targetElement.parentElement;
         }
 
-        if (targetElement && targetElement.tagName.toLowerCase() === "a") {
+        if (targetElement && targetElement.tagName.toLowerCase() === 'a') {
           const anchor = targetElement as HTMLAnchorElement;
-          const href = anchor.getAttribute("href");
+          const href = anchor.getAttribute('href');
 
-          if (href && href !== "#") {
-            console.log("We caught an anchor click and are handling it.");
+          if (href && href !== '#') {
+            console.log('We caught an anchor click and are handling it.');
 
             event.preventDefault();
             this.app.navigate(href);
           }
         }
       });
-
-      this.isReady.then(() => {
-        // Find tip attributes and initialize automatically
-        const tipElements: HTMLElement[] = this.el.dataset.tip ? [this.el] : [];
-        this.el.querySelectorAll("[data-tip]").forEach((el: HTMLElement) => {
-          if (el.dataset.tip!.length > 0) tipElements.push(el);
-        });
-
-        tipElements.forEach((el) => {
-          const content = el.dataset.tip || "";
-
-          el.addEventListener("mouseenter", () => {
-            if (el.dataset.tipDisabled) return;
-
-            const directionMap = {
-              top: TipDirection.Top,
-              bottom: TipDirection.Bottom,
-              left: TipDirection.Left,
-              right: TipDirection.Right,
-            };
-
-            this.app.tipController.load<SimpleTip>("simple", {
-              alignTo: el,
-              direction:
-                directionMap[el.dataset.tipDirection || ""] ||
-                TipDirection.Bottom,
-              message: content,
-              // showDelay: 200, // TODO: Currently our tips are not handling showDelay well. Need to fix this.
-              attachGap: 5,
-              hideOnMouseOut: true,
-            });
-          });
-        });
-      });
     }
   }
 
-  protected getTemplateOptions(templateOptionStrings: string[]) {
-    const optionValues = {};
-
-    templateOptionStrings.forEach((option: string) => {
-      if (option === "model") {
-        optionValues["model"] = this.model?.getAttributes();
-      } else if (option === "collection") {
-        optionValues["collection"] = {
-          items: this["collection"]?.getVisibleAttributes(),
-          type: this["collection"]?.getType(),
-        };
-      } else if (option === "id") {
-        optionValues["id"] = this.getViewId();
-      } else {
-        optionValues[option] = this.options[option] || this[option];
-      }
-    });
-
-    return optionValues;
+  protected getTemplateOptions(optionValues: Record<string, unknown> = {}): Record<string, unknown> {
+    return {
+      id: this.getViewId(),
+      ...(this.model ? { model: this.model.getAttributes() } : {}),
+      ...(this.model ? { modelType: this.model.getType() } : {}),
+      ...this.options,
+      ...optionValues,
+    };
   }
 
   protected registerPartialTemplate(name: string, template: string) {
     Handlebars.registerPartial(name, template);
   }
 
-  async newChild<V extends BaseView>(
-    id: string,
-    viewOptions: V["options"],
-    ...more: unknown[]
-  ): Promise<V> {
+  async newChild<V extends View>(id: string, viewOptions: V['options'], ...more: unknown[]): Promise<V> {
     if (this.isDestroyed) {
-      return Promise.reject(new Error("Component is destroyed"));
+      return Promise.reject(new Error('Component is destroyed'));
     }
 
     return this.app.newInstance<V>(id, viewOptions, ...more).then((child) => {
       if (this.isDestroyed) {
         child.destroy(); // If our parent was destroyed while waiting to load the child
-        return Promise.reject(new Error("Component is destroyed"));
+        return Promise.reject(new Error('Component is destroyed'));
       }
 
       child.render();
@@ -386,7 +292,7 @@ export default class BaseView extends Emitter {
     });
   }
 
-  getChildById<T extends BaseView>(id: string): T | undefined {
+  getChildById<T extends View>(id: string): T | undefined {
     const child = this.children[id];
 
     if (child) return child as T;
@@ -394,10 +300,8 @@ export default class BaseView extends Emitter {
     return;
   }
 
-  getChildByModelId<T extends BaseView>(id: number): T | undefined {
-    return Object.values(this.children).find(
-      (child) => child.getId() === id
-    ) as T;
+  getChildByModelId<T extends View>(id: number): T | undefined {
+    return Object.values(this.children).find((child) => child.getId() === id) as T;
   }
 
   protected destroyChildById(id: string) {
@@ -423,45 +327,35 @@ export default class BaseView extends Emitter {
     return this.model?.getId() || undefined;
   }
 
-  getModel(): BaseModel | undefined {
+  getModel(): Model | undefined {
     return this.model;
   }
 
-  protected async setModel(): Promise<BaseModel | undefined> {
+  protected async setModel(): Promise<Model | undefined> {
     if (!this.options.model) {
       return;
-    } else if (this.options.model instanceof BaseModel) {
+    } else if (this.options.model instanceof Model) {
       return this.options.model;
     }
 
-    let model: BaseModel | undefined;
+    let model: Model | undefined;
     const attributes = this.options.model;
 
-    if (typeof attributes === "string") {
-      model = await this.app.newInstance<BaseModel>(
-        `model-${this.options.model}`
-      );
+    if (typeof attributes === 'string') {
+      model = await this.app.newInstance<Model>(`model-${this.options.model}`);
     } else {
-      const type = this.options.modelType || getAttributesType(attributes);
+      const type = this.options.modelType;
 
       if (type) {
         if (Array.isArray(type)) {
-          console.warn(
-            `Ambiguous model type: ${type.join(
-              ", "
-            )}. Please specify modelType in view options.`,
-            this
-          );
+          console.warn(`Ambiguous model type: ${type.join(', ')}. Please specify modelType in view options.`, this);
         } else {
-          model = await this.app.newInstance<BaseModel>(`model-${type}`, {
+          model = await this.app.newInstance<Model>(`model-${type}`, {
             attributes,
           });
         }
       } else {
-        console.warn(
-          `Unknown model type. Please specify modelType in view options.`,
-          this
-        );
+        console.warn(`Unknown model type. Please specify modelType in view options.`, this);
       }
     }
 
@@ -518,199 +412,70 @@ export default class BaseView extends Emitter {
     return this;
   }
 
-  getStaticProperty(property: string) {
-    return this.constructor[property];
-  }
-
   // Only applies to views that are defined as screens, but we haven't (yet?) defined a seperate class for them
   // Should be overridden by any class that needs to intercept navigation
   async beforeNavigate(newPath: string): Promise<boolean> {
     return !!newPath || true;
   }
 
-  destroy(): void {
+  public destroy(): void {
     if (this.isDestroyed) return;
     this.isDestroyed = true;
 
     this.onDestroy();
     this.destroyChildren();
 
-    if (this.model) {
-      this.model.off({ listener: this });
-    }
+    this.model?.off({ listener: this });
 
-    // Remove event listeners attached directly to the newEl
-    // TODO: This isn't working, and is instead leaving clones in the dom
-    // this.el.replaceWith(this.el.cloneNode(false) as HTMLElement);
-    for (const el of Object.values(this._ui)) {
+    // Clean up UI elements
+    Object.values(this._ui).forEach((el) => {
       if (el instanceof NodeList) {
         el.forEach((e) => e.remove());
       } else {
         el.remove();
       }
-    }
+    });
 
-    this.el && this.el["destroy"]();
+    this.el?.remove();
     this.errorEl?.remove();
 
-    // @ts-ignore: Inentionally removing properties for clean up, but normally this is not allowed
-    delete this.el;
-    // @ts-ignore
-    delete this.ui;
-    // @ts-ignore
-    delete this._ui;
-    delete this.errorEl;
-    // @ts-ignore
-    delete this.isReady;
-    // @ts-ignore
-    delete this.resolveIsReady;
-    // @ts-ignore
-    delete this.isRendered;
-    // @ts-ignore
-    delete this.resolveIsRendered;
-    // Note: When should we destroy the model here?
-    delete this.model;
-    // @ts-ignore
-    delete this.options;
-    delete this.compiledTemplate;
-    delete this.template;
-    delete this.templateOptions;
-    delete this.templateWrapper;
-    delete this.templateWrapperOptions;
+    // Nullify properties
+    this.el = null!;
+    this.ui = {};
+    this._ui = {};
+    this.errorEl = undefined;
+    this.isReady = undefined;
+    this.isRendered = undefined;
+    this.model = undefined;
+    // @ts-ignore - Cleaning up for purposes of destroying the view
+    this.options = {};
+    this.compiledTemplate = undefined;
+    this.template = undefined;
+    // @ts-ignore - Cleaning up for purposes of destroying the view
+    this.templateOptions = undefined;
+    this.templateWrapper = undefined;
+    // @ts-ignore - Cleaning up for purposes of destroying the view
+    this.templateWrapperOptions = undefined;
 
-    super.destroyEvents();
-    super.emit("destroyed");
+    this.off({ force: true });
+    super.emit('destroyed');
   }
 
   destroyChildren() {
-    Object.values(this.children).forEach((child) =>
-      (child as BaseView).destroy()
-    );
+    Object.values(this.children).forEach((child) => (child as View).destroy());
     this.children = {};
   }
 
   onDestroy() {}
 }
 
-Handlebars.registerHelper("eq", function (a, b) {
-  return a === b;
-});
-
-Handlebars.registerHelper(
-  "ifCond",
-  function (v1: number, operator: string, v2: number, options: any) {
-    switch (operator) {
-      case "==":
-        return v1 == v2 ? options.fn(this) : options.inverse(this);
-      case "===":
-        return v1 === v2 ? options.fn(this) : options.inverse(this);
-      case "!=":
-        return v1 != v2 ? options.fn(this) : options.inverse(this);
-      case "!==":
-        return v1 !== v2 ? options.fn(this) : options.inverse(this);
-      case "<":
-        return v1 < v2 ? options.fn(this) : options.inverse(this);
-      case "<=":
-        return v1 <= v2 ? options.fn(this) : options.inverse(this);
-      case ">":
-        return v1 > v2 ? options.fn(this) : options.inverse(this);
-      case ">=":
-        return v1 >= v2 ? options.fn(this) : options.inverse(this);
-      case "&&":
-        return v1 && v2 ? options.fn(this) : options.inverse(this);
-      case "||":
-        return v1 || v2 ? options.fn(this) : options.inverse(this);
-      default:
-        return options.inverse(this);
-    }
-  }
-);
-
-Handlebars.registerHelper("any", function (...args) {
-  // The last argument is a Handlebars options object
-  const actualArgs = args.slice(0, -1);
-
-  // Return true if any argument is truthy
-  return actualArgs.some((arg) => Boolean(arg));
-});
-
-Handlebars.registerHelper("all", function (...args) {
-  // The last argument is a Handlebars options object
-  const actualArgs = args.slice(0, -1);
-
-  // Return true if all arguments are truthy
-  return actualArgs.every((arg) => Boolean(arg));
-});
-
-Handlebars.registerHelper("ifOr", function (value1, value2) {
-  return value1 || value2;
-});
-
-Handlebars.registerHelper("log", function (...args) {
-  console.log(...args);
-});
-
-Handlebars.registerHelper(
-  "math",
-  function (lvalue: number, operator: string, rvalue: number) {
-    return {
-      "+": lvalue + rvalue,
-      "-": lvalue - rvalue,
-      "*": lvalue * rvalue,
-      "/": lvalue / rvalue,
-      "%": lvalue % rvalue,
-    }[operator];
-  }
-);
-
-Handlebars.registerHelper(
-  "getIcon",
-  function (icon: IconType, classes: string, style: string) {
-    const styles = ["solid", "regular"];
-    const list = ["icon", `fa-${icon}`];
-
-    if (typeof classes === "string") {
-      list.push(...classes.split(" "));
-    }
-
-    if (typeof style === "string" && styles.includes(style)) {
-      list.push(`fa-${style}`);
-    } else {
-      list.push(`fa-solid`);
-    }
-
-    return new Handlebars.SafeString(
-      icon ? `<i class="${list.join(" ")}"></i>` : ""
-    );
-  }
-);
-
-Handlebars.registerHelper(
-  "getLoader",
-  function (loader: LoaderType, classes?: string) {
-    const list = ["loader", loader];
-
-    if (classes && typeof classes === "string") {
-      list.push(...classes.split(" "));
-    }
-
-    return new Handlebars.SafeString(
-      loader
-        ? `<span class="${list.join(" ")}" aria-hidden="true">${
-            LoaderMarkup[loader]
-          }</span>`
-        : ""
-    );
-  }
-);
-
 export function isAttachReference(val: any): val is AttachReference {
   return (
     val &&
-    typeof val === "object" &&
-    "view" in val &&
-    "id" in val &&
-    val.view instanceof BaseView && // Ensure 'view' is a BaseView instance
-    typeof val.id === "string" // Ensure 'id' is a string
+    typeof val === 'object' &&
+    'view' in val &&
+    'id' in val &&
+    val.view instanceof View && // Ensure 'view' is a View instance
+    typeof val.id === 'string' // Ensure 'id' is a string
   );
 }

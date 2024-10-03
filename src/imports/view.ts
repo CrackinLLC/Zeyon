@@ -1,5 +1,4 @@
 import type Model from "../model";
-import type { Attributes } from "../util/attributes";
 import type View from "../view";
 
 export interface AttachReference {
@@ -16,7 +15,7 @@ export interface ViewOptions {
   customEvents?: string[];
   preventDefault?: boolean; // Capture click events on view el and prevent default behavior
 
-  model?: Model | Attributes | string;
+  model?: Model | Partial<{}> | string;
   modelType?: string; // Will attempt to infer model type based on attributes, but for ambiguous cases should explicitly state type here
 }
 
@@ -28,14 +27,6 @@ export interface ErrorStateOptions {
   preventHanding?: boolean; // Prevent the parent from handling the removal of the error state
   attachTo?: HTMLElement;
 }
-
-export const enum LoaderType {
-  Slosh = "slosh-loader",
-}
-
-export const LoaderMarkup = {
-  "slosh-loader": '<div class="inner"></div>',
-};
 
 export const errorTemplate = (msg: string): HTMLElement => {
   const errorEl = document.createElement("div");
