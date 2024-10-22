@@ -1,9 +1,6 @@
-export type CustomEventHandler = (
-  ev: Event | CustomEvent,
-  name?: string
-) => void;
+export type CustomEventHandler = (ev: Event | CustomEvent, name?: string) => void;
 
 export interface EmitterOptions {
-  customEvents?: string[];
+  events?: string[];
   includeNativeEvents?: boolean;
 }

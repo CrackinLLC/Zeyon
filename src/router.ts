@@ -1,71 +1,41 @@
-import type ApplicationCore from './app';
+import type HarnessApp from './app';
 import Emitter from './emitter';
-import type {
-  NavigateEventPayload,
-  RouterOptions,
-  ScreenConfig,
-  ScreenMap,
-  UrlMap,
-  UrlMapEntry,
-} from './imports/router';
+import type { RouteConfig, RouteNode, RouterOptions } from './imports/router';
 import type View from './view';
 
-export default class Router extends Emitter {
-  private currentSectionId: string | undefined;
-  private currentScreenId: string | undefined;
-  private currentScreenView: View | undefined;
+export default class Router<CustomRouteProps = any> extends Emitter {
   private currentPath: string = '';
+  private currentRoute: View | undefined;
+  private routes: RouteConfig<CustomRouteProps>[];
+  private urlMap: RouteNode = { segment: '', children: new Map() };
+  private urlPrefix: string | undefined;
+  private notFound: RouteConfig<CustomRouteProps> | undefined; // Special property for storing 404 page, if provided
 
-  private window: Window;
-  private screenMap: ScreenMap;
-  private urlMap: UrlMap = {};
-  private defaultUrl: string | undefined;
-  private baseUrl: string | undefined;
+  constructor({ routes, urlPrefix }: RouterOptions<CustomRouteProps>, app: HarnessApp) {
+    super(
+      {
+        events: [
+          'navigate', // A new route was loaded
+          'query', // The query parameter has changed
+        ],
+      },
+      app,
+    );
 
-  constructor({ screenMap, window, baseUrl, defaultUrl }: RouterOptions, private app: ApplicationCore) {
-    super({
-      customEvents: [
-        'navigate', // New section or screen is loaded
-        'query', // Query parameter is changed
-      ],
-    });
+    this.routes = routes;
+    this.urlPrefix = urlPrefix;
 
-    this.screenMap = screenMap;
-    this.window = window;
-    this.currentPath = this.standardizeUrl(new URL(this.window.location.href).pathname);
-
-    if (defaultUrl) {
-      this.defaultUrl = defaultUrl;
-    }
-
-    if (baseUrl) {
-      this.baseUrl = baseUrl;
-    }
-
-    // Build the UrlMap from the ScreenMap
-    Object.entries(this.screenMap).forEach(([section, { screens }]) => {
-      screens.forEach((screen) => {
-        this.urlMap[this.standardizeUrl(screen.url)] = {
-          viewBinaryId: screen.viewBinaryId,
-          sectionId: section,
-          screenId: screen.id,
-        };
-      });
-    });
+    this.currentPath = this.standardizeUrl(new URL(this.app.window.location.href).pathname);
+    this.preprocessRoutes();
   }
 
-  start(app: ApplicationCore) {
-    this.app = app;
-    this.window.addEventListener('popstate', () => this.loadScreenFromUrl());
-    this.navigate({ preserveQuery: true, force: true }); // Load initial screen view
-
-    this.app.user.on('logout', {
-      handler: () => this.navigate({ path: '/', force: true }),
-    });
+  start() {
+    this.app.window.addEventListener('popstate', () => this.loadRouteFromUrl());
+    this.navigate({ preserveQuery: true, force: true }); // Load the initial route view
   }
 
   async navigate({
-    path = this.window.location.pathname,
+    path = this.app.window.location.pathname,
     preserveQuery = false,
     force = false,
   }: {
@@ -77,180 +47,192 @@ export default class Router extends Emitter {
 
     // Hook to allow a view to prevent navigation if needed
     let canProceed = true;
-    if (this.currentScreenView) {
-      canProceed = await this.currentScreenView.beforeNavigate(path);
+    if (this.currentRoute?.beforeNavigate) {
+      canProceed = await this.currentRoute.beforeNavigate(path);
     }
     if (!canProceed) return;
 
-    const currentUrl = new URL(this.window.location.href);
+    const currentUrl = new URL(this.app.window.location.href);
     let newUrl = `${currentUrl.origin}${this.standardizeUrl(path, true)}`;
 
     if (preserveQuery) {
-      newUrl += currentUrl.search;
+      newUrl += currentUrl.search + currentUrl.hash;
     }
 
     // Prevent pushing to history if the path hasn't changed
-    if (newUrl !== this.window.location.href) {
-      this.window.history.pushState({}, '', newUrl);
+    if (newUrl !== this.app.window.location.href) {
+      this.app.window.history.pushState({}, '', newUrl);
     }
 
-    this.loadScreenFromUrl(force);
+    await this.loadRouteFromUrl(force);
   }
 
   back() {
-    this.window.history.back();
+    this.app.window.history.back();
   }
 
-  loadScreenFromUrl(force = false) {
-    const path = this.standardizeUrl(new URL(this.window.location.href).pathname);
+  async loadRouteFromUrl(force = false) {
+    const url = new URL(this.app.window.location.href);
+    const path = this.standardizeUrl(url.pathname);
 
     if (path !== this.currentPath || force) {
       this.currentPath = path;
 
-      const match = this.matchPathToUrlEntry(path);
+      const matchResult = this.matchPathToRoute(path);
+      let route: RouteConfig<CustomRouteProps> | undefined;
+      let params: Record<string, string> | undefined;
+      let customProps: CustomRouteProps | undefined;
 
-      if (match) {
-        const queryParams = Object.fromEntries(new URL(this.window.location.href).searchParams.entries());
-        this.currentScreenView = this.renderScreen(match.viewBinaryId, {
-          ...match.params,
-          ...queryParams,
-        });
-
-        if (this.currentScreenView) {
-          const { sectionId, screenId } = match;
-          const sectionChanging = sectionId !== this.currentSectionId;
-
-          if (sectionChanging) {
-            this.currentSectionId = sectionId;
-          }
-          this.currentScreenId = screenId;
-
-          const eventPayload: NavigateEventPayload = {
-            screenConfig: this.getScreenById(this.currentSectionId, this.currentScreenId)!,
-            ...(sectionChanging && {
-              sectionConfig: this.screenMap[this.currentSectionId].config,
-            }),
-          };
-
-          this.emit('navigate', eventPayload);
-        }
+      if (matchResult) {
+        route = matchResult.route;
+        params = matchResult.params;
+        customProps = matchResult.customProps;
+      } else if (this.notFound) {
+        route = this.notFound;
+        customProps = route.custom;
       } else {
-        // No matching screen found. Attempting to extract section ID from the URL...
-        const pathSegments = this.currentPath.split('/').filter(Boolean);
-        const potentialSectionId = pathSegments[0];
-        const section = this.screenMap[potentialSectionId];
+        console.warn(`No matching route found for path: ${path}`);
+        return;
+      }
 
-        if (section && section.config.defaultUrl) {
-          return this.app.navigate(section.config.defaultUrl);
+      // TODO: Set a loading state on the app until render from route has resolved
+
+      const query = Object.fromEntries(url.searchParams.entries());
+      const hash = url.hash ? url.hash.substring(1) : undefined;
+
+      if (this.currentRoute) {
+        this.currentRoute.destroy();
+      }
+
+      try {
+        // Instantiate and render the new view
+        this.currentRoute = await this.app
+          .newInstance<View>(route.regId, {
+            ...(params && Object.keys(params).length ? { params } : {}),
+            ...(query ? { query } : {}),
+            ...(hash ? { hash } : {}),
+            attachTo: this.app.el,
+          })
+          .then((view) => view.render());
+
+        this.emit('navigate', { regId: route.regId, ...(customProps || {}) });
+      } catch (error) {
+        console.error('Error loading route:', error);
+      }
+    }
+  }
+
+  private matchPathToRoute(
+    path: string,
+  ):
+    | { route: RouteConfig<CustomRouteProps>; params?: Record<string, string>; customProps?: CustomRouteProps }
+    | undefined {
+    const segments = path.split('/').filter(Boolean);
+    let currentNode = this.urlMap;
+    const params: Record<string, string> = {};
+
+    for (const segment of segments) {
+      let nextNode = currentNode.children.get(segment);
+
+      if (!nextNode) {
+        // Check for dynamic segment
+        nextNode = currentNode.children.get(':###');
+        if (nextNode && nextNode.paramName) {
+          // Store the parameter value
+          params[nextNode.paramName] = decodeURIComponent(segment);
         } else {
-          // No defaultUrl, proceed to display the 404 page
-          const notFoundEntry = this.getScreenById('root', 'not-found');
-
-          if (notFoundEntry) {
-            console.warn(`No matching route found for path: ${path}`);
-            this.currentScreenView = this.renderScreen(notFoundEntry.viewBinaryId, {
-              path,
-            });
-          } else {
-            console.error('404 NotFoundView is missing from screenMap.');
-            this.app.sectionElement.innerHTML = '<h1>404: Page Not Found</h1>';
-          }
-        }
-      }
-    }
-  }
-
-  renderScreen(viewBinaryId: string, options: object): View | undefined {
-    let instance: View | undefined;
-
-    const fail = (error?: Error) => {
-      this.app.sectionElement.innerHTML = '<p>An error occurred while loading the screen.</p>';
-      console.error(
-        `Failed to render screen: ${this.currentSectionId}-${this.currentScreenId} at path: ${this.currentPath}`,
-      );
-      if (error) {
-        console.error(error);
-      }
-    };
-
-    try {
-      instance = this.app.newInstance<View>(viewBinaryId, {
-        ...options,
-        attachTo: this.app.sectionElement,
-      });
-    } catch (error) {
-      fail(error);
-    }
-
-    if (instance) {
-      this.app.sectionElement.innerHTML = '';
-
-      if (this.currentScreenView) {
-        this.currentScreenView.destroy();
-      }
-
-      instance.render();
-      instance.isReady.then(() => this.app.setLoadingState(false));
-    } else {
-      fail();
-    }
-
-    return instance;
-  }
-
-  // ... rest of the class remains unchanged, except for references to `view` replaced with `viewBinaryId`
-
-  private matchPathToUrlEntry(path: string): (UrlMapEntry & { params: Record<string, string> }) | undefined {
-    function getUrlSegments(url: string): string[] {
-      return url.split('/').filter((segment) => segment.length > 0);
-    }
-
-    for (const [urlPattern, entry] of Object.entries(this.urlMap)) {
-      const patternSegments = getUrlSegments(urlPattern);
-      const pathSegments = getUrlSegments(path);
-
-      if (patternSegments.length !== pathSegments.length) continue;
-
-      const params: Record<string, string> = {};
-      let isMatch = true;
-
-      for (let i = 0; i < patternSegments.length; i++) {
-        if (patternSegments[i].startsWith(':')) {
-          const paramName = patternSegments[i].substring(1);
-          params[paramName] = pathSegments[i];
-        } else if (patternSegments[i] !== pathSegments[i]) {
-          isMatch = false;
-          break;
+          return undefined; // No matching route
         }
       }
 
-      if (isMatch) {
-        return { ...entry, params };
-      }
+      currentNode = nextNode;
     }
 
-    console.warn(`No matching route found for path: ${path}`);
+    if (currentNode.config) {
+      return {
+        route: currentNode.config,
+        ...(params ? { params } : {}),
+        ...(currentNode.aggregatedCustom ? { customProps: currentNode.aggregatedCustom } : {}),
+      };
+    }
+
     return undefined;
   }
 
-  private getScreenById(sectionId: string, screenId: string): ScreenConfig | undefined {
-    return this.screenMap[sectionId]?.screens.find((s) => s.id === screenId);
+  private preprocessRoutes() {
+    const processConfig = (
+      config: RouteConfig<CustomRouteProps>,
+      currentNode: RouteNode<CustomRouteProps>,
+      parentCustom: CustomRouteProps,
+    ) => {
+      const segments = config.urlFragment.split('/').filter(Boolean);
+
+      segments.forEach((segment) => {
+        let node: RouteNode<CustomRouteProps> | undefined;
+
+        let paramName: string | undefined;
+
+        if (segment.startsWith(':')) {
+          // Dynamic segment
+          paramName = segment.substring(1);
+          node = currentNode.children.get(':###');
+          if (!node) {
+            node = { segment: ':###', children: new Map(), paramName };
+            currentNode.children.set(':###', node);
+          }
+        } else {
+          // Static segment
+          node = currentNode.children.get(segment);
+          if (!node) {
+            node = { segment, children: new Map() };
+            currentNode.children.set(segment, node);
+          }
+        }
+
+        currentNode = node;
+      });
+
+      // At the end of the segments, set the config
+      if (currentNode.config) {
+        throw new Error(`Duplicate route for this path: ${config.urlFragment}`);
+      }
+
+      // Aggregate custom properties from parent and current config
+      const aggregatedCustom = { ...parentCustom, ...(config.custom || {}) };
+      currentNode.config = config;
+      currentNode.aggregatedCustom = aggregatedCustom;
+
+      if (config.is404) {
+        this.notFound = config;
+      }
+
+      if (config.childRoutes) {
+        config.childRoutes.forEach((childConfig) => {
+          processConfig(childConfig, currentNode, aggregatedCustom);
+        });
+      }
+    };
+
+    // Start processing from the root node
+    this.routes.forEach((routeConfig) => {
+      processConfig(routeConfig, this.urlMap, {} as CustomRouteProps);
+    });
   }
 
   private standardizeUrl(url: string, addBase = false): string {
-    if (this.baseUrl) {
+    if (this.urlPrefix) {
       if (addBase) {
-        url = `${this.baseUrl}${url}`;
-      } else if (url.startsWith(this.baseUrl)) {
-        url = url.slice(this.baseUrl.length);
+        url = `${this.urlPrefix}${url}`;
+      } else if (url.startsWith(this.urlPrefix)) {
+        url = url.slice(this.urlPrefix.length);
       }
     }
 
     if (!url || url === '/') {
       return '/';
     } else {
-      // Ensure path always includes a leading and a trailing slash
-      return `/${url.replace(/^\/|\/$/g, '')}/`;
+      // Ensure path does not have trailing slash (unless it's root '/')
+      return `/${url.replace(/^\/|\/$/g, '')}`;
     }
   }
 }

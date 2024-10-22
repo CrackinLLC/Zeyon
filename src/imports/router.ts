@@ -1,43 +1,29 @@
-export interface SectionConfig {
-  id: string; // Unique identifier for the section. All lowercase and does not contain spaces.
-  name: string; // Human-friendly display string for section
-  defaultUrl?: string; // Default URL to navigate to when section is selected but no screen is specified
-  showHeader?: boolean;
-  hidden?: boolean; // Section is supported but is not exposed as an available section
+export interface RouterOptions<CustomRouteProps = any> {
+  routes: RouteConfig<CustomRouteProps>[];
+  urlPrefix?: string; // A custom url prefix used across the entire application
 }
 
-export interface ScreenConfig {
-  id: string; // Unique identifier for the screen. All lowercase and does not contain spaces.
-  viewBinaryId: string; // Binary identifier for the view class
-  name: string; // Human-friendly display string for screen
-  shortName?: string; // Abbreviated display string for screen
-  url: string;
-  hidden?: boolean; // Screen is supported but is not exposed as an available section
+export interface RouteConfig<CustomRouteProps = any> {
+  regId: string; // Unique registration id for the route. MUST BE UNIQUE across the entire application.
+  urlFragment: string; // Fragment to append to the url path (excludes leading/trailing slashes)
+
+  name?: string; // Human-friendly display string for route
+  childRoutes?: RouteConfig<CustomRouteProps>[];
+  is404?: boolean; // Defines the 404 page for the application (last defined takes precedence)
+
+  // Custom values passed into navigation events. Parent values are inherited by their childRoutes and can be overridden.
+  custom?: CustomRouteProps;
 }
 
-type Section = {
-  config: SectionConfig;
-  screens: ScreenConfig[];
-};
-
-export type ScreenMap = Record<string, Section>;
-
-export interface UrlMapEntry {
-  viewBinaryId: string;
-  sectionId: string;
-  screenId: string;
+// Internal map that reorganizes the routeConfigs for easier retrieval by url path
+export interface RouteNode<CustomRouteProps = any> {
+  segment: string; // The path segment leading to this node in the tree
+  children: Map<string, RouteNode<CustomRouteProps>>; // Child nodes
+  config?: RouteConfig<CustomRouteProps>; // The route config associated with this node
+  paramName?: string; // If node is dynamic, the name of the dynamic parameter
+  aggregatedCustom?: CustomRouteProps; // Aggregated custom properties
 }
 
-export type UrlMap = Record<string, UrlMapEntry>;
-
-export interface NavigateEventPayload {
-  sectionConfig?: SectionConfig;
-  screenConfig: ScreenConfig;
-}
-
-export interface RouterOptions {
-  screenMap: ScreenMap;
-  window: Window;
-  baseUrl?: string;
-  defaultUrl?: string;
-}
+export type NavigateEventPayload<CustomRouteProps = any> = {
+  regId: string;
+} & CustomRouteProps;

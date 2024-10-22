@@ -1,4 +1,4 @@
-import type ApplicationCore from './app';
+import type HarnessApp from './app';
 import Emitter from './emitter';
 import { AttachReference, ErrorStateOptions, errorTemplate, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
@@ -34,8 +34,8 @@ export default abstract class View extends Emitter {
 
   readonly options: ViewOptions;
 
-  constructor(options: ViewOptions = {}, protected app: ApplicationCore) {
-    super({ customEvents: options.customEvents, includeNativeEvents: true });
+  constructor(options: ViewOptions = {}, app: HarnessApp) {
+    super({ customEvents: options.customEvents, includeNativeEvents: true }, app);
 
     // Merge default options
     const defaultOptions = (this.constructor as typeof View).defaultOptions || {};

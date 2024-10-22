@@ -1,3 +1,4 @@
+import HarnessApp from './app';
 import type { CustomEventHandler, EmitterOptions } from './imports/emitter';
 import { debounce } from './util/debounce';
 import type { RootElement } from './util/element';
@@ -53,7 +54,7 @@ export default class Emitter {
    * Creates an instance of Emitter.
    * @param options - Emitter options including custom events and whether to include native events.
    */
-  constructor(readonly options: EmitterOptions = {}) {
+  constructor(readonly options: EmitterOptions = {}, protected app: HarnessApp) {
     const { customEvents = [], includeNativeEvents = false } = options;
 
     this.validEvents = [...generalEvents, ...customEvents];

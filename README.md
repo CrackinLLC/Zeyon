@@ -20,19 +20,17 @@ HarnessUI is designed to be extended with additional modules that enhance its ca
 
 ### Client-side
 
-- _SPA Package_: A more opinionated expansion of HarnessUI specifically to facilitate single-page applications, providing and expanded toolkit for routing and state management.
-  **The SPA Package has a server-side component for dynamic module loading and currently requires a node environment running on the server.**
-- _Notifications Package_: Implement real-time notifications within your application.
-- _Tip Package_: Support for dynamically generated and responsive tips (commonly and tragically referred to as "tooltips").
-- _Cache Package_: Automatic client-side caching of all state related data, as well as automatic rehydration on refresh.
+- _Dynamic module loading Package_: a server-side component for dynamic module loading and currently requires a node environment running on the server.
+- \_UI Components: A set of commonly used components such as a programmable button, text input, toggle switch, etc.
+- _Notifications_: Implement real-time notifications within your application.
+- _Tips_: Support for dynamically generated and responsive tips (commonly and tragically referred to as "tooltips").
+- _Caching_: Automatic client-side caching of all state related data, as well as automatic rehydration on refresh.
 
 ### Server-side
 
 - _HarnessAPI_: A server-side library optimized to work seamlessly with HarnessUI, providing a PostgreSQL integration and API services. HarnessAPI is currently dependant on Express.js.
-- _Login/Session Package_: Full support for creating new user-accounts, along with session management using PassportJS.
-- _Payments Package_: Allow for the payments through your platform in a clean an unobtrusive way. Integrates with multiple third-party gateways.
-
-Names for all packages/modules beyond HarnessUI and HarnessAPI are subject to change.
+- _Login/Session Management_: Full support for creating new user-accounts, along with session management using PassportJS.
+- _Payments Portal_: Allow for the payments through your platform in a clean an unobtrusive way. Integrates with multiple third-party gateways.
 
 ## Installation
 

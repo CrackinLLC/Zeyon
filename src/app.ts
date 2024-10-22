@@ -1,37 +1,38 @@
 import '../util/polyfill';
 import '../util/template';
 
-import Emitter from './emitter';
-import type { EmitterOptions } from './imports/emitter';
+import ClassRegistry from './classRegistry';
+import type { RouteConfig } from './imports/router';
 import { loaderTemplate } from './imports/view';
-import type Router from './router';
+import Router from './router';
 import type { BinaryClass, BinaryClassDefinition } from './util/type';
 
-declare global {
-  interface Window {
-    APP: ApplicationCore;
-  }
-}
-
-export interface ApplicationOptions extends EmitterOptions {
+export interface HarnessAppOptions<CustomRouteProps = any> {
   name?: string;
-  router: Router;
-  classMap: Map<string, BinaryClassDefinition>;
+  el: HTMLElement;
+  urlPrefix: string;
+  routes: RouteConfig<CustomRouteProps>[];
+  registryClassList: Record<string, BinaryClassDefinition>;
 }
 
 /**
  * The central hub of the application, managing interactions between components.
  */
-export default class ApplicationCore extends Emitter {
+export default class HarnessApp<CustomRouteProps = any> {
   /**
-   * Indicates whether the application has started.
-   */
-  public started = false;
-
-  /**
-   * Identifier for the current application running.
+   * Custom identifying string for the current application.
    */
   public name = '';
+
+  /**
+   * Root element for the application
+   */
+  public el: HTMLElement;
+
+  /**
+   * Indicates whether the application has started. Prevents application from being initialized multiple times.
+   */
+  public isStarted = false;
 
   /**
    * The application's router.
@@ -39,60 +40,43 @@ export default class ApplicationCore extends Emitter {
   public router: Router;
 
   /**
+   * A global reference for our window object to prevent window duplication
+   */
+  public window: Window;
+
+  /**
    * A map of class definitions for dynamic instantiation.
    */
-  private classMap: Map<string, BinaryClassDefinition>;
+  private registry: ClassRegistry;
 
   /**
-   * The main section element of the application.
-   */
-  private sectionElement: HTMLElement;
-
-  /**
-   * The body element's class list for global class manipulation.
-   */
-  private bodyClassList: DOMTokenList = document.body.classList;
-
-  /**
-   * The loading state element.
+   * A global loading state element.
    */
   private loadingState: HTMLElement | null = null;
 
   /**
-   * A promise that resolves when the application is ready.
-   */
-  public isReady: Promise<this>;
-
-  /**
-   * Initializes a new instance of the ApplicationCore class.
+   * Initializes a new instance of the HarnessApp class.
    * @param options - The application options.
    */
-  constructor(public options: ApplicationOptions) {
-    super({ customEvents: ['loaded:screen', 'loaded:section', 'click'] });
-
-    const { name, router, classMap } = options;
+  constructor(public options: HarnessAppOptions) {
+    const { name, el, urlPrefix, routes, registryClassList } = options;
 
     this.name = name || '';
-    this.router = router;
-    this.classMap = classMap;
-    this.sectionElement = document.querySelector('#app') as HTMLElement;
+    this.el = el;
+    this.window = window;
 
-    this.isReady = Promise.resolve(this);
+    this.router = new Router<CustomRouteProps>({ routes, urlPrefix }, this);
+    this.registry = new ClassRegistry({ registryClassList }, this);
   }
 
   /**
-   * Initializes the application.
+   * Starts the router which loads the first route into the DOM
    * @returns The application instance.
    */
-  public async initialize(): Promise<this> {
-    await this.isReady;
-
-    if (!this.started) {
-      this.started = true;
-
-      this.router.start(this);
-
-      document.body.addEventListener('click', (ev) => this.emit('click', ev));
+  public async start(): Promise<this> {
+    if (!this.isStarted) {
+      this.isStarted = true;
+      this.router.start();
     }
 
     return this;
@@ -103,7 +87,7 @@ export default class ApplicationCore extends Emitter {
    * @param urlFragment - The URL fragment to navigate to.
    * @param openNewTab - Whether to open the URL in a new tab.
    */
-  public navigate(urlFragment: string, openNewTab = false): void {
+  public navigate(urlFragment: string, openNewTab = false): this {
     const baseUrl = new URL(document.baseURI);
     const url = new URL(urlFragment, baseUrl);
 
@@ -112,6 +96,8 @@ export default class ApplicationCore extends Emitter {
     } else {
       this.router.navigate({ path: urlFragment });
     }
+
+    return this;
   }
 
   /**
@@ -126,7 +112,7 @@ export default class ApplicationCore extends Emitter {
     options: B['options'] = {},
     ...more: unknown[]
   ): Promise<B> {
-    const def = this.classMap.get(id);
+    const def = this.registry.getClass(id);
 
     if (!def) {
       const errorMessage = `Failed to locate class with id "${id}".`;
@@ -147,13 +133,13 @@ export default class ApplicationCore extends Emitter {
   }
 
   /**
-   * Toggles a global class on the body element.
+   * Toggles a classname on the root element.
    * @param className - The class name to toggle.
-   * @param add - Whether to add or remove the class.
+   * @param add - Whether to force add / remove the class.
    * @returns The application instance.
    */
-  public toggleGlobalClass(className: string, add?: boolean): this {
-    this.bodyClassList.toggle(className, add);
+  public toggleClass(className: string, add?: boolean): this {
+    this.el.classList.toggle(className, add);
     return this;
   }
 
@@ -169,7 +155,7 @@ export default class ApplicationCore extends Emitter {
 
     if (show && !this.loadingState) {
       this.loadingState = loaderTemplate({ wrapped: true });
-      this.sectionElement.appendChild(this.loadingState);
+      this.el.appendChild(this.loadingState);
     } else if (!show && this.loadingState) {
       this.loadingState.remove();
       this.loadingState = null;
