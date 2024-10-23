@@ -35,7 +35,7 @@ export default abstract class View extends Emitter {
   readonly options: ViewOptions;
 
   constructor(options: ViewOptions = {}, app: HarnessApp) {
-    super({ customEvents: options.customEvents, includeNativeEvents: true }, app);
+    super({ events: options.events, includeNativeEvents: true }, app);
 
     // Merge default options
     const defaultOptions = (this.constructor as typeof View).defaultOptions || {};
@@ -408,6 +408,16 @@ export default abstract class View extends Emitter {
     if (confirmedClassNames.length > 0) {
       this.el.classList.remove(...confirmedClassNames);
     }
+
+    return this;
+  }
+
+  removeClassByPrefix(prefix: string) {
+    this.el.classList.forEach((value: string) => {
+      if (value.startsWith(prefix)) {
+        this.el.classList.remove(value);
+      }
+    });
 
     return this;
   }

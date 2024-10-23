@@ -55,9 +55,9 @@ export default class Emitter {
    * @param options - Emitter options including custom events and whether to include native events.
    */
   constructor(readonly options: EmitterOptions = {}, protected app: HarnessApp) {
-    const { customEvents = [], includeNativeEvents = false } = options;
+    const { events = [], includeNativeEvents = false } = options;
 
-    this.validEvents = [...generalEvents, ...customEvents];
+    this.validEvents = [...generalEvents, ...events];
 
     if (includeNativeEvents) {
       this.validEvents.push(...nativeEvents);

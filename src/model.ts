@@ -1,4 +1,4 @@
-import type ApplicationCore from './app';
+import type HarnessApp from './app';
 import type Collection from './collection';
 import Emitter from './emitter';
 import { ModelOptions, ModelType } from './imports/model';
@@ -71,8 +71,8 @@ export default abstract class Model<
    * @param options - Options for initializing the model.
    * @param app - The application core instance.
    */
-  constructor(public options: ModelOptions<A, Self>, protected app: ApplicationCore) {
-    super({ customEvents: [...(options.customEvents || []), ...modelEvents] });
+  constructor(public options: ModelOptions<A, Self>, protected app: HarnessApp) {
+    super({ events: [...(options.events || []), ...modelEvents] }, app);
 
     const { attributes = {} as Partial<A>, collection } = options;
 

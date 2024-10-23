@@ -12,7 +12,7 @@ export interface ViewOptions {
   attributes?: Record<string, string | undefined>; // Inline DOM attributes, not to be confused with model attributes
   attachTo?: HTMLElement | NodeListOf<HTMLElement> | AttachReference | string;
   prepend?: boolean;
-  customEvents?: string[];
+  events?: string[];
   preventDefault?: boolean; // Capture click events on view el and prevent default behavior
 
   params?: Record<string, string>;

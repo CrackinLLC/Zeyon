@@ -1,4 +1,4 @@
-import type ApplicationCore from './app';
+import type HarnessApp from './app';
 import type { CollectionLike } from './imports/collection';
 import type { CollectionViewOptions } from './imports/collectionView';
 import Model from './model';
@@ -24,14 +24,14 @@ export default class CollectionView<
   /**
    * The view class used to render each child item.
    */
-  protected childView?: new (options: any, app: ApplicationCore) => CV;
+  protected childView?: new (options: any, app: HarnessApp) => CV;
 
   /**
    * An array of instantiated child views.
    */
   protected childItems: CV[] = [];
 
-  constructor(options: CollectionViewOptions<C, CV>, app: ApplicationCore) {
+  constructor(options: CollectionViewOptions<C, CV>, app: HarnessApp) {
     super(options, app);
 
     this.extendValidEvents(['change']);

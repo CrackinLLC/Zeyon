@@ -2,10 +2,10 @@ import '../util/polyfill';
 import '../util/template';
 
 import ClassRegistry from './classRegistry';
+import type { BinaryClass, BinaryClassDefinition } from './imports/classRegistry';
 import type { RouteConfig } from './imports/router';
 import { loaderTemplate } from './imports/view';
 import Router from './router';
-import type { BinaryClass, BinaryClassDefinition } from './util/type';
 
 export interface HarnessAppOptions<CustomRouteProps = any> {
   name?: string;

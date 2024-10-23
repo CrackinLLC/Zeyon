@@ -1,4 +1,4 @@
-import type ApplicationCore from './app';
+import type HarnessApp from './app';
 import Emitter from './emitter';
 import {
   collectionEvents,
@@ -24,8 +24,8 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
   public isDestroyed: boolean = false;
   public isReady: Promise<this>;
 
-  constructor(public options: CollectionOptions = {}, protected app: ApplicationCore) {
-    super({ customEvents: [...(options.customEvents || []), ...collectionEvents] });
+  constructor(public options: CollectionOptions = {}, protected app: HarnessApp) {
+    super({ events: [...(options.events || []), ...collectionEvents] }, app);
 
     this.isReady = Promise.resolve(this);
   }

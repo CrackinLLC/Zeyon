@@ -21,7 +21,7 @@ type BinaryClass = (Emitter | Router | Collection<Model> | CollectionView<Collec
 
 type BinaryClassOptions =
   | EmitterOptions
-  | RouterOptions<{}>
+  | RouterOptions
   | CollectionOptions
   | CollectionViewOptions<Collection<Model>, View>
   | ModelOptions
