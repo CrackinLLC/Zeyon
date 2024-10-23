@@ -1,13 +1,15 @@
 import type HarnessApp from './app';
 import Emitter from './emitter';
-import type { RouteConfig, RouteNode, RouterOptions } from './imports/router';
+import type { RouteConfig, RouteNode, RouterOptions, SiteMapRouteDetail } from './imports/router';
 import type View from './view';
 
 export default class Router<CustomRouteProps = any> extends Emitter {
   private currentPath: string = '';
   private currentRoute: View | undefined;
+  private currentRouteConfig: RouteConfig<CustomRouteProps> | undefined;
   private routes: RouteConfig<CustomRouteProps>[];
   private urlMap: RouteNode = { segment: '', children: new Map() };
+  private siteMap: SiteMapRouteDetail<CustomRouteProps>[] = [];
   private urlPrefix: string | undefined;
   private notFound: RouteConfig<CustomRouteProps> | undefined; // Special property for storing 404 page, if provided
 
@@ -29,12 +31,70 @@ export default class Router<CustomRouteProps = any> extends Emitter {
     this.preprocessRoutes();
   }
 
-  start() {
+  public start() {
     this.app.window.addEventListener('popstate', () => this.loadRouteFromUrl());
     this.navigate({ preserveQuery: true, force: true }); // Load the initial route view
   }
 
-  async navigate({
+  public getCurrentPath(): string {
+    return this.currentPath;
+  }
+
+  public getCurrentRoute(): View | undefined {
+    return this.currentRoute;
+  }
+
+  public getCurrentRouteConfig(): RouteConfig<CustomRouteProps> | undefined {
+    return this.currentRouteConfig;
+  }
+
+  public getSiteMap(options: { exclude?: Partial<CustomRouteProps> } = {}): SiteMapRouteDetail<CustomRouteProps>[] {
+    const { exclude } = options;
+
+    if (!exclude) return this.siteMap;
+
+    const filterSiteMap = (routes: SiteMapRouteDetail<CustomRouteProps>[]): SiteMapRouteDetail<CustomRouteProps>[] => {
+      return routes
+        .filter((route) => {
+          // Check if any of the exclude properties match
+          for (const [key, value] of Object.entries(exclude)) {
+            if ((route.custom as any)[key] === value) {
+              return false; // Exclude this route
+            }
+          }
+          return true; // Include this route
+        })
+        .map((route) => ({
+          ...route,
+          children: filterSiteMap(route.children),
+        }));
+    };
+
+    return filterSiteMap(this.siteMap);
+  }
+
+  /**
+   * Set or clear the query parameters in the current address.
+   */
+  public setQueryParams(params: { [key: string]: string | null | undefined }) {
+    const url = new URL(this.app.window.location.href);
+    const searchParams = new URLSearchParams(url.search);
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === null) {
+        // Use "null" to remove parameters
+        searchParams.delete(key);
+      } else if (value !== undefined) {
+        searchParams.set(key, value);
+      }
+      // If value is undefined, leave it unchanged
+    });
+
+    url.search = searchParams.toString();
+    this.app.window.history.replaceState({}, '', url.toString());
+  }
+
+  public async navigate({
     path = this.app.window.location.pathname,
     preserveQuery = false,
     force = false,
@@ -67,11 +127,11 @@ export default class Router<CustomRouteProps = any> extends Emitter {
     await this.loadRouteFromUrl(force);
   }
 
-  back() {
+  public back() {
     this.app.window.history.back();
   }
 
-  async loadRouteFromUrl(force = false) {
+  private async loadRouteFromUrl(force = false) {
     const url = new URL(this.app.window.location.href);
     const path = this.standardizeUrl(url.pathname);
 
@@ -102,6 +162,7 @@ export default class Router<CustomRouteProps = any> extends Emitter {
 
       if (this.currentRoute) {
         this.currentRoute.destroy();
+        this.currentRouteConfig = undefined;
       }
 
       try {
@@ -114,6 +175,7 @@ export default class Router<CustomRouteProps = any> extends Emitter {
             attachTo: this.app.el,
           })
           .then((view) => view.render());
+        this.currentRouteConfig = route;
 
         this.emit('navigate', { regId: route.regId, ...(customProps || {}) });
       } catch (error) {
@@ -152,71 +214,96 @@ export default class Router<CustomRouteProps = any> extends Emitter {
       return {
         route: currentNode.config,
         ...(params ? { params } : {}),
-        ...(currentNode.aggregatedCustom ? { customProps: currentNode.aggregatedCustom } : {}),
+        ...(currentNode.custom ? { customProps: currentNode.custom } : {}),
       };
     }
 
     return undefined;
   }
 
+  /**
+   * This method traverses the value stored on this.routes to generate a urlMap that facilitates
+   * quickly finding the correct route config for a given url, and a siteMap that can be used by
+   * other classes to facilitate auto-generating navigational components.
+   */
   private preprocessRoutes() {
     const processConfig = (
       config: RouteConfig<CustomRouteProps>,
       currentNode: RouteNode<CustomRouteProps>,
       parentCustom: CustomRouteProps,
-    ) => {
+      parentUrl: string,
+    ): SiteMapRouteDetail<CustomRouteProps> => {
       const segments = config.urlFragment.split('/').filter(Boolean);
 
-      segments.forEach((segment) => {
-        let node: RouteNode<CustomRouteProps> | undefined;
+      let node = currentNode;
+      let fullUrl = parentUrl;
 
+      segments.forEach((segment) => {
+        let childNode: RouteNode<CustomRouteProps> | undefined;
         let paramName: string | undefined;
 
         if (segment.startsWith(':')) {
           // Dynamic segment
           paramName = segment.substring(1);
-          node = currentNode.children.get(':###');
-          if (!node) {
-            node = { segment: ':###', children: new Map(), paramName };
-            currentNode.children.set(':###', node);
+          childNode = node.children.get(':###');
+          if (!childNode) {
+            childNode = { segment: ':###', children: new Map(), paramName };
+            node.children.set(':###', childNode);
           }
         } else {
           // Static segment
-          node = currentNode.children.get(segment);
-          if (!node) {
-            node = { segment, children: new Map() };
-            currentNode.children.set(segment, node);
+          childNode = node.children.get(segment);
+          if (!childNode) {
+            childNode = { segment, children: new Map() };
+            node.children.set(segment, childNode);
           }
         }
 
-        currentNode = node;
+        node = childNode;
+
+        // Build the full URL incrementally
+        const segmentPart = paramName ? `:${paramName}` : segment;
+        fullUrl = this.standardizeUrl(`${fullUrl}/${segmentPart}`);
       });
 
       // At the end of the segments, set the config
-      if (currentNode.config) {
+      if (node.config) {
         throw new Error(`Duplicate route for this path: ${config.urlFragment}`);
       }
 
       // Aggregate custom properties from parent and current config
-      const aggregatedCustom = { ...parentCustom, ...(config.custom || {}) };
-      currentNode.config = config;
-      currentNode.aggregatedCustom = aggregatedCustom;
+      const custom = { ...parentCustom, ...(config.custom || {}) };
+      node.config = config;
+      node.custom = custom;
 
       if (config.is404) {
         this.notFound = config;
       }
 
+      // Create the site map entry for this route
+      const siteMapEntry: SiteMapRouteDetail<CustomRouteProps> = {
+        regId: config.regId,
+        name: config.name,
+        fullUrl,
+        custom,
+        children: [],
+      };
+
+      // Process child routes
       if (config.childRoutes) {
         config.childRoutes.forEach((childConfig) => {
-          processConfig(childConfig, currentNode, aggregatedCustom);
+          const childSiteMapEntry = processConfig(childConfig, node, custom, fullUrl);
+          siteMapEntry.children.push(childSiteMapEntry);
         });
       }
+
+      return siteMapEntry;
     };
 
-    // Start processing from the root node
-    this.routes.forEach((routeConfig) => {
-      processConfig(routeConfig, this.urlMap, {} as CustomRouteProps);
-    });
+    // Start processing from the root node and build the site map
+    this.siteMap = this.routes.map((routeConfig) =>
+      processConfig(routeConfig, this.urlMap, {} as CustomRouteProps, ''),
+    );
   }
 
   private standardizeUrl(url: string, addBase = false): string {

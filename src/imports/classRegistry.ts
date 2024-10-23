@@ -11,23 +11,19 @@ import type Model from '../model';
 import type Router from '../router';
 import type View from '../view';
 
-export interface ClassRegistryOptions extends EmitterOptions {
+interface ClassRegistryOptions extends EmitterOptions {
   registryClassList?: { [id: string]: ClassDefinition };
 }
 
-export interface ClassMetadata {
+interface ClassMetadata {
   version?: string;
   // Additional metadata fields can be added here.
 }
 
-export interface ClassEntry {
+interface ClassEntry {
   classDef: ClassDefinition;
   metadata: ClassMetadata;
 }
-
-type ClassInstance = (Emitter | Router | Collection<Model> | CollectionView<Collection<Model>> | Model | View) & {
-  options: ClassOptions;
-};
 
 type ClassOptions =
   | EmitterOptions
@@ -36,6 +32,10 @@ type ClassOptions =
   | CollectionViewOptions<Collection<Model>, View>
   | ModelOptions
   | ViewOptions;
+
+type ClassInstance = (Emitter | Router | Collection<Model> | CollectionView<Collection<Model>> | Model | View) & {
+  options: ClassOptions;
+};
 
 interface ClassDefinition {
   new (...args: any[]): ClassInstance;
@@ -48,19 +48,10 @@ interface ControllerDefinition {
 
 export {
   ClassDefinition,
+  ClassEntry,
   ClassInstance,
+  ClassMetadata,
   ClassOptions,
-  Collection,
-  CollectionOptions,
-  CollectionView,
-  CollectionViewOptions,
+  ClassRegistryOptions,
   ControllerDefinition,
-  Emitter,
-  EmitterOptions,
-  Model,
-  ModelOptions,
-  Router,
-  RouterOptions,
-  View,
-  ViewOptions,
 };

@@ -1,7 +1,6 @@
 import HarnessApp from './app';
 import type { CustomEventHandler, EmitterOptions } from './imports/emitter';
 import { debounce } from './util/debounce';
-import type { RootElement } from './util/element';
 
 const generalEvents = [
   'all', // Triggered for all events with "type" argument supplied.
@@ -38,24 +37,29 @@ const nativeEvents = [
  * The base class providing event handling capabilities.
  * Classes extending Emitter can emit and listen to events.
  */
-export default class Emitter {
+export default abstract class Emitter {
   /**
-   * A promise that resolves when the instance is ready.
-   * Subclasses can set this to a promise that resolves when initialization is complete.
+   * Promise that resolves once the instance is ready
    */
-  public isReady?: Promise<this>;
+  public isReady: Promise<this>;
+  protected resolveIsReady!: (value: this) => void;
+  protected isDestroyed: boolean = false;
 
-  private eventListenings: { [event: string]: Listening[] } = {};
+  private eventListeners: { [event: string]: Listener[] } = {};
   private validEvents: string[] = [];
   private debouncedEmitters: Record<string, (...args: any[]) => void> = {};
   protected debouncedEmitterDelay: number = 50;
 
   /**
-   * Creates an instance of Emitter.
    * @param options - Emitter options including custom events and whether to include native events.
    */
   constructor(readonly options: EmitterOptions = {}, protected app: HarnessApp) {
     const { events = [], includeNativeEvents = false } = options;
+
+    // Initialize readiness promises
+    this.isReady = new Promise<this>((resolve) => {
+      this.resolveIsReady = resolve;
+    });
 
     this.validEvents = [...generalEvents, ...events];
 
@@ -63,18 +67,26 @@ export default class Emitter {
       this.validEvents.push(...nativeEvents);
     }
 
-    this.rebuildListeningsObject();
+    this.rebuildListenersObject();
   }
 
   /**
-   * Rebuilds the event listenings object based on valid events.
+   * Logic to run while the class is still initializing.
+   * Subclasses should override this method and can perform asynchronous operations.
+   * Initialize method will need to determine what resources are available when referencing
+   * this, but generally it will be the last logic to run before isReady has resolved.
    */
-  private rebuildListeningsObject(): void {
+  protected async initialize(): Promise<void> {}
+
+  /**
+   * Rebuilds the event listeners object based on valid events.
+   */
+  private rebuildListenersObject(): void {
     this.destroyEvents();
-    this.eventListenings = {};
+    this.eventListeners = {};
 
     this.validEvents.forEach((event) => {
-      this.eventListenings[event] = this.eventListenings[event] || [];
+      this.eventListeners[event] = this.eventListeners[event] || [];
     });
   }
 
@@ -85,7 +97,11 @@ export default class Emitter {
    */
   public extendValidEvents(events: string[] = []): this {
     this.validEvents.push(...events);
-    events.forEach((event) => (this.eventListenings[event] = []));
+    events.forEach((event) => {
+      if (!this.eventListeners[event]?.length) {
+        this.eventListeners[event] = [];
+      }
+    });
 
     return this;
   }
@@ -102,88 +118,68 @@ export default class Emitter {
    * Registers an event handler for the specified event or events.
    * @param event - The event name or array of event names to listen to.
    * @param handler - The event handler function.
-   * @param listener - Optional context for the handler.
+   * @param subscriber - Optional context for the handler.
    * @returns The emitter instance.
    */
-  public on(
-    event: string | string[],
-    {
-      handler,
-      listener,
-    }: {
-      handler: CustomEventHandler;
-      listener?: unknown;
-    },
-  ): this {
-    // Handle array of events
-    if (Array.isArray(event)) {
-      event.forEach((evt) => this.on(evt, { handler, listener }));
-      return this;
-    }
-
+  public on(event: string, handler: CustomEventHandler, subscriber: unknown = this): this {
     if (!this.validEvents.includes(event)) {
-      invalidEvent(event, this);
-      return this;
+      return this.logInvalidEvent(event, this);
     }
 
-    const listening = new Listening({
-      context: this,
-      listener,
-      eventName: event,
-      handler,
-      el: (this as any)['el'] || null,
-    });
-
-    this.eventListenings[event].push(listening);
+    this.eventListeners[event].push(
+      new Listener({
+        subscriber,
+        eventName: event,
+        handler,
+        el: (this as any)['el'] || null,
+      }),
+    );
 
     return this;
   }
 
   /**
    * Unregisters event handlers.
-   * If no arguments are provided, all event handlers are removed.
-   * @param event - The event name to remove handlers from.
-   * @param handler - The specific handler function to remove.
-   * @param listener - The specific listener context to remove.
-   * @param force - Disregard all other arguments and remove all handlers.
+   * If no options are provided, all event handlers are removed.
+   * @param options - An object containing optional parameters:
+   *   - event: The event name to remove handlers from.
+   *   - handler: The specific handler function to remove.
+   *   - subscriber: The specific subscribing context to remove handlers for.
    * @returns The emitter instance.
    */
-  public off({
-    event,
-    handler,
-    listener,
-    force = false,
-  }: {
-    event?: string;
-    handler?: CustomEventHandler;
-    listener?: unknown;
-    force?: boolean;
-  }): this {
-    if (force) {
-      this.destroyEvents();
+  public off(
+    options: {
+      event?: string;
+      handler?: CustomEventHandler;
+      subscriber?: unknown;
+    } = {},
+  ): this {
+    const { event, handler, subscriber } = options;
+
+    // Special case to remove all listeners
+    if (event === 'all' || (!event && !handler && !subscriber)) {
+      this.rebuildListenersObject();
       return this;
     }
 
-    if (event === 'all') {
-      this.rebuildListeningsObject();
-      return this;
-    }
-
+    // Validate the event name if provided
     if (event && !this.validEvents.includes(event)) {
-      invalidEvent(event, this);
-      return this;
+      return this.logInvalidEvent(event, this);
     }
 
-    const events = event ? [event] : Object.keys(this.eventListenings);
+    // Determine which events to process
+    const events = event ? [event] : Object.keys(this.eventListeners);
 
     events.forEach((eventName) => {
-      const listenings = this.eventListenings[eventName];
-      if (!listenings) return;
+      const listeners = this.eventListeners[eventName];
+      if (!listeners) return;
 
-      this.eventListenings[eventName] = listenings.filter((l) => {
-        const toRemove = (!handler || l.handler === handler) && (!listener || l.listener === listener);
-        if (toRemove) l.destroy();
-        return !toRemove;
+      // Filter out the listeners to remove based on handler and subscriber
+      this.eventListeners[eventName] = listeners.filter((l) => {
+        const shouldRemove =
+          (handler === undefined || l.handler === handler) && (subscriber === undefined || l.subscriber === subscriber);
+        if (shouldRemove) l.destroy();
+        return !shouldRemove;
       });
     });
 
@@ -195,18 +191,18 @@ export default class Emitter {
    * The handler is automatically removed after the first invocation.
    * @param event - The event name to listen to.
    * @param handler - The event handler function.
-   * @param listener - Optional context for the handler.
+   * @param subscriber - Optional context for the handler.
    * @returns The emitter instance.
    */
-  public once(event: string, handler: CustomEventHandler, listener?: unknown): this {
+  public once(event: string, handler: CustomEventHandler, subscriber?: unknown): this {
     const wrappedHandler = (ev: Event | CustomEvent) => {
       handler(ev);
-      this.off({ event, handler: wrappedHandler, listener });
+      this.off({ event, handler: wrappedHandler, subscriber });
     };
 
     // We have to pass in the wrapped handler so that we correctly remove it after it's been called once.
     // Otherwise the handler references don't match, and the removal fails.
-    this.on(event, { handler: wrappedHandler, listener });
+    this.on(event, wrappedHandler, subscriber);
 
     return this;
   }
@@ -219,15 +215,12 @@ export default class Emitter {
    */
   public emit(event: string, detail?: any): this {
     if (!this.validEvents.includes(event)) {
-      invalidEvent(event, this);
-      return this;
+      return this.logInvalidEvent(event, this);
     }
 
-    // Since handlers may remove themselves as listeners (e.g., once()), we clone the set before triggering.
-    const listeners = [...this.eventListenings[event], ...this.eventListenings['all']];
-    if (listeners) {
-      listeners.forEach((listener) => listener.trigger(detail, event));
-    }
+    // Since handlers may remove themselves (e.g., once()), we want to clone our references before triggering any events.
+    const listeners = [...this.eventListeners[event], ...this.eventListeners['all']];
+    listeners?.forEach((listener) => listener.trigger(detail, event));
 
     return this;
   }
@@ -269,75 +262,102 @@ export default class Emitter {
   }
 
   /**
+   * Logs an error when an invalid event is encountered.
+   * @param event - The invalid event name.
+   * @param context - The emitter context.
+   */
+  private logInvalidEvent(event: string, context: Emitter): this {
+    console.error(`The event "${event}" is not supported on this class.`, context);
+    return this;
+  }
+
+  /**
    * Destroys all event listeners registered on this emitter.
    * @returns The emitter instance.
    */
   private destroyEvents(): this {
-    Object.keys(this.eventListenings).forEach((event) => {
-      this.eventListenings[event].forEach((listener) => listener.destroy());
+    Object.keys(this.eventListeners).forEach((event) => {
+      this.eventListeners[event].forEach((listener) => listener.destroy());
     });
 
     return this;
   }
+
+  protected destroy(): void {
+    if (this.isDestroyed) return;
+    this.isDestroyed = true;
+
+    this.onDestroy();
+
+    // @ts-ignore - Cleaning up for purposes of destroying the class
+    this.isReady = undefined;
+    this.destroyEvents();
+  }
+
+  onDestroy() {}
 }
 
 /**
  * Represents a single event listener.
  * Manages event handler invocation and cleanup.
  */
-class Listening {
-  context: Emitter;
-  listener: unknown;
-  eventName: string;
-  handler: CustomEventHandler;
-  el: RootElement | HTMLElement | null;
-  isNativeEvent: boolean;
+class Listener {
+  public eventName: string;
+  public handler: CustomEventHandler;
+  public subscriber: unknown;
+  private el?: HTMLElement;
+
+  private isNativeEvent: boolean;
+  private boundHandler?: EventListener;
 
   /**
-   * Creates a new Listening instance.
+   * Creates a new Listener instance.
    * @param options - Options for the listener.
    */
-  constructor(options: {
-    context: Emitter;
-    listener: unknown;
-    eventName: string;
-    handler: CustomEventHandler;
-    el: RootElement | HTMLElement | null;
-  }) {
-    const { context, listener, eventName, handler, el } = options;
-    this.context = context;
-    this.listener = listener;
+  constructor(options: { eventName: string; handler: CustomEventHandler; subscriber?: unknown; el?: HTMLElement }) {
+    const { subscriber, eventName, handler, el } = options;
+    this.subscriber = subscriber;
     this.eventName = eventName;
     this.handler = handler;
     this.el = el;
     this.isNativeEvent = !!this.el && nativeEvents.includes(eventName);
 
-    if (this.isNativeEvent) {
-      this.el?.addEventListener(this.eventName, (ev: Event) => {
-        this.handler.bind(listener)(ev);
-      });
+    if (this.isNativeEvent && this.el) {
+      // Bind the handler to the subscriber context
+      this.boundHandler = (ev: Event) => {
+        if (this.subscriber) {
+          this.handler.call(this.subscriber, ev);
+        } else {
+          this.handler(ev);
+        }
+      };
+
+      this.el.addEventListener(this.eventName, this.boundHandler);
     }
   }
 
   /**
    * Triggers the event handler with the provided detail.
    * @param detail - Data to pass to the handler.
-   * @param event - The event name.
-   * @returns The Listening instance.
+   * @param event - The event name (used when eventName is 'all').
+   * @returns The Listener instance.
    */
-  public trigger(detail: object = {}, event?: string): this {
-    if (this.el && (this.el as any)['view'] && typeof detail === 'object') {
-      (detail as any)['view'] = (this.el as any)['view'];
-    }
-
-    const customEvent = new CustomEvent(this.eventName, { detail });
-
+  public trigger(detail: any = {}, event?: string): this {
     if (this.isNativeEvent) {
-      this.el?.dispatchEvent(new Event(this.eventName));
-    } else if (this.eventName === 'all') {
-      this.handler(customEvent, event);
+      // For native events, dispatch the event on the element
+      if (this.el) {
+        const eventObj = new Event(this.eventName);
+        this.el.dispatchEvent(eventObj);
+      }
     } else {
-      this.handler(customEvent);
+      // For custom events
+      const customEvent = new CustomEvent(this.eventName, { detail });
+
+      if (this.eventName === 'all') {
+        this.handler(customEvent, event);
+      } else {
+        this.handler(customEvent);
+      }
     }
 
     return this;
@@ -347,22 +367,14 @@ class Listening {
    * Destroys the listener, removing any attached event handlers.
    */
   public destroy(): void {
-    if (this.isNativeEvent) {
-      this.el?.removeEventListener(this.eventName, this.handler);
+    if (this.isNativeEvent && this.el && this.boundHandler) {
+      this.el.removeEventListener(this.eventName, this.boundHandler);
     }
 
     // Nullify properties to help with garbage collection
-    this.listener = null;
+    this.subscriber = undefined;
     this.handler = () => {};
-    this.el = null;
+    this.el = undefined;
+    this.boundHandler = undefined;
   }
-}
-
-/**
- * Logs an error for an invalid event.
- * @param event - The invalid event name.
- * @param context - The emitter context.
- */
-function invalidEvent(event: string, context: Emitter): void {
-  console.error(`The event "${event}" is not supported on this class.`, context);
 }

@@ -35,6 +35,12 @@ export default class HarnessApp<CustomRouteProps = any> {
   public isStarted = false;
 
   /**
+   * Promise that resolves once the application has been started and is ready
+   */
+  public isReady: Promise<this>;
+  private resolveIsReady!: (value: this) => void;
+
+  /**
    * The application's router.
    */
   public router: Router;
@@ -50,16 +56,21 @@ export default class HarnessApp<CustomRouteProps = any> {
   private registry: ClassRegistry;
 
   /**
-   * A global loading state element.
+   * A stored loading state element for global loading state.
    */
   private loadingState: HTMLElement | null = null;
 
   /**
-   * Initializes a new instance of the HarnessApp class.
+   * Initializes a new instance of the HarnessApp.
    * @param options - The application options.
    */
   constructor(public options: HarnessAppOptions) {
     const { name, el, urlPrefix, routes, registryClassList } = options;
+
+    // Initialize readiness promises
+    this.isReady = new Promise<this>((resolve) => {
+      this.resolveIsReady = resolve;
+    });
 
     this.name = name || '';
     this.el = el;
@@ -76,7 +87,9 @@ export default class HarnessApp<CustomRouteProps = any> {
   public async start(): Promise<this> {
     if (!this.isStarted) {
       this.isStarted = true;
+
       this.router.start();
+      this.resolveIsReady(this);
     }
 
     return this;

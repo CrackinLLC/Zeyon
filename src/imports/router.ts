@@ -21,7 +21,16 @@ export interface RouteNode<CustomRouteProps = any> {
   children: Map<string, RouteNode<CustomRouteProps>>; // Child nodes
   config?: RouteConfig<CustomRouteProps>; // The route config associated with this node
   paramName?: string; // If node is dynamic, the name of the dynamic parameter
-  aggregatedCustom?: CustomRouteProps; // Aggregated custom properties
+  custom?: CustomRouteProps; // Aggregated custom properties
+}
+
+// Similar to our RouteNode, but specifically organized for our sitemap
+export interface SiteMapRouteDetail<CustomProps = any> {
+  regId: string;
+  name?: string;
+  fullUrl: string;
+  custom: CustomProps;
+  children: SiteMapRouteDetail<CustomProps>[];
 }
 
 export type NavigateEventPayload<CustomRouteProps = any> = {

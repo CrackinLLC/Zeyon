@@ -5,67 +5,67 @@ import Model from './model';
 import { convertToRootElement, RootElement } from './util/element';
 import { ErrorStateOptions, errorTemplate } from './util/error';
 import { getUniqueId, toHyphenCase } from './util/string';
+import { getCompiledTemplate } from './util/template';
 
 export default abstract class View extends Emitter {
+  static regId: string; // TODO: Not needed until we move back into dynamic modular loading of classes
+
   static tagName = 'div';
   static isComponent: boolean;
-  static isScreen: boolean;
   static defaultOptions: ViewOptions = {};
 
-  declare el: RootElement;
-  protected ui: { [key: string]: string } = {};
-  protected errorEl?: HTMLElement;
-  protected renderOptions: RenderOptions = {};
-
   private _viewId: string = getUniqueId();
-  private _ui: { [key: string]: NodeListOf<HTMLElement> | HTMLElement } = {};
+  readonly options: ViewOptions;
+  protected el: RootElement;
+  protected ui: { [key: string]: string } = {};
+  private _ui: { [key: string]: NodeListOf<HTMLElement> } = {};
+  protected renderOptions: RenderOptions = {};
 
   protected children: { [id: string]: View } = {};
   protected model?: Model;
-  public isReady?: Promise<this>;
-  public isRendered?: Promise<this>;
+
+  public isRendered: Promise<this>;
   private resolveIsRendered!: (value: this) => void;
-  protected isDestroyed: boolean = false;
+  private wasRendered: boolean = false;
 
   protected compiledTemplate?: HandlebarsTemplateDelegate;
   protected template?: string;
-  protected templateOptions: string[] = [];
   protected templateWrapper?: string;
-  protected templateWrapperOptions: string[] = [];
-
-  readonly options: ViewOptions;
+  protected errorEl?: HTMLElement;
 
   constructor(options: ViewOptions = {}, app: HarnessApp) {
     super({ events: options.events, includeNativeEvents: true }, app);
 
-    // Merge default options
+    // Initialize promises for readiness and rendering
+    this.isRendered = new Promise<this>((resolve) => {
+      this.resolveIsRendered = resolve;
+    });
+
+    // Merge default and passed options into stored property
     const defaultOptions = (this.constructor as typeof View).defaultOptions || {};
     this.options = { ...defaultOptions, ...options };
 
-    // Initialize promises for readiness and rendering
-    const { promise: isRenderedPromise, resolve: isRenderedResolve } = Promise.withResolvers<this>();
-    this.isRendered = isRenderedPromise;
-    this.resolveIsRendered = isRenderedResolve;
+    // Declare the unprocessed root element
+    const tagName = this.renderOptions.tagName || (this.constructor as typeof View).tagName;
+    this.el = convertToRootElement(document.createElement(tagName), this);
 
+    // Override the generated id value if one was passed in
     if (this.options.id) {
       this.setViewId(this.options.id);
     }
 
-    this.isReady = new Promise(async (resolve) => {
-      await Promise.all([this.initialize(), this.setModel().then((model) => (this.model = model))]);
-      resolve(this);
-    });
+    // Define our model and call the local initialize method before declaring the view ready.
+    Promise.all([this.setModel().then((model) => (this.model = model)), this.initialize()]).then(() =>
+      this.resolveIsReady(this),
+    );
   }
 
   /**
-   * Initializes the view. Subclasses should override this method to perform asynchronous operations before rendering.
+   * Renders the view by compiling templates, creating elements, and attaching to the DOM.
+   * Can be called multiple times to re-render the view.
    */
-  protected async initialize(): Promise<void> {}
-
   public async render(): Promise<this> {
-    if (this.isDestroyed) {
-      return Promise.reject(new Error('Component is destroyed'));
-    }
+    if (this.isDestroyed) return Promise.reject(new Error('Component is destroyed'));
 
     await this.isReady;
 
@@ -73,102 +73,90 @@ export default abstract class View extends Emitter {
       const templateContent = this.templateWrapper
         ? this.templateWrapper.replace('{{content}}', this.template)
         : this.template;
-      this.compiledTemplate = Handlebars.compile(templateContent);
+      this.compiledTemplate = getCompiledTemplate(templateContent);
     }
 
-    const tagName = this.renderOptions.tagName || (this.constructor as typeof View).tagName;
-    this.el = convertToRootElement(document.createElement(tagName), this);
-
-    let name = (this.constructor as any).name;
-    name = name.charAt(0) === '_' ? name.slice(1) : name;
-
-    const isScreen = (this.constructor as any).isScreen;
-
-    if (isScreen) {
-      this.addClass('is-standard-screen');
-    }
-    if ((this.constructor as any).isComponent && !isScreen) {
-      this.addClass(`component-${toHyphenCase(name)}`);
+    if (this.wasRendered) {
+      // Reset the view to prepare for re-rendering.
+      // The root element has already been handled, in this case.
+      this.isRendered = new Promise<this>((resolve) => (this.resolveIsRendered = resolve));
+      this.off({ subscriber: this });
+      this.el.innerHTML = '';
     } else {
-      this.el.setAttribute('id', name);
+      this.wasRendered = true;
+      this.prepareRootElement();
+      this.attachRootElement();
     }
-
-    this.addClass(...(this.options.classNames || []));
-    this.setAttributes(this.options.attributes);
 
     this.renderTemplate();
-    this.attachViewElement();
     this.generateUiSelections();
 
     if (this.options.preventDefault) {
-      this.el.addEventListener('click', (event: MouseEvent) => event.preventDefault());
+      this.on('click', (event) => event.preventDefault());
     }
-
-    // Override render to handle re-rendering
-    this.render = async () => {
-      if (this.isDestroyed) return this;
-
-      this.off({ listener: this });
-      this.el.innerHTML = '';
-      this.renderTemplate();
-      this.generateUiSelections();
-      await this.onRender();
-
-      return this;
-    };
 
     await this.onRender();
 
-    if (this.isDestroyed) {
-      return Promise.reject(new Error('Component is destroyed'));
-    }
+    if (this.isDestroyed) return Promise.reject(new Error('Component is destroyed'));
 
     this.resolveIsRendered(this);
     return this;
   }
 
   /**
-   * Hook called after rendering. Subclasses can override this method to perform actions after the view is rendered.
+   * A hook called after rendering.
+   * Subclasses can override this method to perform actions after the view is rendered.
+   * Similar to the initialize method, but the method is assured that the template has
+   * finished rendering and all ui members are available.
    */
   protected async onRender(): Promise<void> {}
 
-  setErrorState(msg: string, options: ErrorStateOptions = {}) {
-    if (this.errorEl) {
-      this.removeErrorState();
+  /**
+   * Applies classnames and attributes to the root element based on the current options object.
+   */
+  protected prepareRootElement() {
+    let name = (this.constructor as any).name;
+    name = name.charAt(0) === '_' ? name.slice(1) : name;
+
+    if ((this.constructor as any).isRoute) {
+      this.addClass('ui-route');
+      this.setAttributes({ id: name });
+    } else if ((this.constructor as any).isComponent) {
+      this.addClass('ui-component', `ui-component-${toHyphenCase(name)}`);
+    } else {
+      this.setAttributes({ id: name });
     }
 
-    (options.attachTo || this.el).append((this.errorEl = errorTemplate(msg)));
-    this.addClass('is-error');
+    this.addClass(...(this.options.classNames || []));
+    this.setAttributes(this.options.attributes);
   }
 
-  protected removeErrorState() {
-    this.errorEl?.remove();
-    this.errorEl = undefined;
-    this.removeClass('is-error');
-  }
-
-  attachViewElement() {
+  /**
+   * Attaches the view's root element to the specified parent in the DOM.
+   */
+  protected attachRootElement() {
     if (!this.options.attachTo) return;
     let attachTo = this.options.attachTo;
+    let attachToElement: HTMLElement | undefined;
 
-    // We have an attachTo value that is something other than a DOM element
-    if (!(attachTo instanceof HTMLElement)) {
-      if (typeof attachTo === 'string') {
-        attachTo = this.getElementBySelector(attachTo) || '';
-      } else if (attachTo instanceof NodeList) {
-        attachTo = attachTo[0];
-      } else if (isAttachReference(attachTo)) {
-        attachTo = attachTo.view.getSingleUiById(attachTo.id) || '';
-      }
+    if (attachTo instanceof HTMLElement) {
+      attachToElement = attachTo;
+    } else if (attachTo instanceof NodeList) {
+      attachToElement = attachTo[0];
+    } else if (typeof attachTo === 'string') {
+      attachToElement = (this.el.querySelector(attachTo) as HTMLElement) || null;
+    } else if (isAttachReference(attachTo)) {
+      attachToElement = attachTo.view.getUiByIdSingle(attachTo.id);
     }
 
-    // Make sure our attempts to determine a valid element were successful
-    if (attachTo && attachTo instanceof HTMLElement) {
+    if (attachToElement && attachToElement instanceof HTMLElement) {
       if (this.options.prepend) {
-        attachTo.prepend(this.el);
+        this.prependTo(attachToElement);
       } else {
-        attachTo.append(this.el);
+        this.appendTo(attachToElement);
       }
+    } else {
+      console.warn('Invalid attachTo reference:', attachTo);
     }
   }
 
@@ -185,46 +173,79 @@ export default abstract class View extends Emitter {
     return this.el;
   }
 
-  getSingleUiById<T extends HTMLElement = HTMLElement>(id: string): T | undefined {
-    const el = this._ui[id];
+  addClass(...classNames: (string | undefined)[]) {
+    const confirmedClassNames = classNames.filter((c): c is string => !!c);
 
-    if (el instanceof NodeList) {
-      return el[0] as T;
-    } else if (el) {
-      return el as T;
+    if (confirmedClassNames.length > 0) {
+      this.el.classList.add(...confirmedClassNames);
+    }
+
+    return this;
+  }
+
+  removeClass(...classNames: (string | undefined)[]) {
+    const confirmedClassNames = classNames.filter((c): c is string => !!c);
+
+    if (confirmedClassNames.length > 0) {
+      this.el.classList.remove(...confirmedClassNames);
+    }
+
+    return this;
+  }
+
+  removeClassByPrefix(prefix: string) {
+    this.el.classList.forEach((value: string) => {
+      if (value.startsWith(prefix)) {
+        this.removeClass(value);
+      }
+    });
+
+    return this;
+  }
+
+  swapClasses(classA: string, classB: string, condition: boolean) {
+    this.toggleClass(classA, condition);
+    this.toggleClass(classB, !condition);
+  }
+
+  toggleClass(className: string, force?: boolean) {
+    this.el.classList.toggle(className, force);
+  }
+
+  getUiByIdSingle<T extends HTMLElement = HTMLElement>(id: string): T | undefined {
+    const els = this.getUiById(id);
+
+    if (els) {
+      return els[0] as T;
     }
 
     return undefined;
   }
 
-  getListUiById<T extends HTMLElement = HTMLElement>(id: string): NodeListOf<T> | undefined {
-    const els = this._ui[id];
+  getUiById<T extends HTMLElement = HTMLElement>(id: string): NodeListOf<T> | undefined {
+    const result = this._ui[id];
 
-    if (els && els instanceof NodeList) {
-      return els as NodeListOf<T>;
+    if (result) {
+      return result as NodeListOf<T>;
     }
 
     return undefined;
   }
 
-  private getElementBySelector(selector: string): HTMLElement | null {
-    return (this.el && this.el.querySelector(selector)) || null;
-  }
-
+  /**
+   * Populates the `_ui` property with DOM references based on selectors defined in `ui`.
+   * @param {string} selectorAttribute - The data attribute to use for selecting UI elements.
+   */
   protected generateUiSelections(selectorAttribute: string = 'js') {
-    if (this.ui) {
-      Object.entries(this.ui).forEach(([id, selector]) => {
-        const selection = this.el.querySelectorAll(`[data-${selectorAttribute}=${selector}]`);
-        const isMultiSelect = selection.length > 1;
+    this._ui = {};
 
+    if (this.ui) {
+      for (const [id, selector] of Object.entries(this.ui)) {
+        const selection = this.el.querySelectorAll(`[data-${selectorAttribute}="${selector}"]`);
         if (selection.length > 0) {
-          if (isMultiSelect) {
-            this._ui[id] = selection as NodeListOf<HTMLElement>;
-          } else {
-            this._ui[id] = selection[0] as HTMLElement;
-          }
+          this._ui[id] = selection as NodeListOf<HTMLElement>;
         }
-      });
+      }
     }
   }
 
@@ -233,14 +254,14 @@ export default abstract class View extends Emitter {
       this.el.innerHTML = this.compiledTemplate(this.getTemplateOptions());
 
       // Intercept anchor tag clicks and handle them in the app
-      this.el.addEventListener('click', (event: MouseEvent) => {
+      this.on('click', (ev) => {
         // Ignore, if the event's default action has already been prevented
-        if (event.defaultPrevented) {
+        if (ev.defaultPrevented) {
           return;
         }
 
         // Traverse up the DOM tree to find the nearest ancestor 'a' tag
-        let targetElement = event.target as HTMLElement | null;
+        let targetElement = ev.target as HTMLElement | null;
         while (targetElement && targetElement !== this.el) {
           if (targetElement.tagName.toLowerCase() === 'a') break;
           targetElement = targetElement.parentElement;
@@ -253,7 +274,7 @@ export default abstract class View extends Emitter {
           if (href && href !== '#') {
             console.log('We caught an anchor click and are handling it.');
 
-            event.preventDefault();
+            ev.preventDefault();
             this.app.navigate(href);
           }
         }
@@ -266,13 +287,10 @@ export default abstract class View extends Emitter {
       id: this.getViewId(),
       ...(this.model ? { model: this.model.getAttributes() } : {}),
       ...(this.model ? { modelType: this.model.getType() } : {}),
+      ...(this.model?.getCollection() ? { collection: this.model.getCollection()?.getVisibleAttributes() } : {}),
       ...this.options,
       ...optionValues,
     };
-  }
-
-  protected registerPartialTemplate(name: string, template: string) {
-    Handlebars.registerPartial(name, template);
   }
 
   async newChild<V extends View>(id: string, viewOptions: V['options'], ...more: unknown[]): Promise<V> {
@@ -363,121 +381,106 @@ export default abstract class View extends Emitter {
     return model;
   }
 
-  addClass(...classNames: (string | undefined)[]) {
-    const confirmedClassNames = classNames.filter((c): c is string => !!c);
+  /**
+   * Sets or removes attributes on the root element.
+   * @param attributes - A record of attribute names and their values. If the value is null or undefined, the attribute is removed.
+   * @param options - Optional settings for attribute handling.
+   */
+  setAttributes(attributes?: Record<string, string | undefined | null>, options?: { dataPrefix?: boolean }) {
+    if (!attributes) return this;
 
-    if (confirmedClassNames.length > 0) {
-      this.el.classList.add(...confirmedClassNames);
-    }
+    const { dataPrefix = false } = options || {};
 
-    return this;
-  }
+    for (const [name, value] of Object.entries(attributes)) {
+      let attributeName = name;
 
-  swapClasses(classA: string, classB: string, condition: boolean) {
-    if (condition) {
-      this.el.classList.add(classA);
-      this.el.classList.remove(classB);
-    } else {
-      this.el.classList.add(classB);
-      this.el.classList.remove(classA);
-    }
-  }
+      if (dataPrefix && !name.startsWith('data-') && !name.startsWith('aria-')) {
+        attributeName = `data-${name}`;
+      }
 
-  setAttributes(attributes?: Record<string, string | undefined | null>) {
-    if (!attributes) return;
-
-    Object.entries(attributes).forEach(([name, value]) => {
-      if (value === null) {
-        //delete this.el.dataset[name];
-        this.el.removeAttribute(name);
+      if (value === null || value === undefined) {
+        this.el.removeAttribute(attributeName);
+        if (attributeName.startsWith('data-')) {
+          const dataKey = attributeName.slice(5);
+          delete (this.el.dataset as any)[dataKey];
+        }
       } else {
-        // this.el.dataset[name] = value || name;
-        this.el.setAttribute(name, value || name);
+        this.el.setAttribute(attributeName, value);
+        if (attributeName.startsWith('data-')) {
+          const dataKey = attributeName.slice(5);
+          (this.el.dataset as any)[dataKey] = value;
+        }
       }
-    });
-
-    return this;
-  }
-
-  toggleClass(className: string, force?: boolean) {
-    this.el.classList.toggle(className, force);
-  }
-
-  removeClass(...classNames: (string | undefined)[]) {
-    const confirmedClassNames = classNames.filter((c): c is string => !!c);
-
-    if (confirmedClassNames.length > 0) {
-      this.el.classList.remove(...confirmedClassNames);
     }
 
     return this;
   }
 
-  removeClassByPrefix(prefix: string) {
-    this.el.classList.forEach((value: string) => {
-      if (value.startsWith(prefix)) {
-        this.el.classList.remove(value);
-      }
-    });
+  /**
+   * Displays an error message within the view.
+   * @param {string} msg - The error message to display.
+   * @param {ErrorStateOptions} options - Options for displaying the error.
+   */
+  setErrorState(msg: string, options: ErrorStateOptions = {}) {
+    if (this.isDestroyed) return;
 
-    return this;
+    this.removeErrorState();
+
+    const errorElement = errorTemplate(msg);
+    (options.attachTo || this.el).append(errorElement);
+    this.errorEl = errorElement;
+
+    this.addClass('is-error');
   }
 
-  // Only applies to views that are defined as screens, but we haven't (yet?) defined a seperate class for them
-  // Should be overridden by any class that needs to intercept navigation
-  async beforeNavigate(newPath: string): Promise<boolean> {
-    return !!newPath || true;
+  /**
+   * Removes any displayed error messages.
+   */
+  protected removeErrorState() {
+    this.errorEl?.remove();
+    this.errorEl = undefined;
+    this.removeClass('is-error');
   }
 
+  /**
+   * Cleans up the view by removing event listeners, children and other references.
+   */
   public destroy(): void {
     if (this.isDestroyed) return;
-    this.isDestroyed = true;
 
-    this.onDestroy();
     this.destroyChildren();
+    super.destroy();
 
-    this.model?.off({ listener: this });
-
-    // Clean up UI elements
-    Object.values(this._ui).forEach((el) => {
-      if (el instanceof NodeList) {
-        el.forEach((e) => e.remove());
-      } else {
-        el.remove();
-      }
-    });
-
-    this.el?.remove();
-    this.errorEl?.remove();
+    this.model?.off({ subscriber: this });
+    this.model = undefined;
 
     // Nullify properties
-    this.el = null!;
+    this.el?.remove();
+    // @ts-ignore - Cleaning up for purposes of destroying the view
+    this.el = null;
     this.ui = {};
     this._ui = {};
+    this.errorEl?.remove();
     this.errorEl = undefined;
-    this.isReady = undefined;
+    // @ts-ignore - Cleaning up for purposes of destroying the view
     this.isRendered = undefined;
-    this.model = undefined;
     // @ts-ignore - Cleaning up for purposes of destroying the view
     this.options = {};
     this.compiledTemplate = undefined;
     this.template = undefined;
     // @ts-ignore - Cleaning up for purposes of destroying the view
-    this.templateOptions = undefined;
     this.templateWrapper = undefined;
-    // @ts-ignore - Cleaning up for purposes of destroying the view
-    this.templateWrapperOptions = undefined;
 
-    this.off({ force: true });
     super.emit('destroyed');
   }
 
-  destroyChildren() {
+  /**
+   * Cleans up all child views without affecting the current view.
+   */
+  public destroyChildren() {
     Object.values(this.children).forEach((child) => (child as View).destroy());
     this.children = {};
   }
-
-  onDestroy() {}
 }
 
 export function isAttachReference(val: any): val is AttachReference {

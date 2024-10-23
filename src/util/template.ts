@@ -1,8 +1,13 @@
 import Handlebars, { HelperOptions } from 'handlebars'; // TODO: Research and Consider moving to Template7
+import { loaderTemplate, LoaderType } from './loader';
 
 // Create functions to assist working with Handlebars
 export const getCompiledTemplate = (template: string) => {
   return Handlebars.compile(template);
+};
+
+export const registerPartialTemplate = (name: string, template: string) => {
+  Handlebars.registerPartial(name, template);
 };
 
 Handlebars.registerHelper('eq', function (a, b) {
@@ -87,22 +92,6 @@ Handlebars.registerHelper('math', function (lvalue: number, operator: string, rv
   }[operator];
 });
 
-export const enum LoaderType {
-  Slosh = 'slosh-loader',
-}
-
-export const LoaderMarkup = {
-  'slosh-loader': '<div class="inner"></div>',
-};
-
-Handlebars.registerHelper('getLoader', function (loader: LoaderType, classes?: string) {
-  const list = ['loader', loader];
-
-  if (classes && typeof classes === 'string') {
-    list.push(...classes.split(' '));
-  }
-
-  return new Handlebars.SafeString(
-    loader ? `<span class="${list.join(' ')}" aria-hidden="true">${LoaderMarkup[loader]}</span>` : '',
-  );
+Handlebars.registerHelper('getLoader', function (type: LoaderType, classes?: string) {
+  return new Handlebars.SafeString(type ? JSON.stringify(loaderTemplate({ type, classes })) : '');
 });

@@ -62,11 +62,6 @@ export default abstract class Model<
   private collection: Collection<Self> | null = null;
 
   /**
-   * A promise that resolves when the model is ready.
-   */
-  public isReady: Promise<this>;
-
-  /**
    * Constructs a new model instance.
    * @param options - Options for initializing the model.
    * @param app - The application core instance.
@@ -217,6 +212,10 @@ export default abstract class Model<
     this.collection = collection;
   }
 
+  public getCollection(): Collection<Self> | null {
+    return this.collection;
+  }
+
   /**
    * Marks the model as selected or deselected.
    * @param selected - True to select, false to deselect.
@@ -260,13 +259,8 @@ export default abstract class Model<
       this.collection.remove(this.getId());
     }
 
-    this.off({ force: true });
+    this.off();
   }
-
-  /**
-   * Hook called when the model is destroyed. Subclasses can override this method.
-   */
-  protected onDestroy(): void {}
 
   /**
    * Validates and coerces attributes. Extending classes should implement this method.
