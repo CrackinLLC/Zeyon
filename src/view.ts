@@ -1,8 +1,9 @@
 import type HarnessApp from './app';
 import Emitter from './emitter';
-import { AttachReference, ErrorStateOptions, errorTemplate, RenderOptions, ViewOptions } from './imports/view';
+import { AttachReference, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
 import { convertToRootElement, RootElement } from './util/element';
+import { ErrorStateOptions, errorTemplate } from './util/error';
 import { getUniqueId, toHyphenCase } from './util/string';
 
 export default abstract class View extends Emitter {

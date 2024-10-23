@@ -1,11 +1,6 @@
 import type Model from '../model';
 import type View from '../view';
 
-export interface AttachReference {
-  view: View;
-  id: string;
-}
-
 export interface ViewOptions {
   id?: string;
   classNames?: string[];
@@ -24,41 +19,10 @@ export interface ViewOptions {
 }
 
 export interface RenderOptions {
-  tagName?: string;
+  tagName?: string; // Define a tagname override at the time of render. Allows for dynamic swapping of tags from a parent based on state or options.
 }
 
-export interface ErrorStateOptions {
-  preventHanding?: boolean; // Prevent the parent from handling the removal of the error state
-  attachTo?: HTMLElement;
+export interface AttachReference {
+  view: View; // The view to attach the element within
+  id: string; // The ui id of the element to attach to
 }
-
-export const errorTemplate = (msg: string): HTMLElement => {
-  const errorEl = document.createElement('div');
-  errorEl.classList.add('error-message');
-  errorEl.innerText = msg;
-  return errorEl;
-};
-
-export const enum LoaderType {
-  Slosh = 'slosh-loader',
-}
-
-export const loaderTemplate = ({
-  type = LoaderType.Slosh,
-  wrapped = false,
-}: {
-  type?: LoaderType;
-  wrapped?: boolean;
-} = {}): HTMLElement => {
-  const LoaderMarkup = {
-    'slosh-loader': '<div class="inner"></div>',
-  };
-
-  const loadingStateEl = document.createElement('div');
-  loadingStateEl.classList.add('loading-state');
-  loadingStateEl.innerHTML = `<span class="${['loader', type, wrapped ? 'loader-wrapped' : ''].join(
-    ' ',
-  )}" aria-hidden="true">${LoaderMarkup[type]}</span>`;
-
-  return loadingStateEl;
-};

@@ -20,16 +20,17 @@ HarnessUI is designed to be extended with additional modules that enhance its ca
 
 ### Client-side
 
-- _Dynamic module loading Package_: a server-side component for dynamic module loading and currently requires a node environment running on the server.
-- \_UI Components: A set of commonly used components such as a programmable button, text input, toggle switch, etc.
+- _UI Components_: A set of commonly used components such as a buttons, text inputs, toggle switchs, and dialog popups.
 - _Notifications_: Implement real-time notifications within your application.
 - _Tips_: Support for dynamically generated and responsive tips (commonly and tragically referred to as "tooltips").
 - _Caching_: Automatic client-side caching of all state related data, as well as automatic rehydration on refresh.
+- _Dynamic Module Loading_: a server-side component for dynamic module loading and currently requires a node environment running on the server.
 
 ### Server-side
 
 - _HarnessAPI_: A server-side library optimized to work seamlessly with HarnessUI, providing a PostgreSQL integration and API services. HarnessAPI is currently dependant on Express.js.
 - _Login/Session Management_: Full support for creating new user-accounts, along with session management using PassportJS.
+- _Logging_: Comprehensive application logging that includes an administrative panel to review logs
 - _Payments Portal_: Allow for the payments through your platform in a clean an unobtrusive way. Integrates with multiple third-party gateways.
 
 ## Installation

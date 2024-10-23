@@ -12,14 +12,24 @@ import type Router from '../router';
 import type View from '../view';
 
 export interface ClassRegistryOptions extends EmitterOptions {
-  registryClassList: { [id: string]: BinaryClassDefinition };
+  registryClassList?: { [id: string]: ClassDefinition };
 }
 
-type BinaryClass = (Emitter | Router | Collection<Model> | CollectionView<Collection<Model>> | Model | View) & {
-  options: BinaryClassOptions;
+export interface ClassMetadata {
+  version?: string;
+  // Additional metadata fields can be added here.
+}
+
+export interface ClassEntry {
+  classDef: ClassDefinition;
+  metadata: ClassMetadata;
+}
+
+type ClassInstance = (Emitter | Router | Collection<Model> | CollectionView<Collection<Model>> | Model | View) & {
+  options: ClassOptions;
 };
 
-type BinaryClassOptions =
+type ClassOptions =
   | EmitterOptions
   | RouterOptions
   | CollectionOptions
@@ -27,8 +37,8 @@ type BinaryClassOptions =
   | ModelOptions
   | ViewOptions;
 
-interface BinaryClassDefinition {
-  new (...args: any[]): BinaryClass;
+interface ClassDefinition {
+  new (...args: any[]): ClassInstance;
 }
 
 // A Controller class should not extend any class but the Emitter
@@ -37,9 +47,9 @@ interface ControllerDefinition {
 }
 
 export {
-  BinaryClass,
-  BinaryClassDefinition,
-  BinaryClassOptions,
+  ClassDefinition,
+  ClassInstance,
+  ClassOptions,
   Collection,
   CollectionOptions,
   CollectionView,

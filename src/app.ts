@@ -2,17 +2,17 @@ import '../util/polyfill';
 import '../util/template';
 
 import ClassRegistry from './classRegistry';
-import type { BinaryClass, BinaryClassDefinition } from './imports/classRegistry';
+import type { ClassDefinition, ClassInstance } from './imports/classRegistry';
 import type { RouteConfig } from './imports/router';
-import { loaderTemplate } from './imports/view';
 import Router from './router';
+import { loaderTemplate } from './util/loader';
 
 export interface HarnessAppOptions<CustomRouteProps = any> {
   name?: string;
   el: HTMLElement;
   urlPrefix: string;
   routes: RouteConfig<CustomRouteProps>[];
-  registryClassList: Record<string, BinaryClassDefinition>;
+  registryClassList: Record<string, ClassDefinition>;
 }
 
 /**
@@ -107,7 +107,7 @@ export default class HarnessApp<CustomRouteProps = any> {
    * @param more - Additional arguments.
    * @returns The instantiated class.
    */
-  public async newInstance<B extends BinaryClass>(
+  public async newInstance<B extends ClassInstance>(
     id: string,
     options: B['options'] = {},
     ...more: unknown[]
