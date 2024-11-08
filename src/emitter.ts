@@ -46,7 +46,7 @@ export default abstract class Emitter {
   protected isDestroyed: boolean = false;
 
   private eventListeners: { [event: string]: Listener[] } = {};
-  private validEvents: string[] = [];
+  private validEvents: Set<string> = new Set();
   private debouncedEmitters: Record<string, (...args: any[]) => void> = {};
   protected debouncedEmitterDelay: number = 50;
 
@@ -61,10 +61,9 @@ export default abstract class Emitter {
       this.resolveIsReady = resolve;
     });
 
-    this.validEvents = [...generalEvents, ...events];
-
+    [...generalEvents, ...events].forEach((event) => this.validEvents.add(event));
     if (includeNativeEvents) {
-      this.validEvents.push(...nativeEvents);
+      nativeEvents.forEach((event) => this.validEvents.add(event));
     }
 
     this.rebuildListenersObject();
@@ -92,12 +91,15 @@ export default abstract class Emitter {
 
   /**
    * Extends the valid events that this emitter can handle.
-   * @param events - An array of event names to add.
+   * @param events - An event name or array of event names to add.
    * @returns The emitter instance.
    */
-  public extendValidEvents(events: string[] = []): this {
-    this.validEvents.push(...events);
+  public extendValidEvents(events: string | string[] = []): this {
+    if (typeof events === 'string') events = [events];
+
     events.forEach((event) => {
+      this.validEvents.add(event);
+
       if (!this.eventListeners[event]?.length) {
         this.eventListeners[event] = [];
       }
@@ -111,7 +113,7 @@ export default abstract class Emitter {
    * @returns An array of valid event names.
    */
   public getValidEvents(): string[] {
-    return this.validEvents;
+    return [...this.validEvents.values()];
   }
 
   /**
@@ -122,7 +124,7 @@ export default abstract class Emitter {
    * @returns The emitter instance.
    */
   public on(event: string, handler: CustomEventHandler, subscriber: unknown = this): this {
-    if (!this.validEvents.includes(event)) {
+    if (!this.validEvents.has(event)) {
       return this.logInvalidEvent(event, this);
     }
 
@@ -163,7 +165,7 @@ export default abstract class Emitter {
     }
 
     // Validate the event name if provided
-    if (event && !this.validEvents.includes(event)) {
+    if (event && !this.validEvents.has(event)) {
       return this.logInvalidEvent(event, this);
     }
 
@@ -214,7 +216,7 @@ export default abstract class Emitter {
    * @returns The emitter instance.
    */
   public emit(event: string, detail?: any): this {
-    if (!this.validEvents.includes(event)) {
+    if (!this.validEvents.has(event)) {
       return this.logInvalidEvent(event, this);
     }
 

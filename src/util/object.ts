@@ -12,11 +12,11 @@ export function isEqual(a: any, b: any): boolean {
   }
 
   // Handle Objects (but not arrays or functions)
-  if (typeof a === "object" && typeof b === "object") {
+  if (typeof a === 'object' && typeof b === 'object') {
     return compareObjects(a, b);
   }
 
-  // For everything else (including functions), use strict equality
+  // For everything else (including functions), rely strict equality
   return false;
 }
 
@@ -32,10 +32,7 @@ function compareArrays(a: any[], b: any[]): boolean {
   return true;
 }
 
-function compareObjects(
-  a: Record<string, any>,
-  b: Record<string, any>
-): boolean {
+function compareObjects(a: Record<string, any>, b: Record<string, any>): boolean {
   const keysA = Object.keys(a);
   const keysB = Object.keys(b);
 
@@ -62,7 +59,7 @@ export function getDeepCopy<T>(value: T): T {
     return value.map((item) => getDeepCopy(item)) as unknown as T;
   }
 
-  if (typeof value === "object") {
+  if (typeof value === 'object') {
     const clone = {} as Record<string, any>;
     for (const key in value) {
       if (Object.prototype.hasOwnProperty.call(value, key)) {

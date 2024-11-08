@@ -1,7 +1,7 @@
 import type HarnessApp from './app';
 import type Collection from './collection';
 import Emitter from './emitter';
-import { ModelOptions, ModelType } from './imports/model';
+import { AttributeDefinition, AttributeType, ModelOptions, ModelType } from './imports/model';
 import { isEqual } from './util/object';
 
 const modelEvents = [
@@ -15,16 +15,17 @@ const modelEvents = [
 
 /**
  * Abstract base class for models.
- * Represents data entities with attributes and supports change tracking and event emission.
+ * Represents data entities with attributes, and tracks changes while emitting change related events.
+ * Subclasses must provide an interface for attributes, an attributesDefinition object
  */
 export default abstract class Model<
   A extends Record<string, any> = {},
-  Self extends Model<A, Self> = any,
+  Self extends Model<A, Self> = Model<A, any>,
 > extends Emitter {
   /**
-   * The type of the model. Extending classes must define this.
+   * The type of the model. Extending classes should redefine this.
    */
-  public type: ModelType = ModelType.Unknown;
+  public static type: ModelType = ModelType.Unknown;
 
   /**
    * The key used to identify the model's id attribute. Can be redefined in extending classes.
@@ -44,7 +45,7 @@ export default abstract class Model<
   /**
    * A definition that indicates particular characteristics of each attribute (e.g. value type, default, is optional, etc)
    */
-  protected attributesDefinition: A = {} as A; // TODO: Create mechanism to define attributes
+  protected attributesDefinition: { [key in keyof A]: AttributeDefinition };
 
   /**
    * Flag indicating if the model has unsaved changes.
@@ -69,20 +70,17 @@ export default abstract class Model<
   constructor(public options: ModelOptions<A, Self>, protected app: HarnessApp) {
     super({ events: [...(options.events || []), ...modelEvents] }, app);
 
-    const { attributes = {} as Partial<A>, collection } = options;
+    const { definitions, attributes = {} as Partial<A>, collection = null } = options;
 
-    this.collection = collection || null;
+    this.attributesDefinition = definitions;
+    this.collection = collection;
 
     // Initialize attributes
     this.attributes = { ...attributes } as A;
     this.attributesOriginal = { ...this.attributes };
 
     // Register attribute-specific events
-    const attributeNames = Object.keys(this.attributes);
-    this.extendValidEvents(getCustomEventsFromAttributes(attributeNames));
-
-    // Initialize the isReady promise
-    this.isReady = Promise.resolve(this);
+    this.extendValidEvents(getCustomEventsFromAttributes(Object.keys(this.attributes)));
   }
 
   /**
@@ -99,7 +97,7 @@ export default abstract class Model<
    * @returns True if the attributes are equal, false otherwise.
    */
   protected areAttributesEqual(a: Partial<A>, b: Partial<A>): boolean {
-    return JSON.stringify(a) === JSON.stringify(b);
+    return isEqual(a, b);
   }
 
   /**
@@ -124,7 +122,7 @@ export default abstract class Model<
     const oldAttributes = { ...this.attributes };
 
     // Merge new attributes
-    this.attributes = { ...this.attributes, ...attributes };
+    this.attributes = { ...this.attributes, ...this.validateAttributes(attributes) };
 
     if (!silent) {
       const changes: Partial<A> = {};
@@ -189,7 +187,7 @@ export default abstract class Model<
    * @returns The model's ID, if defined.
    */
   public getId(): number | undefined {
-    return this.get(Object.getPrototypeOf(this).idKey as keyof A);
+    return this.get((this.constructor as typeof Model).idKey as keyof A);
   }
 
   /**
@@ -197,7 +195,7 @@ export default abstract class Model<
    * @returns The model type.
    */
   public getType(): string {
-    return Object.getPrototypeOf(this).type;
+    return (this.constructor as typeof Model).type;
   }
 
   /**
@@ -253,13 +251,12 @@ export default abstract class Model<
    * Destroys the model, performing any necessary cleanup.
    */
   public destroy(): void {
-    this.onDestroy();
+    super.destroy();
 
     if (this.collection) {
       this.collection.remove(this.getId());
+      this.collection.off({ subscriber: this });
     }
-
-    this.off();
   }
 
   /**
@@ -267,7 +264,22 @@ export default abstract class Model<
    * @param attributes - The attributes to validate.
    * @returns The validated and coerced attributes.
    */
-  protected abstract validateAttributes(attributes: Partial<A>): Partial<A>;
+  protected validateAttributes(attributes: Partial<A>): Partial<A> {
+    const validatedAttributes: Partial<A> = {};
+
+    for (const key in attributes) {
+      const definition = this.attributesDefinition[key];
+      if (definition) {
+        const value = attributes[key];
+        validatedAttributes[key] = coerceAttribute(value, definition);
+      } else {
+        console.warn(`Attribute "${key}" is not defined in attributesDefinition.`);
+        validatedAttributes[key] = attributes[key];
+      }
+    }
+
+    return validatedAttributes;
+  }
 }
 
 /**
@@ -286,4 +298,31 @@ function getCustomEventsFromAttributes(attributeNames: string[]): string[] {
   }
 
   return eventList;
+}
+
+function coerceAttribute(value: any, definition: AttributeDefinition): any {
+  if (value === undefined || value === null) {
+    return definition.optional ? undefined : definition.default;
+  }
+
+  switch (definition.type) {
+    case AttributeType.String:
+      return String(value);
+    case AttributeType.StringArray:
+      return Array.isArray(value) ? value.map(String) : [];
+    case AttributeType.Number:
+      return Number(value);
+    case AttributeType.NumberArray:
+      return Array.isArray(value) ? value.map(Number) : [];
+    case AttributeType.Object:
+      return value; // TODO: How might object coercion work here?
+    case AttributeType.ObjectArray:
+      return value; // TODO: How might object coercion work here?
+    case AttributeType.Boolean:
+      return Boolean(value);
+    case AttributeType.Date:
+      return value; // TODO: How might date coercion work here?
+    default:
+      return value;
+  }
 }
