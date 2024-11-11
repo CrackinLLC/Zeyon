@@ -10,12 +10,34 @@ export const registerPartialTemplate = (name: string, template: string) => {
   Handlebars.registerPartial(name, template);
 };
 
+/**
+ * Render content if two values are equivelant
+ */
 Handlebars.registerHelper('eq', function (a, b) {
   return a === b;
 });
 
+/**
+ * Basic support for common math operators
+ */
+Handlebars.registerHelper('math', function (lvalue: number, operator: string, rvalue: number) {
+  return {
+    '+': lvalue + rvalue,
+    '-': lvalue - rvalue,
+    '*': lvalue * rvalue,
+    '/': lvalue / rvalue,
+    '%': lvalue % rvalue,
+  }[operator];
+});
+
+///////////////////////////
+// Conditional helpers
+
+/**
+ * If helper with support for multiple operators
+ */
 Handlebars.registerHelper(
-  'ifCond',
+  'if',
   function (this: any, v1: unknown, operator: string, v2: unknown, options: HelperOptions) {
     let result = false;
 
@@ -58,6 +80,9 @@ Handlebars.registerHelper(
   },
 );
 
+/**
+ * Render content if any one of multiple values are truthy
+ */
 Handlebars.registerHelper('any', function (...args) {
   // The last argument is a Handlebars options object
   const actualArgs = args.slice(0, -1);
@@ -66,6 +91,9 @@ Handlebars.registerHelper('any', function (...args) {
   return actualArgs.some((arg) => Boolean(arg));
 });
 
+/**
+ * Render content if all of multiple values are truthy
+ */
 Handlebars.registerHelper('all', function (...args) {
   // The last argument is a Handlebars options object
   const actualArgs = args.slice(0, -1);
@@ -74,22 +102,21 @@ Handlebars.registerHelper('all', function (...args) {
   return actualArgs.every((arg) => Boolean(arg));
 });
 
+/**
+ * Render content if one of two values is truthy
+ */
 Handlebars.registerHelper('ifOr', function (value1, value2) {
   return value1 || value2;
 });
 
+///////////////////////////
+// Misc helpers
+
+/**
+ * Console log input from the template
+ */
 Handlebars.registerHelper('log', function (...args) {
   console.log(...args);
-});
-
-Handlebars.registerHelper('math', function (lvalue: number, operator: string, rvalue: number) {
-  return {
-    '+': lvalue + rvalue,
-    '-': lvalue - rvalue,
-    '*': lvalue * rvalue,
-    '/': lvalue / rvalue,
-    '%': lvalue % rvalue,
-  }[operator];
 });
 
 Handlebars.registerHelper('getLoader', function (type: LoaderType, classes?: string) {

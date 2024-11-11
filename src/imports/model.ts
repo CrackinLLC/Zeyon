@@ -1,17 +1,21 @@
-import type Collection from '../collection';
 import type Model from '../model';
 import { EmitterOptions } from './emitter';
 
-export interface ModelOptions<A extends Record<string, any> = {}, Self extends Model<A, Self> = any>
-  extends EmitterOptions {
-  definitions: { [key in keyof A]: AttributeDefinition };
+export interface ModelOptions<A extends Record<string, any>> extends EmitterOptions {
   attributes?: Partial<A>;
-  collection?: Collection<Self>;
 }
 
 export const enum ModelType {
   Unknown = 'unknown',
 }
+
+/**
+ * Helper for getting the attribute type of a model without exposing its attribute property
+ */
+export type AttributesOf<M extends Model<any>> = M extends Model<infer A> ? A : never;
+
+/////////////////////////
+// Attribute interfaces
 
 export const enum AttributeType {
   String = 'String',

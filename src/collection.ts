@@ -7,36 +7,45 @@ import {
   CollectionLike,
   CollectionOptions,
 } from './imports/collection';
-import { ModelType } from './imports/model';
+import { AttributesOf, ModelOptions, ModelType } from './imports/model';
 import Model from './model';
 
-export default class Collection<M extends Model<any, any>> extends Emitter implements CollectionLike<M> {
-  declare model: M;
-  protected type: M['type'] = ModelType.Unknown;
+export default class Collection<M extends Model<any>> extends Emitter implements CollectionLike<M> {
+  public static model: typeof Model = Model; // Base class default
 
   protected items: M[] = [];
   public length: number = 0;
   protected visibleItems: M[] = [];
   public visibleLength: number = 0;
-
   protected activeFilters: { [key: string]: (item: M) => boolean } = {};
   public filterOptions: CollectionFilterOptions = {};
-  public isDestroyed: boolean = false;
-  public isReady: Promise<this>;
 
   constructor(public options: CollectionOptions = {}, protected app: HarnessApp) {
     super({ events: [...(options.events || []), ...collectionEvents] }, app);
 
-    this.isReady = Promise.resolve(this);
+    const { ids } = options;
+
+    if (ids && ids.length > 0) {
+      const attrs = ids.map((id) => {
+        return { id } as AttributesOf<M>;
+      });
+
+      this.newModel(attrs).then(() => this.resolveIsReady(this));
+    } else {
+      this.resolveIsReady(this);
+    }
   }
 
-  public async newModel(attributes: Partial<M> | Partial<M>[], silent: boolean = false): Promise<this> {
+  public async newModel(
+    attributes: Partial<AttributesOf<M>> | Partial<AttributesOf<M>>[],
+    silent: boolean = false,
+  ): Promise<this> {
     const attributesArray = Array.isArray(attributes) ? attributes : [attributes];
 
     for (const attrs of attributesArray) {
       const model = await this.app.newInstance<M>(`model-${this.getType()}`, {
         attributes: attrs,
-      });
+      } as ModelOptions<AttributesOf<M>>);
 
       if (model) {
         this.add(model, silent);
@@ -50,8 +59,8 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
     const modelsArray = Array.isArray(models) ? models : [models];
 
     modelsArray.forEach((model) => {
-      if (!(model instanceof Model)) {
-        console.error(`Only instances of ${this.type} can be added to the collection.`);
+      if (!(model instanceof (this.constructor as typeof Collection)['model'])) {
+        console.error(`Only instances of ${this.getType()} can be added to the collection.`);
         return;
       }
 
@@ -65,10 +74,10 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
         console.warn(`Model with ID ${model.getId()} already exists in the collection.`);
       } else {
         this.items.push(model);
-        model.setCollection(this);
 
-        model.on('all', {
-          handler: (event, eventName) => {
+        model.setCollection(this).on(
+          '*',
+          (event, eventName) => {
             let data: unknown = undefined;
 
             if (event instanceof CustomEvent) {
@@ -77,8 +86,8 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
 
             this.emit(eventName!, { model, data });
           },
-          listener: this,
-        });
+          this,
+        );
       }
 
       if (!silent) {
@@ -86,6 +95,7 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
       }
     });
 
+    this.length = this.items.length;
     this.applyFilters();
     return this;
   }
@@ -100,7 +110,7 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
       if (index > -1) {
         const [removedItem] = this.items.splice(index, 1);
         removedItems.push(removedItem);
-        removedItem.off({ listener: this });
+        removedItem.off({ subscriber: this });
       }
     });
 
@@ -108,12 +118,13 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
       this.emit('remove', removedItems);
     }
 
+    this.length = this.items.length;
     this.applyFilters();
-    return removedItems.length === 1 ? removedItems[0] : removedItems.length > 0 ? removedItems : undefined;
+    return removedItems;
   }
 
   public getType(): ModelType {
-    return this.type;
+    return (this.constructor as typeof Collection)['model']?.type || ModelType.Unknown;
   }
 
   public getItems(): M[] {
@@ -124,13 +135,9 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
     return this.items.map((item) => item.getAttributes());
   }
 
-  // TODO: Implement a way of getting attribute keys from our model type
-  // public getAttributeKeys(): string[] {
-  //   if (this.attributeDefinition) {
-  //     return Object.keys(this.attributeDefinition);
-  //   }
-  //   return [];
-  // }
+  public getAttributeKeys(): string[] {
+    return (this.constructor as typeof Collection)['model'].getAttributeDefinition(true) as string[];
+  }
 
   public getVisibleItems(): M[] {
     return this.visibleItems;
@@ -140,8 +147,11 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
     return this.visibleItems.map((item) => item.getAttributes());
   }
 
-  public getSelectedItems(): M[] {
-    return this.items.filter((item) => item.isSelected());
+  public getSelectedItems(includeHidden = false): M[] {
+    if (includeHidden) {
+      return this.items.filter((item) => item.isSelected());
+    }
+    return this.visibleItems.filter((item) => item.isSelected());
   }
 
   public getIds(): number[] {
@@ -158,17 +168,21 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
     return this.items.find((item) => item.getId() === itemId);
   }
 
-  public sort(compareFn: (a: M, b: M) => number): void {
+  public sort(compareFn: (a: M, b: M) => number): this {
     this.items.sort(compareFn);
     this.applyFilters();
     this.emit('sort', this.visibleItems);
+
+    return this;
   }
 
-  public empty(): void {
+  public empty(): this {
     this.items.forEach((item) => item.destroy());
     this.items = [];
     this.applyFilters();
     this.emit('update');
+
+    return this;
   }
 
   public destroy(): void {
@@ -177,16 +191,15 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
 
     this.onDestroy();
 
-    this.off({ force: true });
+    this.off();
     this.items.forEach((item) => item.destroy());
     this.items = [];
+    this.length = 0;
 
     this.emit('destroyed');
   }
 
-  protected onDestroy(): void {}
-
-  public filter(filterOptions?: CollectionFilterOptions, extend: boolean = true): void {
+  public filter(filterOptions?: CollectionFilterOptions, extend: boolean = true): this {
     if (!extend) {
       this.activeFilters = {};
       this.filterOptions = {};
@@ -209,6 +222,8 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
 
     this.applyFilters();
     this.emit('filter', this.visibleItems);
+
+    return this;
   }
 
   public getFilterFunction(key: string, value: any): ((item: M) => boolean) | undefined {
@@ -224,8 +239,6 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
       };
     }
 
-    // Additional filter functions can be implemented here
-
     return undefined;
   }
 
@@ -239,16 +252,27 @@ export default class Collection<M extends Model<any, any>> extends Emitter imple
     ];
   }
 
-  protected applyFilters(): void {
+  protected applyFilters(): this {
     this.visibleItems = this.items.filter((item) => {
       return Object.values(this.activeFilters).every((filterFn) => filterFn(item));
     });
     this.visibleLength = this.visibleItems.length;
+
+    return this;
+  }
+
+  public clearFilters(): this {
+    this.activeFilters = {};
+    this.filterOptions = {};
+    this.applyFilters();
+    this.emit('filter', this.visibleItems);
+
+    return this;
   }
 
   protected getTextSearchAttributes(): string[] {
     if (this.items.length > 0) {
-      return Object.keys(this.items[0].getAttributes());
+      return Object.keys(this.items[0].getAttributes()) as string[];
     }
     return [];
   }

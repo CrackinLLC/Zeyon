@@ -1,21 +1,10 @@
-import type HarnessApp from '../../src/app';
 import { ModelType } from '../../src/imports/model';
 import Model from '../../src/model';
-import { UserAttributes, userAttributes, UserModelOptions } from './imports/user';
+import { UserAttributes, userAttributes } from './imports/user';
 
 export default class UserModel extends Model<UserAttributes> {
-  public static type = ModelType.Unknown;
-  public static idKey = 'id';
-
-  constructor(options: UserModelOptions, app: HarnessApp) {
-    super(
-      {
-        ...options,
-        definitions: userAttributes,
-      },
-      app,
-    );
-  }
+  public static override type = ModelType.Unknown;
+  public static override attributesDefinition = userAttributes;
 
   // Optionally override validateAttributes for additional validation
   protected validateAttributes(attributes: Partial<UserAttributes>): Partial<UserAttributes> {

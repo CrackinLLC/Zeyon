@@ -18,10 +18,7 @@ const modelEvents = [
  * Represents data entities with attributes, and tracks changes while emitting change related events.
  * Subclasses must provide an interface for attributes, an attributesDefinition object
  */
-export default abstract class Model<
-  A extends Record<string, any> = {},
-  Self extends Model<A, Self> = Model<A, any>,
-> extends Emitter {
+export default abstract class Model<A extends Record<string, any>> extends Emitter {
   /**
    * The type of the model. Extending classes should redefine this.
    */
@@ -33,6 +30,11 @@ export default abstract class Model<
   public static idKey: string = 'id';
 
   /**
+   * A definition that indicates particular characteristics of each attribute (e.g. value type, default, is optional, etc)
+   */
+  public static attributesDefinition: { [key: string]: AttributeDefinition } = {};
+
+  /**
    * The current attributes of the model.
    */
   protected attributes: A;
@@ -41,11 +43,6 @@ export default abstract class Model<
    * The original attributes of the model, used for change tracking.
    */
   protected attributesOriginal: A;
-
-  /**
-   * A definition that indicates particular characteristics of each attribute (e.g. value type, default, is optional, etc)
-   */
-  protected attributesDefinition: { [key in keyof A]: AttributeDefinition };
 
   /**
    * Flag indicating if the model has unsaved changes.
@@ -59,21 +56,19 @@ export default abstract class Model<
 
   /**
    * Reference to the collection this model belongs to, if any.
+   * A less strict type is permitted here, as the Collection class will enforce much stricter typing of the models it works with.
    */
-  private collection: Collection<Self> | null = null;
+  private collection: Collection<any> | null = null;
 
   /**
    * Constructs a new model instance.
    * @param options - Options for initializing the model.
    * @param app - The application core instance.
    */
-  constructor(public options: ModelOptions<A, Self>, protected app: HarnessApp) {
+  constructor(public options: ModelOptions<A>, protected app: HarnessApp) {
     super({ events: [...(options.events || []), ...modelEvents] }, app);
 
-    const { definitions, attributes = {} as Partial<A>, collection = null } = options;
-
-    this.attributesDefinition = definitions;
-    this.collection = collection;
+    const { attributes = {} as Partial<A> } = options;
 
     // Initialize attributes
     this.attributes = { ...attributes } as A;
@@ -86,8 +81,10 @@ export default abstract class Model<
   /**
    * Marks whether the model has unsaved changes.
    */
-  protected markUnsavedChanges(): void {
+  protected markUnsavedChanges(): Model<A> {
     this.hasUnsavedChanges = !this.areAttributesEqual(this.attributes, this.attributesOriginal);
+
+    return this;
   }
 
   /**
@@ -114,7 +111,7 @@ export default abstract class Model<
    * @param silent - If true, suppresses change events.
    * @returns The model instance.
    */
-  public set(attributes: Partial<A> = {}, silent: boolean = false): this {
+  public set(attributes: Partial<A> = {}, silent: boolean = false): Model<A> {
     if (!attributes || Object.keys(attributes).length === 0) {
       return this;
     }
@@ -167,10 +164,12 @@ export default abstract class Model<
    * Unsets (removes) an attribute from the model.
    * @param attributeName - The name of the attribute to unset.
    */
-  public unset(attributeName: keyof A): void {
+  public unset(attributeName: keyof A): Model<A> {
     if (this.attributes[attributeName] !== undefined) {
       this.set({ [attributeName]: undefined } as Partial<A>);
     }
+
+    return this;
   }
 
   /**
@@ -206,11 +205,13 @@ export default abstract class Model<
     return { ...this.attributes };
   }
 
-  public setCollection(collection: Collection<Self>): void {
+  public setCollection(collection: Collection<any>): Model<A> {
     this.collection = collection;
+
+    return this;
   }
 
-  public getCollection(): Collection<Self> | null {
+  public getCollection(): Collection<Model<A>> | null {
     return this.collection;
   }
 
@@ -218,9 +219,11 @@ export default abstract class Model<
    * Marks the model as selected or deselected.
    * @param selected - True to select, false to deselect.
    */
-  public select(selected: boolean): void {
+  public select(selected: boolean): Model<A> {
     this.selected = selected;
     this.emit('selected', selected);
+
+    return this;
   }
 
   /**
@@ -236,14 +239,14 @@ export default abstract class Model<
    * @param silent - If true, suppresses reset events.
    * @returns The model instance.
    */
-  public reset(silent: boolean = false): this {
+  public reset(silent: boolean = false): Model<A> {
     this.attributes = { ...this.attributesOriginal };
 
     if (!silent) {
       this.emit('reset');
     }
-
     this.markUnsavedChanges();
+
     return this;
   }
 
@@ -266,19 +269,31 @@ export default abstract class Model<
    */
   protected validateAttributes(attributes: Partial<A>): Partial<A> {
     const validatedAttributes: Partial<A> = {};
+    const definition = (this.constructor as typeof Model).getAttributeDefinition();
 
     for (const key in attributes) {
-      const definition = this.attributesDefinition[key];
-      if (definition) {
-        const value = attributes[key];
-        validatedAttributes[key] = coerceAttribute(value, definition);
+      if (Object.prototype.hasOwnProperty.call(definition, key)) {
+        const value = attributes[key as keyof A];
+        validatedAttributes[key as keyof A] = coerceAttribute(value, definition[key]);
       } else {
         console.warn(`Attribute "${key}" is not defined in attributesDefinition.`);
-        validatedAttributes[key] = attributes[key];
+        validatedAttributes[key as keyof A] = attributes[key as keyof A];
       }
     }
 
     return validatedAttributes;
+  }
+
+  static getAttributeDefinition(keys: true): string[];
+  static getAttributeDefinition(keys?: false): { [key: string]: AttributeDefinition };
+  static getAttributeDefinition(keys: boolean = false): string[] | { [key: string]: AttributeDefinition } {
+    const definition = this.attributesDefinition;
+
+    if (keys) {
+      return Object.keys(definition);
+    }
+
+    return definition;
   }
 }
 

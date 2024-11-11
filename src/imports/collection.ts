@@ -17,17 +17,12 @@ export interface CollectionFilterDefinition {
 
 export interface CollectionOptions extends EmitterOptions {
   ids?: string[];
-  fetchAllData?: boolean;
-  filter?: CollectionFilterOptions;
 }
 
-export interface CollectionLike<M extends Model<any, any>> extends Emitter {
-  model: M;
-
+export interface CollectionLike<M extends Model<any>> extends Emitter {
   length: number;
   visibleLength: number;
-  isReady: Promise<any>;
-  isDestroyed: boolean;
+  isReady: Promise<this>;
 
   filterOptions: CollectionFilterOptions;
 
@@ -37,7 +32,7 @@ export interface CollectionLike<M extends Model<any, any>> extends Emitter {
   getType(): ModelType;
   getItems(): M[];
   getAttributes(): object[];
-  // getAttributeKeys(): string[];
+  getAttributeKeys(): string[];
   getVisibleItems(): M[];
   getVisibleAttributes(): object[];
   getSelectedItems(): M[];
@@ -46,8 +41,6 @@ export interface CollectionLike<M extends Model<any, any>> extends Emitter {
   findById(itemId: number): M | undefined;
   sort(compareFn: (a: M, b: M) => number): void;
   empty(): void;
-  destroy(): void;
-
   filter(filterOptions?: any, extend?: boolean): void;
   getFilterFunction(key: string, value: any): ((item: M) => boolean) | undefined;
   getFilterOptions(): CollectionFilterDefinition[];
@@ -59,5 +52,4 @@ export const collectionEvents = [
   'filter', // When the collection has a filter applied.
   'fetch', // When a fetch request is made to the server.
   'save', // When the collection of data objects has been successfully been saved to the server.
-  'destroyed', // When the collection has been destroyed.
 ];

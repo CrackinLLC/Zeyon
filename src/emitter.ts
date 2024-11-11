@@ -3,16 +3,16 @@ import type { CustomEventHandler, EmitterOptions } from './imports/emitter';
 import { debounce } from './util/debounce';
 
 const generalEvents = [
-  'all', // Triggered for all events with "type" argument supplied.
+  '*', // Triggered for all events, with an additional "event type" argument supplied.
   'destroyed', // When the instance is destroyed.
 ];
 
-// Native events that are supported by the browser
+// Native events supported by browsers. Used in view class only.
 const nativeEvents = [
-  'beforeinput', // Triggered when input is about to change.
+  'beforeinput',
   'blur',
   'click',
-  'contextmenu', // Triggered when the right mouse button is clicked.
+  'contextmenu',
   'copy',
   'dblclick',
   'focus',
@@ -159,7 +159,7 @@ export default abstract class Emitter {
     const { event, handler, subscriber } = options;
 
     // Special case to remove all listeners
-    if (event === 'all' || (!event && !handler && !subscriber)) {
+    if (event === '*' || (!event && !handler && !subscriber)) {
       this.rebuildListenersObject();
       return this;
     }
@@ -221,7 +221,7 @@ export default abstract class Emitter {
     }
 
     // Since handlers may remove themselves (e.g., once()), we want to clone our references before triggering any events.
-    const listeners = [...this.eventListeners[event], ...this.eventListeners['all']];
+    const listeners = [...this.eventListeners[event], ...this.eventListeners['*']];
     listeners?.forEach((listener) => listener.trigger(detail, event));
 
     return this;
@@ -285,7 +285,7 @@ export default abstract class Emitter {
     return this;
   }
 
-  protected destroy(): void {
+  public destroy(): void {
     if (this.isDestroyed) return;
     this.isDestroyed = true;
 
@@ -296,7 +296,7 @@ export default abstract class Emitter {
     this.destroyEvents();
   }
 
-  onDestroy() {}
+  protected onDestroy() {}
 }
 
 /**
@@ -341,7 +341,7 @@ class Listener {
   /**
    * Triggers the event handler with the provided detail.
    * @param detail - Data to pass to the handler.
-   * @param event - The event name (used when eventName is 'all').
+   * @param event - The event name (used when eventName is '*').
    * @returns The Listener instance.
    */
   public trigger(detail: any = {}, event?: string): this {
@@ -355,7 +355,7 @@ class Listener {
       // For custom events
       const customEvent = new CustomEvent(this.eventName, { detail });
 
-      if (this.eventName === 'all') {
+      if (this.eventName === '*') {
         this.handler(customEvent, event);
       } else {
         this.handler(customEvent);
