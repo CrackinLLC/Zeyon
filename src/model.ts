@@ -68,11 +68,15 @@ export default abstract class Model<A extends Record<string, any>> extends Emitt
   constructor(public options: ModelOptions<A>, protected app: HarnessApp) {
     super({ events: [...(options.events || []), ...modelEvents] }, app);
 
-    const { attributes = {} as Partial<A> } = options;
+    const { attributes = {} as Partial<A>, collection } = options;
 
     // Initialize attributes
     this.attributes = { ...attributes } as A;
     this.attributesOriginal = { ...this.attributes };
+
+    if (collection) {
+      this.setCollection(collection);
+    }
 
     // Register attribute-specific events
     this.extendValidEvents(getCustomEventsFromAttributes(Object.keys(this.attributes)));
@@ -206,7 +210,9 @@ export default abstract class Model<A extends Record<string, any>> extends Emitt
   }
 
   public setCollection(collection: Collection<any>): Model<A> {
-    this.collection = collection;
+    if (collection !== this.collection) {
+      this.collection = collection;
+    }
 
     return this;
   }

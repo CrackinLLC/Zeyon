@@ -45,6 +45,7 @@ export default class Collection<M extends Model<any>> extends Emitter implements
     for (const attrs of attributesArray) {
       const model = await this.app.newInstance<M>(`model-${this.getType()}`, {
         attributes: attrs,
+        collection: this,
       } as ModelOptions<AttributesOf<M>>);
 
       if (model) {
