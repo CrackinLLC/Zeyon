@@ -1,4 +1,4 @@
-import { AttributeDefinition, AttributeType, ModelOptions } from '../../../src/imports/model';
+import { AttributeDefinition, AttributeType, Attributes } from '../../../src/imports/model';
 
 export enum UserType {
   Pending = 'pending',
@@ -38,8 +38,7 @@ export enum UserTimezone {
   PST = 'pst',
 }
 
-export interface UserAttributes {
-  id: number;
+export interface UserAttributes extends Attributes {
   team_ids?: number[];
   todo_ids?: number[];
   email?: string;
@@ -53,7 +52,7 @@ export interface UserAttributes {
   profile_img?: string;
 }
 
-export const userAttributes: { [key in keyof UserAttributes]: AttributeDefinition } = {
+export const userDefinition: { [key in keyof UserAttributes]: AttributeDefinition } = {
   id: {
     type: AttributeType.Number,
   },
@@ -102,7 +101,3 @@ export const userAttributes: { [key in keyof UserAttributes]: AttributeDefinitio
     optional: true,
   },
 };
-
-export interface UserModelOptions extends ModelOptions<UserAttributes> {
-  attributeDefinition?: { [key in keyof UserAttributes]: AttributeDefinition };
-}

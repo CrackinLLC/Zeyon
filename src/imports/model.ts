@@ -2,22 +2,22 @@ import type Collection from '../collection';
 import type Model from '../model';
 import { EmitterOptions } from './emitter';
 
-export interface ModelOptions<A extends Record<string, any>> extends EmitterOptions {
+export interface ModelOptions<A extends Attributes = Attributes> extends EmitterOptions {
   attributes?: Partial<A>;
-  collection?: Collection<any>;
+  collection?: Collection<A, any>;
 }
 
 export const enum ModelType {
   Unknown = 'unknown',
 }
 
-/**
- * Helper for getting the attribute type of a model without exposing its attribute property
- */
-export type AttributesOf<M extends Model<any>> = M extends Model<infer A> ? A : never;
-
 /////////////////////////
 // Attribute interfaces
+
+export interface Attributes {
+  [key: string]: unknown;
+  id?: number;
+}
 
 export const enum AttributeType {
   String = 'String',
@@ -35,3 +35,17 @@ export interface AttributeDefinition {
   default?: unknown; // Default value of the attribute when a new model is instantiated
   optional?: boolean;
 }
+
+/**
+ * Helper for getting generic A from a model without exposing the attributes property
+ */
+export type AttributesOf<M extends Model> = M extends Model<infer A> ? A : never;
+
+export const modelEvents = [
+  'add', // When the model is added to a collection.
+  'remove', // When the model is removed from a collection.
+  'change', // When any model attribute is changed.
+  'reset', // When all model attributes are reset to their default or undefined values.
+  'selected', // When the model is selected or deselected.
+];
+// Additional generated events include [attribute]:change, [attribute]:set, and [attribute]:unset

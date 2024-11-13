@@ -42,18 +42,19 @@ export default abstract class Emitter {
    * Promise that resolves once the instance is ready
    */
   public isReady: Promise<this>;
-  protected resolveIsReady!: (value: this) => void;
-  protected isDestroyed: boolean = false;
+  private resolveIsReady!: (value: this) => void;
 
   private eventListeners: { [event: string]: Listener[] } = {};
   private validEvents: Set<string> = new Set();
   private debouncedEmitters: Record<string, (...args: any[]) => void> = {};
   protected debouncedEmitterDelay: number = 50;
 
+  protected isDestroyed: boolean = false;
+
   /**
    * @param options - Emitter options including custom events and whether to include native events.
    */
-  constructor(readonly options: EmitterOptions = {}, protected app: HarnessApp) {
+  constructor(public readonly options: EmitterOptions = {}, protected app: HarnessApp) {
     const { events = [], includeNativeEvents = false } = options;
 
     // Initialize readiness promises
@@ -67,6 +68,10 @@ export default abstract class Emitter {
     }
 
     this.rebuildListenersObject();
+  }
+
+  protected markAsReady(): void {
+    this.resolveIsReady(this);
   }
 
   /**

@@ -120,11 +120,7 @@ export default class HarnessApp<CustomRouteProps = any> {
    * @param more - Additional arguments.
    * @returns The instantiated class.
    */
-  public async newInstance<B extends ClassInstance>(
-    id: string,
-    options: B['options'] = {},
-    ...more: unknown[]
-  ): Promise<B> {
+  public async newInstance<C extends ClassInstance>(id: string, options: C['options'] = {}): Promise<C> {
     const def = this.registry.getClass(id);
 
     if (!def) {
@@ -134,7 +130,7 @@ export default class HarnessApp<CustomRouteProps = any> {
     }
 
     try {
-      const instance = new def(options, this, ...more) as B;
+      const instance = new def(options, this) as C;
       if (instance.isReady instanceof Promise) {
         await instance.isReady;
       }

@@ -55,9 +55,8 @@ export default abstract class View extends Emitter {
     }
 
     // Define our model and call the local initialize method before declaring the view ready.
-    Promise.all([this.setModel().then((model) => (this.model = model)), this.initialize()]).then(() =>
-      this.resolveIsReady(this),
-    );
+    const funcs = [this.setModel().then((model) => (this.model = model)), this.initialize()];
+    Promise.all(funcs).then(() => this.markAsReady());
   }
 
   /**
@@ -293,12 +292,12 @@ export default abstract class View extends Emitter {
     };
   }
 
-  async newChild<V extends View>(id: string, viewOptions: V['options'], ...more: unknown[]): Promise<V> {
+  async newChild<V extends View>(id: string, viewOptions: V['options']): Promise<V> {
     if (this.isDestroyed) {
       return Promise.reject(new Error('Component is destroyed'));
     }
 
-    return this.app.newInstance<V>(id, viewOptions, ...more).then((child) => {
+    return this.app.newInstance<V>(id, viewOptions).then((child) => {
       if (this.isDestroyed) {
         child.destroy(); // If our parent was destroyed while waiting to load the child
         return Promise.reject(new Error('Component is destroyed'));

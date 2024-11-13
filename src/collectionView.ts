@@ -1,7 +1,6 @@
 import type HarnessApp from './app';
 import type { CollectionLike } from './imports/collection';
 import type { CollectionViewOptions } from './imports/collectionView';
-import Model from './model';
 import { debounce } from './util/debounce';
 import View from './view';
 
@@ -10,10 +9,7 @@ import View from './view';
  * @template C The type of the collection.
  * @template V The type of the child view.
  */
-export default class CollectionView<
-  C extends CollectionLike<Model> = CollectionLike<Model>,
-  CV extends View = View,
-> extends View {
+export default class CollectionView<C extends CollectionLike = CollectionLike, CV extends View = View> extends View {
   declare options: CollectionViewOptions<C, CV>;
 
   /**
@@ -105,7 +101,7 @@ export default class CollectionView<
    */
   async loadCollection(collection?: C): Promise<void> {
     if (this.collection) {
-      this.collection.off({ listener: this });
+      this.collection.off({ subscriber: this });
     }
 
     this.collection = collection;
@@ -141,28 +137,19 @@ export default class CollectionView<
   protected listenToCollection() {
     if (!this.collection) return;
 
-    this.collection.on('update', {
-      handler: () => {
-        this.renderChildItems();
-        this.emit('change', this.collection);
-      },
-      listener: this,
+    this.collection.on('update', () => {
+      this.renderChildItems();
+      this.emit('change', this.collection), this;
     });
 
-    this.collection.on('filter', {
-      handler: () => {
-        this.renderChildItems();
-        this.emit('change', this.collection);
-      },
-      listener: this,
+    this.collection.on('filter', () => {
+      this.renderChildItems();
+      this.emit('change', this.collection), this;
     });
 
-    this.collection.on('sort', {
-      handler: () => {
-        this.renderChildItems();
-        this.emit('change', this.collection);
-      },
-      listener: this,
+    this.collection.on('sort', () => {
+      this.renderChildItems();
+      this.emit('change', this.collection), this;
     });
   }
 
@@ -179,7 +166,7 @@ export default class CollectionView<
   destroy() {
     this.destroyChildItems();
     if (this.collection) {
-      this.collection.off({ listener: this });
+      this.collection.off({ subscriber: this });
     }
     delete this.collection;
 

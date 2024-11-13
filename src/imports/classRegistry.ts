@@ -1,13 +1,13 @@
-import type Collection from '../collection';
 import type CollectionView from '../collectionView';
 import type Emitter from '../emitter';
-import type { CollectionOptions } from '../imports/collection';
+import type { CollectionLike, CollectionOptions } from '../imports/collection';
 import type { CollectionViewOptions } from '../imports/collectionView';
 import type { EmitterOptions } from '../imports/emitter';
 import type { ModelOptions } from '../imports/model';
 import type { RouterOptions } from '../imports/router';
 import type { ViewOptions } from '../imports/view';
 import type Model from '../model';
+import type RouteView from '../route';
 import type Router from '../router';
 import type View from '../view';
 
@@ -29,11 +29,11 @@ type ClassOptions =
   | EmitterOptions
   | RouterOptions
   | CollectionOptions
-  | CollectionViewOptions<Collection<Model>, View>
+  | CollectionViewOptions<CollectionLike, View>
   | ModelOptions
   | ViewOptions;
 
-type ClassInstance = (Emitter | Router | Collection<Model> | CollectionView<Collection<Model>> | Model | View) & {
+type ClassInstance = (Emitter | Router | CollectionLike | CollectionView<CollectionLike> | Model | View | RouteView) & {
   options: ClassOptions;
 };
 

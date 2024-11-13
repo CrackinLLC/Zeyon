@@ -7,46 +7,49 @@ import {
   CollectionLike,
   CollectionOptions,
 } from './imports/collection';
-import { AttributesOf, ModelOptions, ModelType } from './imports/model';
+import { Attributes, ModelType } from './imports/model';
 import Model from './model';
 
-export default class Collection<M extends Model<any>> extends Emitter implements CollectionLike<M> {
-  public static model: typeof Model = Model; // Base class default
+export default abstract class Collection<A extends Attributes, M extends Model<any>>
+  extends Emitter
+  implements CollectionLike<A, M>
+{
+  protected abstract getModelClass(): typeof Model<A>;
 
   protected items: M[] = [];
   public length: number = 0;
   protected visibleItems: M[] = [];
   public visibleLength: number = 0;
+
+  protected filterOptions: CollectionFilterOptions = {};
   protected activeFilters: { [key: string]: (item: M) => boolean } = {};
-  public filterOptions: CollectionFilterOptions = {};
 
   constructor(public options: CollectionOptions = {}, protected app: HarnessApp) {
     super({ events: [...(options.events || []), ...collectionEvents] }, app);
 
     const { ids } = options;
+    const funcs = [];
 
     if (ids && ids.length > 0) {
       const attrs = ids.map((id) => {
-        return { id } as AttributesOf<M>;
+        return { id } as A;
       });
 
-      this.newModel(attrs).then(() => this.resolveIsReady(this));
-    } else {
-      this.resolveIsReady(this);
+      funcs.push(this.newModel(attrs));
     }
+
+    funcs.push(this.initialize());
+    Promise.all(funcs).then(() => this.markAsReady());
   }
 
-  public async newModel(
-    attributes: Partial<AttributesOf<M>> | Partial<AttributesOf<M>>[],
-    silent: boolean = false,
-  ): Promise<this> {
+  public async newModel(attributes: Partial<A> | Partial<A>[], silent: boolean = false): Promise<this> {
     const attributesArray = Array.isArray(attributes) ? attributes : [attributes];
 
     for (const attrs of attributesArray) {
       const model = await this.app.newInstance<M>(`model-${this.getType()}`, {
         attributes: attrs,
         collection: this,
-      } as ModelOptions<AttributesOf<M>>);
+      });
 
       if (model) {
         this.add(model, silent);
@@ -60,7 +63,7 @@ export default class Collection<M extends Model<any>> extends Emitter implements
     const modelsArray = Array.isArray(models) ? models : [models];
 
     modelsArray.forEach((model) => {
-      if (!(model instanceof (this.constructor as typeof Collection)['model'])) {
+      if (this.getModelClass().type !== this.getType()) {
         console.error(`Only instances of ${this.getType()} can be added to the collection.`);
         return;
       }
@@ -125,7 +128,7 @@ export default class Collection<M extends Model<any>> extends Emitter implements
   }
 
   public getType(): ModelType {
-    return (this.constructor as typeof Collection)['model']?.type || ModelType.Unknown;
+    return this.getModelClass().type || ModelType.Unknown;
   }
 
   public getItems(): M[] {
@@ -137,7 +140,7 @@ export default class Collection<M extends Model<any>> extends Emitter implements
   }
 
   public getAttributeKeys(): string[] {
-    return (this.constructor as typeof Collection)['model'].getAttributeDefinition(true) as string[];
+    return this.getModelClass().getAttributeKeys();
   }
 
   public getVisibleItems(): M[] {

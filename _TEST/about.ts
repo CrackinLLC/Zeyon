@@ -1,7 +1,7 @@
-import View from '../src/view';
+import RouteView from '../src/route';
 import AboutPageTemplate from './templates/about.hbs';
 
-export default class AboutPageScreen extends View {
+export default class AboutPageScreen extends RouteView {
   static isComponent = false;
 
   protected template = AboutPageTemplate;

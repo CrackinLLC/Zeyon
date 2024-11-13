@@ -1,13 +1,16 @@
 import { ModelType } from '../../src/imports/model';
 import Model from '../../src/model';
-import { UserAttributes, userAttributes } from './imports/user';
+import { UserAttributes, userDefinition } from './imports/user';
 
-export default class UserModel extends Model<UserAttributes> {
-  public static override type = ModelType.Unknown;
-  public static override attributesDefinition = userAttributes;
+export default class UserModel<A extends UserAttributes = UserAttributes> extends Model<A> {
+  public static override type = ModelType.Unknown; // TODO: Extend ModelType to include "User" (and others)
+  public static override definition = userDefinition;
 
-  // Optionally override validateAttributes for additional validation
-  protected validateAttributes(attributes: Partial<UserAttributes>): Partial<UserAttributes> {
+  protected async initialize(): Promise<void> {
+    console.log('User model is initializing...');
+  }
+
+  protected validateAttributes(attributes: Partial<A>): Partial<A> {
     const validated = super.validateAttributes(attributes);
 
     // Custom validation logic, if necessary
@@ -21,6 +24,4 @@ export default class UserModel extends Model<UserAttributes> {
 
     return validated;
   }
-
-  // ... rest of the UserModel methods ...
 }

@@ -1,7 +1,7 @@
-import View from '../src/view';
+import RouteView from '../src/route';
 import CareersPageTemplate from './templates/careers.hbs';
 
-export default class CareersPageRoute extends View {
+export default class CareersPageRoute extends RouteView {
   static isComponent = false;
 
   protected template = CareersPageTemplate;

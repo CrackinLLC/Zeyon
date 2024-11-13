@@ -1,7 +1,11 @@
 import type Emitter from '../emitter';
-import type { ModelType } from '../imports/model';
+import type { Attributes, ModelType } from '../imports/model';
 import type Model from '../model';
 import type { EmitterOptions } from './emitter';
+
+export interface CollectionOptions extends EmitterOptions {
+  ids?: number[];
+}
 
 export interface CollectionFilterOptions {
   [key: string]: unknown;
@@ -15,16 +19,10 @@ export interface CollectionFilterDefinition {
   textInput?: boolean;
 }
 
-export interface CollectionOptions extends EmitterOptions {
-  ids?: string[];
-}
-
-export interface CollectionLike<M extends Model<any>> extends Emitter {
+export interface CollectionLike<A extends Attributes = Attributes, M extends Model<A> = Model<A>> extends Emitter {
   length: number;
   visibleLength: number;
   isReady: Promise<this>;
-
-  filterOptions: CollectionFilterOptions;
 
   newModel(attributes: Partial<{}> | Partial<{}>[], silent?: boolean): Promise<this>;
   add(models: M | M[], silent: boolean): this;

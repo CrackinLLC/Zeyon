@@ -1,38 +1,24 @@
 import type HarnessApp from './app';
 import type Collection from './collection';
 import Emitter from './emitter';
-import { AttributeDefinition, AttributeType, ModelOptions, ModelType } from './imports/model';
+import { AttributeDefinition, Attributes, AttributeType, modelEvents, ModelOptions, ModelType } from './imports/model';
 import { isEqual } from './util/object';
-
-const modelEvents = [
-  'add', // When the model is added to a collection.
-  'remove', // When the model is removed from a collection.
-  'change', // When any model attribute is changed.
-  'reset', // When all model attributes are reset to their default or undefined values.
-  'selected', // When the model is selected or deselected.
-];
-// Additional generated events include [attribute]:change, [attribute]:set, and [attribute]:unset
 
 /**
  * Abstract base class for models.
  * Represents data entities with attributes, and tracks changes while emitting change related events.
  * Subclasses must provide an interface for attributes, an attributesDefinition object
  */
-export default abstract class Model<A extends Record<string, any>> extends Emitter {
+export default abstract class Model<A extends Attributes = Attributes> extends Emitter {
   /**
    * The type of the model. Extending classes should redefine this.
    */
   public static type: ModelType = ModelType.Unknown;
 
   /**
-   * The key used to identify the model's id attribute. Can be redefined in extending classes.
-   */
-  public static idKey: string = 'id';
-
-  /**
    * A definition that indicates particular characteristics of each attribute (e.g. value type, default, is optional, etc)
    */
-  public static attributesDefinition: { [key: string]: AttributeDefinition } = {};
+  public static definition: { [key: string]: AttributeDefinition } = {};
 
   /**
    * The current attributes of the model.
@@ -58,14 +44,14 @@ export default abstract class Model<A extends Record<string, any>> extends Emitt
    * Reference to the collection this model belongs to, if any.
    * A less strict type is permitted here, as the Collection class will enforce much stricter typing of the models it works with.
    */
-  private collection: Collection<any> | null = null;
+  private collection: Collection<A, any> | null = null;
 
   /**
    * Constructs a new model instance.
    * @param options - Options for initializing the model.
    * @param app - The application core instance.
    */
-  constructor(public options: ModelOptions<A>, protected app: HarnessApp) {
+  constructor(public readonly options: ModelOptions<A>, protected app: HarnessApp) {
     super({ events: [...(options.events || []), ...modelEvents] }, app);
 
     const { attributes = {} as Partial<A>, collection } = options;
@@ -80,6 +66,7 @@ export default abstract class Model<A extends Record<string, any>> extends Emitt
 
     // Register attribute-specific events
     this.extendValidEvents(getCustomEventsFromAttributes(Object.keys(this.attributes)));
+    this.initialize().then(() => this.markAsReady());
   }
 
   /**
@@ -190,15 +177,7 @@ export default abstract class Model<A extends Record<string, any>> extends Emitt
    * @returns The model's ID, if defined.
    */
   public getId(): number | undefined {
-    return this.get((this.constructor as typeof Model).idKey as keyof A);
-  }
-
-  /**
-   * Gets the type of the model.
-   * @returns The model type.
-   */
-  public getType(): string {
-    return (this.constructor as typeof Model).type;
+    return (this.get('id') as number) || undefined;
   }
 
   /**
@@ -209,15 +188,15 @@ export default abstract class Model<A extends Record<string, any>> extends Emitt
     return { ...this.attributes };
   }
 
-  public setCollection(collection: Collection<any>): Model<A> {
-    if (collection !== this.collection) {
+  public setCollection(collection?: Collection<A, any>): Model<A> {
+    if (collection && collection !== this.collection) {
       this.collection = collection;
     }
 
     return this;
   }
 
-  public getCollection(): Collection<Model<A>> | null {
+  public getCollection(): Collection<A, any> | null {
     return this.collection;
   }
 
@@ -275,7 +254,7 @@ export default abstract class Model<A extends Record<string, any>> extends Emitt
    */
   protected validateAttributes(attributes: Partial<A>): Partial<A> {
     const validatedAttributes: Partial<A> = {};
-    const definition = (this.constructor as typeof Model).getAttributeDefinition();
+    const definition = (this.constructor as typeof Model).definition;
 
     for (const key in attributes) {
       if (Object.prototype.hasOwnProperty.call(definition, key)) {
@@ -290,16 +269,12 @@ export default abstract class Model<A extends Record<string, any>> extends Emitt
     return validatedAttributes;
   }
 
-  static getAttributeDefinition(keys: true): string[];
-  static getAttributeDefinition(keys?: false): { [key: string]: AttributeDefinition };
-  static getAttributeDefinition(keys: boolean = false): string[] | { [key: string]: AttributeDefinition } {
-    const definition = this.attributesDefinition;
+  getType(): ModelType {
+    return (this.constructor as typeof Model).type;
+  }
 
-    if (keys) {
-      return Object.keys(definition);
-    }
-
-    return definition;
+  static getAttributeKeys(): string[] {
+    return Object.keys(this.definition);
   }
 }
 

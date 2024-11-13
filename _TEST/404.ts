@@ -1,7 +1,7 @@
-import View from '../src/view';
+import RouteView from '../src/route';
 import NotFoundTemplate from './templates/404.hbs';
 
-export default class NotFoundRoute extends View {
+export default class NotFoundRoute extends RouteView {
   static isComponent = false;
 
   protected template = NotFoundTemplate;

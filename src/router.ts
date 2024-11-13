@@ -1,11 +1,11 @@
 import type HarnessApp from './app';
 import Emitter from './emitter';
 import type { RouteConfig, RouteNode, RouterOptions, SiteMapRouteDetail } from './imports/router';
-import type View from './view';
+import type RouteView from './route';
 
 export default class Router<CustomRouteProps = any> extends Emitter {
   private currentPath: string = '';
-  private currentRoute: View | undefined;
+  private currentRoute: RouteView | undefined;
   private currentRouteConfig: RouteConfig<CustomRouteProps> | undefined;
   private routes: RouteConfig<CustomRouteProps>[];
   private urlMap: RouteNode = { segment: '', children: new Map() };
@@ -40,7 +40,7 @@ export default class Router<CustomRouteProps = any> extends Emitter {
     return this.currentPath;
   }
 
-  public getCurrentRoute(): View | undefined {
+  public getCurrentRoute(): RouteView | undefined {
     return this.currentRoute;
   }
 
@@ -168,7 +168,7 @@ export default class Router<CustomRouteProps = any> extends Emitter {
       try {
         // Instantiate and render the new view
         this.currentRoute = await this.app
-          .newInstance<View>(route.regId, {
+          .newInstance<RouteView>(route.regId, {
             ...(params && Object.keys(params).length ? { params } : {}),
             ...(query ? { query } : {}),
             ...(hash ? { hash } : {}),
