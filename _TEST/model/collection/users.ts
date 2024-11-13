@@ -10,5 +10,8 @@ export default class UserCollection extends Collection<UserAttributes, UserModel
   public async initialize(): Promise<void> {
     console.log('User collection is initializing...');
   }
-}
+
+  doThing() {
+    console.log('test');
+  }
 }

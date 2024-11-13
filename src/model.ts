@@ -9,7 +9,7 @@ import { isEqual } from './util/object';
  * Represents data entities with attributes, and tracks changes while emitting change related events.
  * Subclasses must provide an interface for attributes, an attributesDefinition object
  */
-export default abstract class Model<A extends Attributes = Attributes> extends Emitter {
+export default abstract class Model<A extends Attributes> extends Emitter {
   /**
    * The type of the model. Extending classes should redefine this.
    */
@@ -252,7 +252,7 @@ export default abstract class Model<A extends Attributes = Attributes> extends E
    * @param attributes - The attributes to validate.
    * @returns The validated and coerced attributes.
    */
-  protected validateAttributes(attributes: Partial<A>): Partial<A> {
+  public validateAttributes(attributes: Partial<A>): Partial<A> {
     const validatedAttributes: Partial<A> = {};
     const definition = (this.constructor as typeof Model).definition;
 

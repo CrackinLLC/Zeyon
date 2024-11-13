@@ -6,11 +6,11 @@ export default class UserModel<A extends UserAttributes = UserAttributes> extend
   public static override type = ModelType.Unknown; // TODO: Extend ModelType to include "User" (and others)
   public static override definition = userDefinition;
 
-  protected async initialize(): Promise<void> {
+  public override async initialize(): Promise<void> {
     console.log('User model is initializing...');
   }
 
-  protected validateAttributes(attributes: Partial<A>): Partial<A> {
+  public validateAttributes(attributes: Partial<A>): Partial<A> {
     const validated = super.validateAttributes(attributes);
 
     // Custom validation logic, if necessary

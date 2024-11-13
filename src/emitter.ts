@@ -80,7 +80,7 @@ export default abstract class Emitter {
    * Initialize method will need to determine what resources are available when referencing
    * this, but generally it will be the last logic to run before isReady has resolved.
    */
-  protected async initialize(): Promise<void> {}
+  public async initialize(): Promise<void> {}
 
   /**
    * Rebuilds the event listeners object based on valid events.

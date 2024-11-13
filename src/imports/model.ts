@@ -39,7 +39,7 @@ export interface AttributeDefinition {
 /**
  * Helper for getting generic A from a model without exposing the attributes property
  */
-export type AttributesOf<M extends Model> = M extends Model<infer A> ? A : never;
+export type AttributesOf<M extends Model<any>> = M extends Model<infer A> ? A : never;
 
 export const modelEvents = [
   'add', // When the model is added to a collection.
