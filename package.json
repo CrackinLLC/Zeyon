@@ -1,5 +1,5 @@
 {
-  "name": "harness-ui",
+  "name": "echots",
   "version": "0.1.0",
   "description": "A TypeScript framework focused on modularity and strong data management, with advanced handling of models and collections for building scalable, data-driven single-page applications.",
   "main": "dist/cjs/index.js",
@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CrackinLLC/HarnessUI.git"
+    "url": "git+https://github.com/CrackinLLC/EchoTS.git"
   },
   "keywords": [
     "ui",
@@ -33,9 +33,9 @@
   "author": "Crackin Studios <contact@crackin.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/CrackinLLC/HarnessUI/issues"
+    "url": "https://github.com/CrackinLLC/EchoTS/issues"
   },
-  "homepage": "https://github.com/CrackinLLC/HarnessUI#readme",
+  "homepage": "https://github.com/CrackinLLC/EchoTS#readme",
   "dependencies": {
     "handlebars": "^4.7.8"
   },

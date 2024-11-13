@@ -1,8 +1,8 @@
-# HarnessUI
+# EchoTS
 
 _NOTE:_ As of 10/2/24, this project is not ready for standalone use. It is the underlying architecture for another project currently being built, and is in the process of being abtracted for use across many other projects. If this note is still here, then the library is probably not yet ready for general use.
 
-HarnessUI is a TypeScript-based front-end framework designed to streamline the development of dynamic, data-driven web applications. It provides a robust architecture centered around models, collections, and views, enabling developers to build scalable and maintainable applications with ease.
+EchoTS is a TypeScript-based framework designed to streamline the development of dynamic, data-driven web applications. It provides a robust and type-safe MVC architecture, enabling developers to build scalable and maintainable applications in Typescript, with ease.
 
 ## Key Features
 
@@ -16,7 +16,7 @@ Extensibility: Designed to be modular, allowing developers to add or replace com
 
 ## Upcoming Modules
 
-HarnessUI is designed to be extended with additional modules that enhance its capabilities:
+EchoTS is designed to be extended with additional modules that enhance its capabilities:
 
 ### Client-side
 
@@ -28,14 +28,14 @@ HarnessUI is designed to be extended with additional modules that enhance its ca
 
 ### Server-side
 
-- _HarnessAPI_: A server-side library optimized to work seamlessly with HarnessUI, providing a PostgreSQL integration and API services. HarnessAPI is currently dependant on Express.js.
+- _HarnessAPI_: A server-side library optimized to work seamlessly with EchoTS, providing a PostgreSQL integration and API services. HarnessAPI is currently dependant on Express.js.
 - _Login/Session Management_: Full support for creating new user-accounts, along with session management using PassportJS.
 - _Logging_: Comprehensive application logging that includes an administrative panel to review logs
 - _Payments Portal_: Allow for the payments through your platform in a clean an unobtrusive way. Integrates with multiple third-party gateways.
 
 ## Installation
 
-HarnessUI is available as an npm package:
+EchoTS is available as an npm package:
 
 `npm install harness-ui`
 
@@ -45,8 +45,8 @@ pending...
 
 ### Contributing
 
-Contributions are welcome! If you'd like to contribute to HarnessUI, please fork the repository and submit a pull request.
+Contributions are welcome! If you'd like to contribute to EchoTS, please fork the repository and submit a pull request.
 
 ### License
 
-HarnessUI is released under the MIT License.
+EchoTS is released under the MIT License.
