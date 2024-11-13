@@ -1,4 +1,4 @@
-import type HarnessApp from './app.ts';
+import type HarnessApp from './app';
 import { ClassDefinition, ClassEntry, ClassMetadata, ClassRegistryOptions } from './imports/classRegistry';
 
 import Emitter from './emitter';

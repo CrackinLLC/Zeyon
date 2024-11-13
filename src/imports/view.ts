@@ -1,5 +1,6 @@
 import type Model from '../model';
 import type View from '../view';
+import type { Attributes } from './model';
 
 export interface ViewOptions {
   id?: string;
@@ -14,7 +15,7 @@ export interface ViewOptions {
   query?: Record<string, string>;
   hash?: string;
 
-  model?: Model | Partial<{}> | string;
+  model?: Model<Attributes> | Partial<{}> | string;
   modelType?: string; // Will attempt to infer model type based on attributes, but for ambiguous cases should explicitly state type here
 }
 

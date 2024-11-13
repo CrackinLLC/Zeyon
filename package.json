@@ -1,26 +1,36 @@
 {
   "name": "harness-ui",
-  "version": "0.0.1",
-  "description": "HarnessUI is a TypeScript front-end framework focused on modularity and strong data management, offering advanced handling of models and collections for building scalable, data-driven applications.",
-  "main": "index.ts",
+  "version": "0.1.0",
+  "description": "A TypeScript framework focused on modularity and strong data management, with advanced handling of models and collections for building scalable, data-driven single-page applications.",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    }
+  },
+  "files": [
+    "dist/**/*"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run build:esm && npm run build:cjs",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.cjs.json"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/CrackinLLC/HarnessUI.git"
+    "url": "git+https://github.com/CrackinLLC/HarnessUI.git"
   },
   "keywords": [
-    "FE",
-    "front-end",
-    "front end",
-    "frontend",
+    "ui",
     "framework",
     "typescript",
-    "modularity",
+    "modular",
     "data management"
   ],
-  "author": "Crackin Studios <support@crackinstudios.com>",
+  "author": "Crackin Studios <contact@crackin.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/CrackinLLC/HarnessUI/issues"
@@ -28,5 +38,8 @@
   "homepage": "https://github.com/CrackinLLC/HarnessUI#readme",
   "dependencies": {
     "handlebars": "^4.7.8"
+  },
+  "devDependencies": {
+    "typescript": "^4.0.0"
   }
 }

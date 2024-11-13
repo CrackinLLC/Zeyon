@@ -3,7 +3,7 @@ import type Emitter from '../emitter';
 import type { CollectionLike, CollectionOptions } from '../imports/collection';
 import type { CollectionViewOptions } from '../imports/collectionView';
 import type { EmitterOptions } from '../imports/emitter';
-import type { ModelOptions } from '../imports/model';
+import type { Attributes, ModelOptions } from '../imports/model';
 import type { RouterOptions } from '../imports/router';
 import type { ViewOptions } from '../imports/view';
 import type Model from '../model';
@@ -33,7 +33,15 @@ type ClassOptions =
   | ModelOptions
   | ViewOptions;
 
-type ClassInstance = (Emitter | Router | CollectionLike | CollectionView<CollectionLike> | Model | View | RouteView) & {
+type ClassInstance = (
+  | Emitter
+  | Router
+  | CollectionLike
+  | CollectionView<CollectionLike>
+  | Model<Attributes>
+  | View
+  | RouteView
+) & {
   options: ClassOptions;
 };
 

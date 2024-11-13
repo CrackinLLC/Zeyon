@@ -1,19 +1,8 @@
-import '../util/polyfill';
-import '../util/template';
-
 import ClassRegistry from './classRegistry';
-import type { ClassDefinition, ClassInstance } from './imports/classRegistry';
-import type { RouteConfig } from './imports/router';
+import { HarnessAppOptions } from './imports/app';
+import type { ClassInstance } from './imports/classRegistry';
 import Router from './router';
 import { loaderTemplate } from './util/loader';
-
-export interface HarnessAppOptions<CustomRouteProps = any> {
-  name?: string;
-  el: HTMLElement;
-  urlPrefix: string;
-  routes: RouteConfig<CustomRouteProps>[];
-  registryClassList: Record<string, ClassDefinition>;
-}
 
 /**
  * The central hub of the application, managing interactions between components.

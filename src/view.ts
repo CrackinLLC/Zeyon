@@ -1,5 +1,6 @@
 import type HarnessApp from './app';
 import Emitter from './emitter';
+import { Attributes } from './imports/model';
 import { AttachReference, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
 import { convertToRootElement, RootElement } from './util/element';
@@ -22,7 +23,7 @@ export default abstract class View extends Emitter {
   protected renderOptions: RenderOptions = {};
 
   protected children: { [id: string]: View } = {};
-  protected model?: Model;
+  protected model?: Model<Attributes>;
 
   public isRendered: Promise<this>;
   private resolveIsRendered!: (value: this) => void;
@@ -345,22 +346,22 @@ export default abstract class View extends Emitter {
     return this.model?.getId() || undefined;
   }
 
-  getModel(): Model | undefined {
+  getModel(): Model<Attributes> | undefined {
     return this.model;
   }
 
-  protected async setModel(): Promise<Model | undefined> {
+  protected async setModel(): Promise<Model<Attributes> | undefined> {
     if (!this.options.model) {
       return;
     } else if (this.options.model instanceof Model) {
       return this.options.model;
     }
 
-    let model: Model | undefined;
+    let model: Model<Attributes> | undefined;
     const attributes = this.options.model;
 
     if (typeof attributes === 'string') {
-      model = await this.app.newInstance<Model>(`model-${this.options.model}`);
+      model = await this.app.newInstance<Model<Attributes>>(`model-${this.options.model}`);
     } else {
       const type = this.options.modelType;
 
@@ -368,7 +369,7 @@ export default abstract class View extends Emitter {
         if (Array.isArray(type)) {
           console.warn(`Ambiguous model type: ${type.join(', ')}. Please specify modelType in view options.`, this);
         } else {
-          model = await this.app.newInstance<Model>(`model-${type}`, {
+          model = await this.app.newInstance<Model<Attributes>>(`model-${type}`, {
             attributes,
           });
         }
