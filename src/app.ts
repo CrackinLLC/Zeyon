@@ -1,5 +1,5 @@
 import ClassRegistry from './classRegistry';
-import { HarnessAppOptions } from './imports/app';
+import { ZeyonAppOptions } from './imports/app';
 import type { ClassInstance } from './imports/classRegistry';
 import Router from './router';
 import { loaderTemplate } from './util/loader';
@@ -7,7 +7,7 @@ import { loaderTemplate } from './util/loader';
 /**
  * The central hub of the application, managing interactions between components.
  */
-export default class HarnessApp<CustomRouteProps = any> {
+export default class ZeyonApp<CustomRouteProps = any> {
   /**
    * Custom identifying string for the current application.
    */
@@ -50,10 +50,10 @@ export default class HarnessApp<CustomRouteProps = any> {
   private loadingState: HTMLElement | null = null;
 
   /**
-   * Initializes a new instance of the HarnessApp.
+   * Initializes a new instance of the ZeyonApp.
    * @param options - The application options.
    */
-  constructor(public options: HarnessAppOptions) {
+  constructor(public options: ZeyonAppOptions) {
     const { name, el, urlPrefix, routes, registryClassList } = options;
 
     // Initialize readiness promises

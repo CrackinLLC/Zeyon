@@ -1,8 +1,8 @@
-import HarnessApp from './app';
+import ZeyonApp from './app';
 import type { CustomEventHandler, EmitterOptions } from './imports/emitter';
 export default abstract class Emitter {
     readonly options: EmitterOptions;
-    protected app: HarnessApp;
+    protected app: ZeyonApp;
     isReady: Promise<this>;
     private resolveIsReady;
     private eventListeners;
@@ -10,7 +10,7 @@ export default abstract class Emitter {
     private debouncedEmitters;
     protected debouncedEmitterDelay: number;
     protected isDestroyed: boolean;
-    constructor(options: EmitterOptions, app: HarnessApp);
+    constructor(options: EmitterOptions, app: ZeyonApp);
     protected markAsReady(): void;
     initialize(): Promise<void>;
     private rebuildListenersObject;

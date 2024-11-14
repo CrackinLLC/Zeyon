@@ -1,4 +1,4 @@
-import type HarnessApp from './app';
+import type ZeyonApp from './app';
 import Emitter from './emitter';
 import {
   collectionEvents,
@@ -24,7 +24,7 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
   protected filterOptions: CollectionFilterOptions = {};
   protected activeFilters: { [key: string]: (item: M) => boolean } = {};
 
-  constructor(public options: CollectionOptions = {}, protected app: HarnessApp) {
+  constructor(public options: CollectionOptions = {}, protected app: ZeyonApp) {
     super({ events: [...(options.events || []), ...collectionEvents] }, app);
 
     const { ids } = options;

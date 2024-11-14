@@ -1,4 +1,4 @@
-import type HarnessApp from './app';
+import type ZeyonApp from './app';
 import Emitter from './emitter';
 import { Attributes } from './imports/model';
 import { AttachReference, RenderOptions, ViewOptions } from './imports/view';
@@ -29,7 +29,7 @@ export default abstract class View extends Emitter {
     protected template?: string;
     protected templateWrapper?: string;
     protected errorEl?: HTMLElement;
-    constructor(options: ViewOptions | undefined, app: HarnessApp);
+    constructor(options: ViewOptions | undefined, app: ZeyonApp);
     render(): Promise<this>;
     protected onRender(): Promise<void>;
     protected prepareRootElement(): void;

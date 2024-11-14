@@ -1,4 +1,4 @@
-import type HarnessApp from './app';
+import type ZeyonApp from './app';
 import Emitter from './emitter';
 import type { RouteConfig, RouterOptions, SiteMapRouteDetail } from './imports/router';
 import type RouteView from './route';
@@ -11,7 +11,7 @@ export default class Router<CustomRouteProps = any> extends Emitter {
     private siteMap;
     private urlPrefix;
     private notFound;
-    constructor({ routes, urlPrefix }: RouterOptions<CustomRouteProps>, app: HarnessApp);
+    constructor({ routes, urlPrefix }: RouterOptions<CustomRouteProps>, app: ZeyonApp);
     start(): void;
     getCurrentPath(): string;
     getCurrentRoute(): RouteView | undefined;

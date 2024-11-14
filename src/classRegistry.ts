@@ -1,4 +1,4 @@
-import type HarnessApp from './app';
+import type ZeyonApp from './app';
 import { ClassDefinition, ClassEntry, ClassMetadata, ClassRegistryOptions } from './imports/classRegistry';
 
 import Emitter from './emitter';
@@ -6,7 +6,7 @@ import Emitter from './emitter';
 export default class ClassRegistry extends Emitter {
   private classMap: Map<string, ClassEntry> = new Map();
 
-  constructor(options: ClassRegistryOptions = {}, app: HarnessApp) {
+  constructor(options: ClassRegistryOptions = {}, app: ZeyonApp) {
     super(options, app);
 
     if (options.registryClassList) {

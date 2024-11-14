@@ -1,4 +1,4 @@
-import type HarnessApp from './app';
+import type ZeyonApp from './app';
 import Emitter from './emitter';
 import type { RouteConfig, RouteNode, RouterOptions, SiteMapRouteDetail } from './imports/router';
 import type RouteView from './route';
@@ -13,7 +13,7 @@ export default class Router<CustomRouteProps = any> extends Emitter {
   private urlPrefix: string | undefined;
   private notFound: RouteConfig<CustomRouteProps> | undefined; // Special property for storing 404 page, if provided
 
-  constructor({ routes, urlPrefix }: RouterOptions<CustomRouteProps>, app: HarnessApp) {
+  constructor({ routes, urlPrefix }: RouterOptions<CustomRouteProps>, app: ZeyonApp) {
     super(
       {
         events: [

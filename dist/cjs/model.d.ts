@@ -1,10 +1,10 @@
-import type HarnessApp from './app';
+import type ZeyonApp from './app';
 import type Collection from './collection';
 import Emitter from './emitter';
 import { AttributeDefinition, Attributes, ModelOptions, ModelType } from './imports/model';
 export default abstract class Model<A extends Attributes> extends Emitter {
     readonly options: ModelOptions<A>;
-    protected app: HarnessApp;
+    protected app: ZeyonApp;
     static type: ModelType;
     static definition: {
         [key: string]: AttributeDefinition;
@@ -14,7 +14,7 @@ export default abstract class Model<A extends Attributes> extends Emitter {
     protected hasUnsavedChanges: boolean;
     protected selected: boolean;
     private collection;
-    constructor(options: ModelOptions<A>, app: HarnessApp);
+    constructor(options: ModelOptions<A>, app: ZeyonApp);
     protected markUnsavedChanges(): Model<A>;
     protected areAttributesEqual(a: Partial<A>, b: Partial<A>): boolean;
     hasChanges(): boolean;

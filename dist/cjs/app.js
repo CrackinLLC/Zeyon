@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const classRegistry_1 = __importDefault(require("./classRegistry"));
 const router_1 = __importDefault(require("./router"));
 const loader_1 = require("./util/loader");
-class HarnessApp {
+class ZeyonApp {
     constructor(options) {
         this.options = options;
         this.name = '';
@@ -79,5 +79,5 @@ class HarnessApp {
         return show;
     }
 }
-exports.default = HarnessApp;
+exports.default = ZeyonApp;
 //# sourceMappingURL=app.js.map

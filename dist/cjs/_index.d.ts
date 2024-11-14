@@ -1,6 +1,6 @@
 import '../util/polyfill';
 import '../util/template';
-import HarnessApp from './app';
+import ZeyonApp from './app';
 import Collection from './collection';
 import CollectionView from './collectionView';
 import Emitter from './emitter';
@@ -8,13 +8,16 @@ import Model from './model';
 import RouteView from './route';
 import Router from './router';
 import View from './view';
-export { Collection, CollectionView, Emitter, HarnessApp, Model, RouteView, Router, View };
+export type { CollectionOptions } from './imports/collection';
+export type { ModelOptions } from './imports/model';
+export type { RouteConfig } from './imports/router';
+export { Collection, CollectionView, Emitter, Model, RouteView, Router, View, ZeyonApp };
 declare const _default: {
-    create: (options: any) => HarnessApp<any>;
+    create: (options: any) => ZeyonApp<any>;
     Collection: typeof Collection;
     CollectionView: typeof CollectionView;
     Emitter: typeof Emitter;
-    HarnessApp: typeof HarnessApp;
+    ZeyonApp: typeof ZeyonApp;
     Model: typeof Model;
     RouteView: typeof RouteView;
     Router: typeof Router;

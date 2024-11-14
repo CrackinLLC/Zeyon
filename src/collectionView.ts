@@ -1,4 +1,4 @@
-import type HarnessApp from './app';
+import type ZeyonApp from './app';
 import type { CollectionLike } from './imports/collection';
 import type { CollectionViewOptions } from './imports/collectionView';
 import { debounce } from './util/debounce';
@@ -20,14 +20,14 @@ export default class CollectionView<C extends CollectionLike = CollectionLike, C
   /**
    * The view class used to render each child item.
    */
-  protected childView?: new (options: any, app: HarnessApp) => CV;
+  protected childView?: new (options: any, app: ZeyonApp) => CV;
 
   /**
    * An array of instantiated child views.
    */
   protected childItems: CV[] = [];
 
-  constructor(options: CollectionViewOptions<C, CV>, app: HarnessApp) {
+  constructor(options: CollectionViewOptions<C, CV>, app: ZeyonApp) {
     super(options, app);
 
     this.extendValidEvents(['change']);

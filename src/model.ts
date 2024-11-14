@@ -1,4 +1,4 @@
-import type HarnessApp from './app';
+import type ZeyonApp from './app';
 import type Collection from './collection';
 import Emitter from './emitter';
 import { AttributeDefinition, Attributes, AttributeType, modelEvents, ModelOptions, ModelType } from './imports/model';
@@ -51,7 +51,7 @@ export default abstract class Model<A extends Attributes> extends Emitter {
    * @param options - Options for initializing the model.
    * @param app - The application core instance.
    */
-  constructor(public readonly options: ModelOptions<A>, protected app: HarnessApp) {
+  constructor(public readonly options: ModelOptions<A>, protected app: ZeyonApp) {
     super({ events: [...(options.events || []), ...modelEvents] }, app);
 
     const { attributes = {} as Partial<A>, collection } = options;

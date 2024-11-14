@@ -3,11 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.View = exports.Router = exports.RouteView = exports.Model = exports.HarnessApp = exports.Emitter = exports.CollectionView = exports.Collection = void 0;
+exports.ZeyonApp = exports.View = exports.Router = exports.RouteView = exports.Model = exports.Emitter = exports.CollectionView = exports.Collection = void 0;
 require("../util/polyfill");
 require("../util/template");
 const app_1 = __importDefault(require("./app"));
-exports.HarnessApp = app_1.default;
+exports.ZeyonApp = app_1.default;
 const collection_1 = __importDefault(require("./collection"));
 exports.Collection = collection_1.default;
 const collectionView_1 = __importDefault(require("./collectionView"));
@@ -27,7 +27,7 @@ exports.default = {
     Collection: collection_1.default,
     CollectionView: collectionView_1.default,
     Emitter: emitter_1.default,
-    HarnessApp: app_1.default,
+    ZeyonApp: app_1.default,
     Model: model_1.default,
     RouteView: route_1.default,
     Router: router_1.default,

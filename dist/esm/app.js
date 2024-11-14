@@ -1,7 +1,7 @@
 import ClassRegistry from './classRegistry';
 import Router from './router';
 import { loaderTemplate } from './util/loader';
-export default class HarnessApp {
+export default class ZeyonApp {
     constructor(options) {
         this.options = options;
         this.name = '';

@@ -1,4 +1,4 @@
-import HarnessApp from './app';
+import ZeyonApp from './app';
 import type { CustomEventHandler, EmitterOptions } from './imports/emitter';
 import { debounce } from './util/debounce';
 
@@ -54,7 +54,7 @@ export default abstract class Emitter {
   /**
    * @param options - Emitter options including custom events and whether to include native events.
    */
-  constructor(public readonly options: EmitterOptions = {}, protected app: HarnessApp) {
+  constructor(public readonly options: EmitterOptions = {}, protected app: ZeyonApp) {
     const { events = [], includeNativeEvents = false } = options;
 
     // Initialize readiness promises

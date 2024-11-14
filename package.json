@@ -1,14 +1,14 @@
 {
-  "name": "echots",
+  "name": "zeyon",
   "version": "0.1.0",
   "description": "A TypeScript framework focused on modularity and strong data management, with advanced handling of models and collections for building scalable, data-driven single-page applications.",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "main": "dist/cjs/_index.js",
+  "module": "dist/esm/_index.js",
+  "types": "dist/esm/_index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+      "import": "./dist/esm/_index.js",
+      "require": "./dist/cjs/_index.js"
     }
   },
   "files": [
@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CrackinLLC/EchoTS.git"
+    "url": "git+https://github.com/CrackinLLC/Zeyon.git"
   },
   "keywords": [
     "ui",
@@ -33,9 +33,9 @@
   "author": "Crackin Studios <contact@crackin.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/CrackinLLC/EchoTS/issues"
+    "url": "https://github.com/CrackinLLC/Zeyon/issues"
   },
-  "homepage": "https://github.com/CrackinLLC/EchoTS#readme",
+  "homepage": "https://github.com/CrackinLLC/Zeyon#readme",
   "dependencies": {
     "handlebars": "^4.7.8"
   },

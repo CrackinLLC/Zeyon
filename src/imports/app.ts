@@ -1,7 +1,7 @@
 import type { ClassDefinition } from './classRegistry';
 import type { RouteConfig } from './router';
 
-export interface HarnessAppOptions<CustomRouteProps = any> {
+export interface ZeyonAppOptions<CustomRouteProps = any> {
   name?: string;
   el: HTMLElement;
   urlPrefix: string;
