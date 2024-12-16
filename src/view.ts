@@ -1,6 +1,6 @@
 import type ZeyonApp from './app';
 import Emitter from './emitter';
-import type { ClassMapType } from './generated/ClassMapType';
+import type { ClassMapTypeView } from './generated/ClassMapType';
 import { Attributes } from './imports/model';
 import { AttachReference, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
@@ -289,10 +289,10 @@ export default abstract class View extends Emitter {
     };
   }
 
-  async newChild<K extends keyof ClassMapType>(
+  async newChild<K extends keyof ClassMapTypeView>(
     registrationId: K,
-    viewOptions: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
-  ): Promise<ClassMapType[K]> {
+    viewOptions: ClassMapTypeView[K]['options'],
+  ): Promise<ClassMapTypeView[K]> {
     if (this.isDestroyed) {
       return Promise.reject(new Error('Component is destroyed'));
     }

@@ -1,4 +1,4 @@
-import type { ClassMapType } from '../generated/ClassMapType';
+import type { ClassMapKey } from '../generated/ClassMapType';
 import type { ViewOptions } from './view';
 export interface ZeyonAppOptions {
     name?: string;
@@ -6,7 +6,7 @@ export interface ZeyonAppOptions {
     urlPrefix: string;
 }
 export interface GlobalViewConfig {
-    registrationId: keyof ClassMapType;
+    registrationId: ClassMapKey;
     selector: string;
     options?: ViewOptions;
 }

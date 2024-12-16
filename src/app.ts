@@ -2,7 +2,14 @@ import ClassRegistry from './classRegistry';
 import type Collection from './collection';
 import type CollectionView from './collectionView';
 import type Emitter from './emitter';
-import type { ClassMapType } from './generated/ClassMapType';
+import type {
+  ClassMapKey,
+  ClassMapTypeCollection,
+  ClassMapTypeCollectionView,
+  ClassMapTypeModel,
+  ClassMapTypeRouteView,
+  ClassMapTypeView,
+} from './generated/ClassMapType';
 import type { GlobalViewConfig, ZeyonAppOptions } from './imports/app';
 import type { Attributes } from './imports/model';
 import { RouteConfig } from './imports/router';
@@ -78,20 +85,22 @@ export default class ZeyonApp<CustomRouteProps = any> {
   }
 
   public registerRoutes<C extends CustomRouteProps>(routes: RouteConfig<C>[]) {
-    // TODO: Register routes with our registry
-
     this.router.registerRoutes(routes);
     return this;
   }
 
-  public setGlobalViews(layouts: GlobalViewConfig[]) {
+  public setGlobalViews(layouts: GlobalViewConfig | GlobalViewConfig[]) {
+    if (!Array.isArray(layouts)) {
+      layouts = [layouts];
+    }
+
     layouts.forEach(({ selector, registrationId, options }) => {
       const element = document.querySelector(selector);
 
       if (element) {
         this.newView(registrationId, {
           ...(options || {}),
-          attachTo: element,
+          attachTo: element as HTMLElement,
         }).then((view) => view?.render());
       } else {
         console.warn(`Element not found for selector: ${selector}`);
@@ -134,57 +143,47 @@ export default class ZeyonApp<CustomRouteProps = any> {
     return this;
   }
 
-  public async newView<K extends keyof ClassMapType>(
+  public async newView<K extends keyof ClassMapTypeView>(
     registrationId: K,
-    options?: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
-  ): Promise<ClassMapType[K] & View> {
-    const instance = await this.newInstance<keyof ClassMapType, View>(registrationId, options);
-
-    return instance as ClassMapType[K] & View;
+    options?: ClassMapTypeView[K]['options'],
+  ): Promise<ClassMapTypeView[K] & View> {
+    return this.newInstance<keyof ClassMapTypeView, View>(registrationId, options);
   }
 
-  public async newRouteView<K extends keyof ClassMapType>(
+  public async newRouteView<K extends keyof ClassMapTypeRouteView>(
     registrationId: K,
-    options?: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
-  ): Promise<ClassMapType[K] & RouteView> {
-    const instance = await this.newInstance<keyof ClassMapType, RouteView>(registrationId, options);
-
-    return instance as ClassMapType[K] & RouteView;
+    options?: ClassMapTypeRouteView[K]['options'],
+  ): Promise<ClassMapTypeRouteView[K] & RouteView> {
+    return this.newInstance<keyof ClassMapTypeRouteView, RouteView>(registrationId, options);
   }
 
-  public async newModel<K extends keyof ClassMapType>(
+  public async newModel<K extends keyof ClassMapTypeModel>(
     registrationId: K,
-    options?: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
-  ): Promise<ClassMapType[K] & Model<Attributes>> {
-    const instance = await this.newInstance<keyof ClassMapType, Model<Attributes>>(registrationId, options);
-
-    return instance as ClassMapType[K] & Model<Attributes>;
+    options?: ClassMapTypeModel[K]['options'],
+  ): Promise<ClassMapTypeModel[K] & Model<Attributes>> {
+    return this.newInstance<keyof ClassMapTypeModel, Model<Attributes>>(registrationId, options);
   }
 
-  public async newCollection<K extends keyof ClassMapType>(
+  public async newCollection<K extends keyof ClassMapTypeCollection>(
     registrationId: K,
-    options?: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
-  ): Promise<ClassMapType[K] & Collection<Attributes, Model<Attributes>>> {
-    const instance = await this.newInstance<keyof ClassMapType, Collection<Attributes, Model<Attributes>>>(
+    options?: ClassMapTypeCollection[K]['options'],
+  ): Promise<ClassMapTypeCollection[K] & Collection<Attributes, Model<Attributes>>> {
+    return this.newInstance<keyof ClassMapTypeCollection, Collection<Attributes, Model<Attributes>>>(
       registrationId,
       options,
     );
-
-    return instance as ClassMapType[K] & Collection<Attributes, Model<Attributes>>;
   }
 
-  public async newCollectionView<K extends keyof ClassMapType>(
+  public async newCollectionView<K extends keyof ClassMapTypeCollectionView>(
     registrationId: K,
-    options?: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
-  ): Promise<ClassMapType[K] & CollectionView> {
-    const instance = await this.newInstance<keyof ClassMapType, CollectionView>(registrationId, options);
-
-    return instance as ClassMapType[K] & CollectionView;
+    options?: ClassMapTypeCollectionView[K]['options'],
+  ): Promise<ClassMapTypeCollectionView[K] & CollectionView> {
+    return this.newInstance<keyof ClassMapTypeCollectionView, CollectionView>(registrationId, options);
   }
 
-  private async newInstance<K extends keyof ClassMapType, T extends Emitter = Emitter>(
+  private async newInstance<K extends ClassMapKey, T extends Emitter = Emitter>(
     registrationId: K,
-    options?: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
+    options?: unknown,
   ): Promise<T> {
     const def = await this.registry.getClass(registrationId);
 
@@ -200,7 +199,7 @@ export default class ZeyonApp<CustomRouteProps = any> {
       await instance.isReady;
     }
 
-    return instance as T; // Properly inferred as ClassMapType[K]
+    return instance as T;
   }
 
   /**

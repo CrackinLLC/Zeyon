@@ -1,4 +1,4 @@
-import type { ClassMapType } from '../generated/ClassMapType';
+import type { ClassMapTypeRouteView } from '../generated/ClassMapType';
 export interface RouterOptions {
     urlPrefix?: string;
 }
@@ -6,7 +6,7 @@ export interface RegisterRoutesParam<CustomRouteProps = any> {
     routes: RouteConfig<CustomRouteProps>[];
 }
 export interface RouteConfig<CustomRouteProps = any> {
-    registrationId: keyof ClassMapType;
+    registrationId: keyof ClassMapTypeRouteView;
     urlFragment: string;
     is404?: boolean;
     childRoutes?: RouteConfig<CustomRouteProps>[];
@@ -20,7 +20,7 @@ export interface RouteNode<CustomRouteProps = any> {
     custom?: CustomRouteProps;
 }
 export interface SiteMapRouteDetail<CustomProps = any> {
-    regId: keyof ClassMapType;
+    regId: keyof ClassMapTypeRouteView;
     name?: string;
     fullUrl: string;
     custom: CustomProps;

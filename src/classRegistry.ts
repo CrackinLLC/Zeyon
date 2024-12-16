@@ -1,5 +1,5 @@
 import { classMapData } from './generated/classMapData';
-import type { ClassMapType } from './generated/ClassMapType';
+import type { ClassMapKey } from './generated/ClassMapType';
 import { ClassDefinition } from './imports/classRegistry';
 
 import Emitter from './emitter';
@@ -45,7 +45,7 @@ export default class ClassRegistry extends Emitter {
    * @param identifier - The class identifier.
    * @returns The class definition or undefined if not found.
    */
-  public async getClass<T extends Emitter>(id: keyof ClassMapType): Promise<ClassDefinition<T> | undefined> {
+  public async getClass<T extends Emitter>(id: ClassMapKey): Promise<ClassDefinition<T> | undefined> {
     const entry = this.classMap.get(String(id)) as ClassDefinition<T> | undefined;
 
     if (!entry) {

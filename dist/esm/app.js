@@ -22,6 +22,9 @@ export default class ZeyonApp {
         return this;
     }
     setGlobalViews(layouts) {
+        if (!Array.isArray(layouts)) {
+            layouts = [layouts];
+        }
         layouts.forEach(({ selector, registrationId, options }) => {
             const element = document.querySelector(selector);
             if (element) {
@@ -56,24 +59,19 @@ export default class ZeyonApp {
         return this;
     }
     async newView(registrationId, options) {
-        const instance = await this.newInstance(registrationId, options);
-        return instance;
+        return this.newInstance(registrationId, options);
     }
     async newRouteView(registrationId, options) {
-        const instance = await this.newInstance(registrationId, options);
-        return instance;
+        return this.newInstance(registrationId, options);
     }
     async newModel(registrationId, options) {
-        const instance = await this.newInstance(registrationId, options);
-        return instance;
+        return this.newInstance(registrationId, options);
     }
     async newCollection(registrationId, options) {
-        const instance = await this.newInstance(registrationId, options);
-        return instance;
+        return this.newInstance(registrationId, options);
     }
     async newCollectionView(registrationId, options) {
-        const instance = await this.newInstance(registrationId, options);
-        return instance;
+        return this.newInstance(registrationId, options);
     }
     async newInstance(registrationId, options) {
         const def = await this.registry.getClass(registrationId);

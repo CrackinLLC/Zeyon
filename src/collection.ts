@@ -51,7 +51,7 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
     for (const attrs of attributesArray) {
       const model = await this.app.newModel(`model-${this.getType()}`, {
         attributes: attrs,
-        collection: this,
+        collection: this as unknown as Collection<Attributes, any>, // TODO: Can we figure out how to avoid casting here to satisfy TS?
       });
 
       if (model) {

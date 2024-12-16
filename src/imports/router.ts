@@ -1,4 +1,4 @@
-import type { ClassMapType } from '../generated/ClassMapType';
+import type { ClassMapTypeRouteView } from '../generated/ClassMapType';
 
 export interface RouterOptions {
   urlPrefix?: string; // A custom url prefix used across the entire application
@@ -10,7 +10,7 @@ export interface RegisterRoutesParam<CustomRouteProps = any> {
 
 // TODO: Extend to allow for metadata instead and support dynamic fetching
 export interface RouteConfig<CustomRouteProps = any> {
-  registrationId: keyof ClassMapType;
+  registrationId: keyof ClassMapTypeRouteView;
   urlFragment: string; // Fragment to append to the url path (excludes leading/trailing slashes)
   is404?: boolean; // Defines the 404 page for the application (last one defined takes precedence)
   childRoutes?: RouteConfig<CustomRouteProps>[];
@@ -30,7 +30,7 @@ export interface RouteNode<CustomRouteProps = any> {
 
 // Similar to our RouteNode, but specifically organized for our sitemap
 export interface SiteMapRouteDetail<CustomProps = any> {
-  regId: keyof ClassMapType;
+  regId: keyof ClassMapTypeRouteView;
   name?: string;
   fullUrl: string;
   custom: CustomProps;

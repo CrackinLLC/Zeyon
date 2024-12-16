@@ -1,6 +1,6 @@
 import type Collection from './collection';
 import type CollectionView from './collectionView';
-import type { ClassMapType } from './generated/ClassMapType';
+import type { ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from './generated/ClassMapType';
 import type { GlobalViewConfig, ZeyonAppOptions } from './imports/app';
 import type { Attributes } from './imports/model';
 import { RouteConfig } from './imports/router';
@@ -21,14 +21,14 @@ export default class ZeyonApp<CustomRouteProps = any> {
     private loadingState;
     constructor(options: ZeyonAppOptions);
     registerRoutes<C extends CustomRouteProps>(routes: RouteConfig<C>[]): this;
-    setGlobalViews(layouts: GlobalViewConfig[]): this;
+    setGlobalViews(layouts: GlobalViewConfig | GlobalViewConfig[]): this;
     start(): Promise<this>;
     navigate(urlFragment: string, openNewTab?: boolean): this;
-    newView<K extends keyof ClassMapType>(registrationId: K, options?: any): Promise<ClassMapType[K] & View>;
-    newRouteView<K extends keyof ClassMapType>(registrationId: K, options?: any): Promise<ClassMapType[K] & RouteView>;
-    newModel<K extends keyof ClassMapType>(registrationId: K, options?: any): Promise<ClassMapType[K] & Model<Attributes>>;
-    newCollection<K extends keyof ClassMapType>(registrationId: K, options?: any): Promise<ClassMapType[K] & Collection<Attributes, Model<Attributes>>>;
-    newCollectionView<K extends keyof ClassMapType>(registrationId: K, options?: any): Promise<ClassMapType[K] & CollectionView>;
+    newView<K extends keyof ClassMapTypeView>(registrationId: K, options?: ClassMapTypeView[K]['options']): Promise<ClassMapTypeView[K] & View>;
+    newRouteView<K extends keyof ClassMapTypeRouteView>(registrationId: K, options?: ClassMapTypeRouteView[K]['options']): Promise<ClassMapTypeRouteView[K] & RouteView>;
+    newModel<K extends keyof ClassMapTypeModel>(registrationId: K, options?: ClassMapTypeModel[K]['options']): Promise<ClassMapTypeModel[K] & Model<Attributes>>;
+    newCollection<K extends keyof ClassMapTypeCollection>(registrationId: K, options?: ClassMapTypeCollection[K]['options']): Promise<ClassMapTypeCollection[K] & Collection<Attributes, Model<Attributes>>>;
+    newCollectionView<K extends keyof ClassMapTypeCollectionView>(registrationId: K, options?: ClassMapTypeCollectionView[K]['options']): Promise<ClassMapTypeCollectionView[K] & CollectionView>;
     private newInstance;
     toggleClass(className: string, add?: boolean): this;
     setLoadingState(show?: boolean): boolean;
