@@ -1,8 +1,10 @@
 import ZeyonApp from './app';
 import type { CustomEventHandler, EmitterOptions } from './imports/emitter';
 export default abstract class Emitter {
-    readonly options: EmitterOptions;
     protected app: ZeyonApp;
+    static registrationId: string;
+    options: EmitterOptions;
+    static defaultOptions: EmitterOptions;
     isReady: Promise<this>;
     private resolveIsReady;
     private eventListeners;
@@ -10,7 +12,7 @@ export default abstract class Emitter {
     private debouncedEmitters;
     protected debouncedEmitterDelay: number;
     protected isDestroyed: boolean;
-    constructor(options: EmitterOptions, app: ZeyonApp);
+    constructor(options: EmitterOptions | undefined, app: ZeyonApp);
     protected markAsReady(): void;
     initialize(): Promise<void>;
     private rebuildListenersObject;
@@ -29,5 +31,6 @@ export default abstract class Emitter {
     private destroyEvents;
     destroy(): void;
     protected onDestroy(): void;
+    getStaticMember(key: keyof typeof Emitter): unknown;
 }
 //# sourceMappingURL=emitter.d.ts.map

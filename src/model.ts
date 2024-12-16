@@ -5,11 +5,13 @@ import { AttributeDefinition, Attributes, AttributeType, modelEvents, ModelOptio
 import { isEqual } from './util/object';
 
 /**
- * Abstract base class for models.
- * Represents data entities with attributes, and tracks changes while emitting change related events.
- * Subclasses must provide an interface for attributes, an attributesDefinition object
+ * Abstract base class for models, to represent data entities with attributes, and tracks changes while emitting change related events.
+ * Ideal for managing application state and database interactions.
  */
 export default abstract class Model<A extends Attributes> extends Emitter {
+  declare options: ModelOptions<A>;
+  declare defaultOptions: ModelOptions<A>;
+
   /**
    * The type of the model. Extending classes should redefine this.
    */
@@ -51,10 +53,10 @@ export default abstract class Model<A extends Attributes> extends Emitter {
    * @param options - Options for initializing the model.
    * @param app - The application core instance.
    */
-  constructor(public readonly options: ModelOptions<A>, protected app: ZeyonApp) {
-    super({ events: [...(options.events || []), ...modelEvents] }, app);
+  constructor(options: ModelOptions<A>, protected app: ZeyonApp) {
+    super({ ...options, events: [...(options.events || []), ...modelEvents] }, app);
 
-    const { attributes = {} as Partial<A>, collection } = options;
+    const { attributes = {} as Partial<A>, collection } = this.options;
 
     // Initialize attributes
     this.attributes = { ...attributes } as A;

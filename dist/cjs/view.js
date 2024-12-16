@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isAttachReference = void 0;
+exports.isAttachReference = isAttachReference;
 const emitter_1 = __importDefault(require("./emitter"));
 const model_1 = __importDefault(require("./model"));
 const element_1 = require("./util/element");
@@ -12,7 +12,7 @@ const string_1 = require("./util/string");
 const template_1 = require("./util/template");
 class View extends emitter_1.default {
     constructor(options = {}, app) {
-        super({ events: options.events, includeNativeEvents: true }, app);
+        super({ events: options.events, includeNativeEvents: true, ...options }, app);
         this._viewId = (0, string_1.getUniqueId)();
         this.ui = {};
         this._ui = {};
@@ -22,8 +22,6 @@ class View extends emitter_1.default {
         this.isRendered = new Promise((resolve) => {
             this.resolveIsRendered = resolve;
         });
-        const defaultOptions = this.constructor.defaultOptions || {};
-        this.options = { ...defaultOptions, ...options };
         const tagName = this.renderOptions.tagName || this.constructor.tagName;
         this.el = (0, element_1.convertToRootElement)(document.createElement(tagName), this);
         if (this.options.id) {
@@ -208,11 +206,11 @@ class View extends emitter_1.default {
             ...optionValues,
         };
     }
-    async newChild(id, viewOptions) {
+    async newChild(registrationId, viewOptions) {
         if (this.isDestroyed) {
             return Promise.reject(new Error('Component is destroyed'));
         }
-        return this.app.newInstance(id, viewOptions).then((child) => {
+        return this.app.newView(registrationId, viewOptions).then((child) => {
             if (this.isDestroyed) {
                 child.destroy();
                 return Promise.reject(new Error('Component is destroyed'));
@@ -260,7 +258,7 @@ class View extends emitter_1.default {
         let model;
         const attributes = this.options.model;
         if (typeof attributes === 'string') {
-            model = await this.app.newInstance(`model-${this.options.model}`);
+            model = await this.app.newModel(`model-${this.options.model}`);
         }
         else {
             const type = this.options.modelType;
@@ -269,7 +267,7 @@ class View extends emitter_1.default {
                     console.warn(`Ambiguous model type: ${type.join(', ')}. Please specify modelType in view options.`, this);
                 }
                 else {
-                    model = await this.app.newInstance(`model-${type}`, {
+                    model = await this.app.newModel(`model-${type}`, {
                         attributes,
                     });
                 }
@@ -345,9 +343,8 @@ class View extends emitter_1.default {
         this.children = {};
     }
 }
-exports.default = View;
 View.tagName = 'div';
-View.defaultOptions = {};
+exports.default = View;
 function isAttachReference(val) {
     return (val &&
         typeof val === 'object' &&
@@ -356,5 +353,4 @@ function isAttachReference(val) {
         val.view instanceof View &&
         typeof val.id === 'string');
 }
-exports.isAttachReference = isAttachReference;
 //# sourceMappingURL=view.js.map

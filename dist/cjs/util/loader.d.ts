@@ -5,8 +5,8 @@ export declare const LoaderMarkup: {
     'slosh-loader': string;
 };
 export declare const loaderTemplate: ({ type, wrapped, classes, }?: {
-    type?: LoaderType | undefined;
-    wrapped?: boolean | undefined;
-    classes?: string | string[] | undefined;
+    type?: LoaderType;
+    wrapped?: boolean;
+    classes?: string | string[];
 }) => HTMLElement;
 //# sourceMappingURL=loader.d.ts.map

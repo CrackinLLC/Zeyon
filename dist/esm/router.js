@@ -1,6 +1,6 @@
 import Emitter from './emitter';
-export default class Router extends Emitter {
-    constructor({ routes, urlPrefix }, app) {
+class Router extends Emitter {
+    constructor({ urlPrefix }, app) {
         super({
             events: [
                 'navigate',
@@ -8,12 +8,15 @@ export default class Router extends Emitter {
             ],
         }, app);
         this.currentPath = '';
+        this.routes = [];
         this.urlMap = { segment: '', children: new Map() };
         this.siteMap = [];
-        this.routes = routes;
         this.urlPrefix = urlPrefix;
         this.currentPath = this.standardizeUrl(new URL(this.app.window.location.href).pathname);
         this.preprocessRoutes();
+    }
+    registerRoutes(routes) {
+        this.routes = { ...this.routes, ...routes };
     }
     start() {
         this.app.window.addEventListener('popstate', () => this.loadRouteFromUrl());
@@ -114,15 +117,15 @@ export default class Router extends Emitter {
             }
             try {
                 this.currentRoute = await this.app
-                    .newInstance(route.regId, {
+                    .newRouteView(route.registrationId, {
                     ...(params && Object.keys(params).length ? { params } : {}),
                     ...(query ? { query } : {}),
                     ...(hash ? { hash } : {}),
                     attachTo: this.app.el,
                 })
-                    .then((view) => view.render());
+                    .then((routeView) => routeView.render());
                 this.currentRouteConfig = route;
-                this.emit('navigate', { regId: route.regId, ...(customProps || {}) });
+                this.emit('navigate', { regId: route.registrationId, ...(customProps || {}) });
             }
             catch (error) {
                 console.error('Error loading route:', error);
@@ -192,8 +195,7 @@ export default class Router extends Emitter {
                 this.notFound = config;
             }
             const siteMapEntry = {
-                regId: config.regId,
-                name: config.name,
+                regId: config.registrationId,
                 fullUrl,
                 custom,
                 children: [],
@@ -225,4 +227,6 @@ export default class Router extends Emitter {
         }
     }
 }
+Router.registrationId = 'zeyon-router';
+export default Router;
 //# sourceMappingURL=router.js.map

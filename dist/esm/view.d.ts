@@ -1,17 +1,17 @@
 import type ZeyonApp from './app';
 import Emitter from './emitter';
+import type { ClassMapType } from './generated/ClassMapType';
 import { Attributes } from './imports/model';
 import { AttachReference, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
 import { RootElement } from './util/element';
 import { ErrorStateOptions } from './util/error';
 export default abstract class View extends Emitter {
-    static regId: string;
+    options: ViewOptions;
+    defaultOptions: ViewOptions;
     static tagName: string;
     static isComponent: boolean;
-    static defaultOptions: ViewOptions;
     private _viewId;
-    readonly options: ViewOptions;
     protected el: RootElement;
     protected ui: {
         [key: string]: string;
@@ -47,7 +47,7 @@ export default abstract class View extends Emitter {
     protected generateUiSelections(selectorAttribute?: string): void;
     protected renderTemplate(): void;
     protected getTemplateOptions(optionValues?: Record<string, unknown>): Record<string, unknown>;
-    newChild<V extends View>(id: string, viewOptions: V['options']): Promise<V>;
+    newChild<K extends keyof ClassMapType>(registrationId: K, viewOptions: any): Promise<ClassMapType[K]>;
     getChildById<T extends View>(id: string): T | undefined;
     getChildByModelId<T extends View>(id: number): T | undefined;
     protected destroyChildById(id: string): void;

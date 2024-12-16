@@ -1,8 +1,16 @@
 import ClassRegistry from './classRegistry';
-import { ZeyonAppOptions } from './imports/app';
-import type { ClassInstance } from './imports/classRegistry';
+import type Collection from './collection';
+import type CollectionView from './collectionView';
+import type Emitter from './emitter';
+import type { ClassMapType } from './generated/ClassMapType';
+import type { GlobalViewConfig, ZeyonAppOptions } from './imports/app';
+import type { Attributes } from './imports/model';
+import { RouteConfig } from './imports/router';
+import type Model from './model';
 import Router from './router';
+import type RouteView from './routeView';
 import { loaderTemplate } from './util/loader';
+import type View from './view';
 
 /**
  * The central hub of the application, managing interactions between components.
@@ -54,7 +62,7 @@ export default class ZeyonApp<CustomRouteProps = any> {
    * @param options - The application options.
    */
   constructor(public options: ZeyonAppOptions) {
-    const { name, el, urlPrefix, routes, registryClassList } = options;
+    const { name, el, urlPrefix } = options;
 
     // Initialize readiness promises
     this.isReady = new Promise<this>((resolve) => {
@@ -65,8 +73,32 @@ export default class ZeyonApp<CustomRouteProps = any> {
     this.el = el;
     this.window = window;
 
-    this.router = new Router<CustomRouteProps>({ routes, urlPrefix }, this);
-    this.registry = new ClassRegistry({ registryClassList }, this);
+    this.router = new Router<CustomRouteProps>({ urlPrefix }, this);
+    this.registry = new ClassRegistry({}, this);
+  }
+
+  public registerRoutes<C extends CustomRouteProps>(routes: RouteConfig<C>[]) {
+    // TODO: Register routes with our registry
+
+    this.router.registerRoutes(routes);
+    return this;
+  }
+
+  public setGlobalViews(layouts: GlobalViewConfig[]) {
+    layouts.forEach(({ selector, registrationId, options }) => {
+      const element = document.querySelector(selector);
+
+      if (element) {
+        this.newView(registrationId, {
+          ...(options || {}),
+          attachTo: element,
+        }).then((view) => view?.render());
+      } else {
+        console.warn(`Element not found for selector: ${selector}`);
+      }
+    });
+
+    return this;
   }
 
   /**
@@ -102,32 +134,73 @@ export default class ZeyonApp<CustomRouteProps = any> {
     return this;
   }
 
-  /**
-   * Instantiates a new class by its identifier.
-   * @param id - The class identifier.
-   * @param options - The options for the class instance.
-   * @param more - Additional arguments.
-   * @returns The instantiated class.
-   */
-  public async newInstance<C extends ClassInstance>(id: string, options: C['options'] = {}): Promise<C> {
-    const def = this.registry.getClass(id);
+  public async newView<K extends keyof ClassMapType>(
+    registrationId: K,
+    options?: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
+  ): Promise<ClassMapType[K] & View> {
+    const instance = await this.newInstance<keyof ClassMapType, View>(registrationId, options);
+
+    return instance as ClassMapType[K] & View;
+  }
+
+  public async newRouteView<K extends keyof ClassMapType>(
+    registrationId: K,
+    options?: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
+  ): Promise<ClassMapType[K] & RouteView> {
+    const instance = await this.newInstance<keyof ClassMapType, RouteView>(registrationId, options);
+
+    return instance as ClassMapType[K] & RouteView;
+  }
+
+  public async newModel<K extends keyof ClassMapType>(
+    registrationId: K,
+    options?: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
+  ): Promise<ClassMapType[K] & Model<Attributes>> {
+    const instance = await this.newInstance<keyof ClassMapType, Model<Attributes>>(registrationId, options);
+
+    return instance as ClassMapType[K] & Model<Attributes>;
+  }
+
+  public async newCollection<K extends keyof ClassMapType>(
+    registrationId: K,
+    options?: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
+  ): Promise<ClassMapType[K] & Collection<Attributes, Model<Attributes>>> {
+    const instance = await this.newInstance<keyof ClassMapType, Collection<Attributes, Model<Attributes>>>(
+      registrationId,
+      options,
+    );
+
+    return instance as ClassMapType[K] & Collection<Attributes, Model<Attributes>>;
+  }
+
+  public async newCollectionView<K extends keyof ClassMapType>(
+    registrationId: K,
+    options?: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
+  ): Promise<ClassMapType[K] & CollectionView> {
+    const instance = await this.newInstance<keyof ClassMapType, CollectionView>(registrationId, options);
+
+    return instance as ClassMapType[K] & CollectionView;
+  }
+
+  private async newInstance<K extends keyof ClassMapType, T extends Emitter = Emitter>(
+    registrationId: K,
+    options?: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
+  ): Promise<T> {
+    const def = await this.registry.getClass(registrationId);
 
     if (!def) {
-      const errorMessage = `Failed to locate class with id "${id}".`;
+      const errorMessage = `Failed to locate class with id "${registrationId}".`;
       console.error(errorMessage);
       throw new Error(errorMessage);
     }
 
-    try {
-      const instance = new def(options, this) as C;
-      if (instance.isReady instanceof Promise) {
-        await instance.isReady;
-      }
-      return instance;
-    } catch (e) {
-      console.error(`Failed to instantiate class with id "${id}".`, e);
-      throw e;
+    const instance = new def(options || {}, this);
+
+    if (instance.isReady instanceof Promise) {
+      await instance.isReady;
     }
+
+    return instance as T; // Properly inferred as ClassMapType[K]
   }
 
   /**

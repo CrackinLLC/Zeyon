@@ -1,10 +1,14 @@
-import type { ClassDefinition } from './classRegistry';
-import type { RouteConfig } from './router';
+import type { ClassMapType } from '../generated/ClassMapType';
+import type { ViewOptions } from './view';
 
-export interface ZeyonAppOptions<CustomRouteProps = any> {
+export interface ZeyonAppOptions {
   name?: string;
   el: HTMLElement;
   urlPrefix: string;
-  routes: RouteConfig<CustomRouteProps>[];
-  registryClassList: Record<string, ClassDefinition>;
+}
+
+export interface GlobalViewConfig {
+  registrationId: keyof ClassMapType;
+  selector: string;
+  options?: ViewOptions;
 }

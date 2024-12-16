@@ -7,8 +7,7 @@ const emitter_1 = __importDefault(require("./emitter"));
 const collection_1 = require("./imports/collection");
 class Collection extends emitter_1.default {
     constructor(options = {}, app) {
-        super({ events: [...(options.events || []), ...collection_1.collectionEvents] }, app);
-        this.options = options;
+        super({ ...options, events: [...(options.events || []), ...collection_1.collectionEvents] }, app);
         this.app = app;
         this.items = [];
         this.length = 0;
@@ -16,7 +15,7 @@ class Collection extends emitter_1.default {
         this.visibleLength = 0;
         this.filterOptions = {};
         this.activeFilters = {};
-        const { ids } = options;
+        const { ids } = this.options;
         const funcs = [];
         if (ids && ids.length > 0) {
             const attrs = ids.map((id) => {
@@ -30,7 +29,7 @@ class Collection extends emitter_1.default {
     async newModel(attributes, silent = false) {
         const attributesArray = Array.isArray(attributes) ? attributes : [attributes];
         for (const attrs of attributesArray) {
-            const model = await this.app.newInstance(`model-${this.getType()}`, {
+            const model = await this.app.newModel(`model-${this.getType()}`, {
                 attributes: attrs,
                 collection: this,
             });

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.debounce = void 0;
+exports.debounce = debounce;
 function debounce(func, { wait = 50, shouldAggregate = true, } = {}) {
     let timeout;
     let argsAccumulator = shouldAggregate ? undefined : {};
@@ -36,5 +36,4 @@ function debounce(func, { wait = 50, shouldAggregate = true, } = {}) {
         }, wait);
     };
 }
-exports.debounce = debounce;
 //# sourceMappingURL=debounce.js.map

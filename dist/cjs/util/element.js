@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.convertToRootElement = exports.elIsRootEl = void 0;
+exports.elIsRootEl = elIsRootEl;
+exports.convertToRootElement = convertToRootElement;
 function elIsRootEl(el) {
     return el instanceof HTMLElement && Object.keys(el).includes('view');
 }
-exports.elIsRootEl = elIsRootEl;
 function convertToRootElement(el, context) {
     const newEl = el;
     newEl.view = context;
@@ -15,5 +15,4 @@ function convertToRootElement(el, context) {
     };
     return newEl;
 }
-exports.convertToRootElement = convertToRootElement;
 //# sourceMappingURL=element.js.map

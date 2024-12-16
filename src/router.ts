@@ -1,19 +1,22 @@
 import type ZeyonApp from './app';
 import Emitter from './emitter';
 import type { RouteConfig, RouteNode, RouterOptions, SiteMapRouteDetail } from './imports/router';
-import type RouteView from './route';
+import type RouteView from './routeView';
 
 export default class Router<CustomRouteProps = any> extends Emitter {
+  static override registrationId: string = 'zeyon-router';
+
   private currentPath: string = '';
   private currentRoute: RouteView | undefined;
   private currentRouteConfig: RouteConfig<CustomRouteProps> | undefined;
-  private routes: RouteConfig<CustomRouteProps>[];
+  private routes: RouteConfig<CustomRouteProps>[] = [];
+  private notFound: RouteConfig<CustomRouteProps> | undefined; // Special property for storing 404 page, if provided
+
   private urlMap: RouteNode = { segment: '', children: new Map() };
   private siteMap: SiteMapRouteDetail<CustomRouteProps>[] = [];
   private urlPrefix: string | undefined;
-  private notFound: RouteConfig<CustomRouteProps> | undefined; // Special property for storing 404 page, if provided
 
-  constructor({ routes, urlPrefix }: RouterOptions<CustomRouteProps>, app: ZeyonApp) {
+  constructor({ urlPrefix }: RouterOptions, app: ZeyonApp) {
     super(
       {
         events: [
@@ -24,11 +27,13 @@ export default class Router<CustomRouteProps = any> extends Emitter {
       app,
     );
 
-    this.routes = routes;
     this.urlPrefix = urlPrefix;
-
     this.currentPath = this.standardizeUrl(new URL(this.app.window.location.href).pathname);
     this.preprocessRoutes();
+  }
+
+  public registerRoutes<C extends CustomRouteProps>(routes: RouteConfig<C>[]) {
+    this.routes = { ...this.routes, ...routes };
   }
 
   public start() {
@@ -168,16 +173,16 @@ export default class Router<CustomRouteProps = any> extends Emitter {
       try {
         // Instantiate and render the new view
         this.currentRoute = await this.app
-          .newInstance<RouteView>(route.regId, {
+          .newRouteView(route.registrationId, {
             ...(params && Object.keys(params).length ? { params } : {}),
             ...(query ? { query } : {}),
             ...(hash ? { hash } : {}),
             attachTo: this.app.el,
           })
-          .then((view) => view.render());
+          .then((routeView) => routeView.render());
         this.currentRouteConfig = route;
 
-        this.emit('navigate', { regId: route.regId, ...(customProps || {}) });
+        this.emit('navigate', { regId: route.registrationId, ...(customProps || {}) });
       } catch (error) {
         console.error('Error loading route:', error);
       }
@@ -282,8 +287,7 @@ export default class Router<CustomRouteProps = any> extends Emitter {
 
       // Create the site map entry for this route
       const siteMapEntry: SiteMapRouteDetail<CustomRouteProps> = {
-        regId: config.regId,
-        name: config.name,
+        regId: config.registrationId,
         fullUrl,
         custom,
         children: [],
@@ -292,7 +296,7 @@ export default class Router<CustomRouteProps = any> extends Emitter {
       // Process child routes
       if (config.childRoutes) {
         config.childRoutes.forEach((childConfig) => {
-          const childSiteMapEntry = processConfig(childConfig, node, custom, fullUrl);
+          const childSiteMapEntry = processConfig(childConfig as RouteConfig<CustomRouteProps>, node, custom, fullUrl);
           siteMapEntry.children.push(childSiteMapEntry);
         });
       }

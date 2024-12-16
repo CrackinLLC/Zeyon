@@ -8,13 +8,12 @@ const model_1 = require("./imports/model");
 const object_1 = require("./util/object");
 class Model extends emitter_1.default {
     constructor(options, app) {
-        super({ events: [...(options.events || []), ...model_1.modelEvents] }, app);
-        this.options = options;
+        super({ ...options, events: [...(options.events || []), ...model_1.modelEvents] }, app);
         this.app = app;
         this.hasUnsavedChanges = false;
         this.selected = false;
         this.collection = null;
-        const { attributes = {}, collection } = options;
+        const { attributes = {}, collection } = this.options;
         this.attributes = { ...attributes };
         this.attributesOriginal = { ...this.attributes };
         if (collection) {
@@ -140,9 +139,9 @@ class Model extends emitter_1.default {
         return Object.keys(this.definition);
     }
 }
-exports.default = Model;
 Model.type = "unknown";
 Model.definition = {};
+exports.default = Model;
 function getCustomEventsFromAttributes(attributeNames) {
     const eventTypes = ['set', 'change', 'unset'];
     const eventList = [];

@@ -38,6 +38,11 @@ const nativeEvents = [
  * Classes extending Emitter can emit and listen to events.
  */
 export default abstract class Emitter {
+  static registrationId: string = '';
+
+  public options: EmitterOptions = {};
+  static defaultOptions: EmitterOptions = {};
+
   /**
    * Promise that resolves once the instance is ready
    */
@@ -54,8 +59,10 @@ export default abstract class Emitter {
   /**
    * @param options - Emitter options including custom events and whether to include native events.
    */
-  constructor(public readonly options: EmitterOptions = {}, protected app: ZeyonApp) {
-    const { events = [], includeNativeEvents = false } = options;
+  constructor(options: EmitterOptions = {}, protected app: ZeyonApp) {
+    this.options = { ...(this.constructor as typeof Emitter).defaultOptions, ...options };
+
+    const { events = [], includeNativeEvents = false } = this.options;
 
     // Initialize readiness promises
     this.isReady = new Promise<this>((resolve) => {
@@ -302,6 +309,10 @@ export default abstract class Emitter {
   }
 
   protected onDestroy() {}
+
+  public getStaticMember(key: keyof typeof Emitter): unknown {
+    return (this.constructor as typeof Emitter)[key];
+  }
 }
 
 /**

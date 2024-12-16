@@ -1,3 +1,4 @@
+import type ZeyonApp from '../app';
 import type CollectionView from '../collectionView';
 import type Emitter from '../emitter';
 import type { CollectionLike, CollectionOptions } from '../imports/collection';
@@ -7,7 +8,7 @@ import type { Attributes, ModelOptions } from '../imports/model';
 import type { RouterOptions } from '../imports/router';
 import type { ViewOptions } from '../imports/view';
 import type Model from '../model';
-import type RouteView from '../route';
+import type RouteView from '../routeView';
 import type Router from '../router';
 import type View from '../view';
 
@@ -16,13 +17,9 @@ interface ClassRegistryOptions extends EmitterOptions {
 }
 
 interface ClassMetadata {
+  regiatrationId: string;
+  options: ClassOptions;
   version?: string;
-  // Additional metadata fields can be added here.
-}
-
-interface ClassEntry {
-  classDef: ClassDefinition;
-  metadata: ClassMetadata;
 }
 
 type ClassOptions =
@@ -45,21 +42,9 @@ type ClassInstance = (
   options: ClassOptions;
 };
 
-interface ClassDefinition {
-  new (...args: any[]): ClassInstance;
+interface ClassDefinition<T extends ClassInstance = Emitter> {
+  new (options: T['options'], app: ZeyonApp): T;
+  registrationId: string;
 }
 
-// A Controller class should not extend any class but the Emitter
-interface ControllerDefinition {
-  new (...args: any[]): Emitter;
-}
-
-export {
-  ClassDefinition,
-  ClassEntry,
-  ClassInstance,
-  ClassMetadata,
-  ClassOptions,
-  ClassRegistryOptions,
-  ControllerDefinition,
-};
+export { ClassDefinition, ClassInstance, ClassMetadata, ClassOptions, ClassRegistryOptions };

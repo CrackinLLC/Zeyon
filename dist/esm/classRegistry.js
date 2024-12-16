@@ -1,31 +1,42 @@
+import { classMapData } from './generated/classMapData';
 import Emitter from './emitter';
-export default class ClassRegistry extends Emitter {
-    constructor(options = {}, app) {
-        super(options, app);
+class ClassRegistry extends Emitter {
+    constructor() {
+        super(...arguments);
         this.classMap = new Map();
-        if (options.registryClassList) {
-            Object.entries(options.registryClassList).forEach(([id, classDef]) => {
-                this.registerClass(id, classDef);
-            });
-        }
     }
-    registerClass(identifier, classDef, metadata = {}) {
-        const isOverwrite = this.classMap.has(identifier);
-        this.classMap.set(identifier, { classDef, metadata });
+    async initialize() {
+        this.registerClasses(Object.values(classMapData));
+    }
+    registerClass(c) {
+        const id = c.registrationId;
+        const isOverwrite = this.classMap.has(id);
+        this.classMap.set(id, c);
         if (isOverwrite) {
-            this.emit('classOverwritten', { identifier });
-            console.warn(`Class identifier "${identifier}" was overwritten.`);
+            this.emit('classOverwritten', { id });
+            console.warn(`Class identifier "${id}" was overwritten.`);
         }
         else {
-            this.emit('classRegistered', { identifier });
+            this.emit('classRegistered', { id });
         }
     }
-    getClass(identifier) {
-        const entry = this.classMap.get(identifier);
-        return entry?.classDef;
+    registerClasses(classes) {
+        classes.forEach((c) => {
+            if (typeof c === 'function' && c.registrationId && c.prototype instanceof Emitter) {
+                this.registerClass(c);
+            }
+        });
+    }
+    async getClass(id) {
+        const entry = this.classMap.get(String(id));
+        if (!entry) {
+        }
+        return entry;
     }
     isClassRegistered(identifier) {
         return this.classMap.has(identifier);
     }
 }
+ClassRegistry.registrationId = 'zeyon-registry';
+export default ClassRegistry;
 //# sourceMappingURL=classRegistry.js.map

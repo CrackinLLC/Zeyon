@@ -1,5 +1,6 @@
 import type ZeyonApp from './app';
 import Emitter from './emitter';
+import type { ClassMapType } from './generated/ClassMapType';
 import { Attributes } from './imports/model';
 import { AttachReference, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
@@ -9,14 +10,13 @@ import { getUniqueId, toHyphenCase } from './util/string';
 import { getCompiledTemplate } from './util/template';
 
 export default abstract class View extends Emitter {
-  static regId: string; // TODO: Not needed until we move back into dynamic modular loading of classes
+  declare options: ViewOptions;
+  declare defaultOptions: ViewOptions;
 
   static tagName = 'div';
   static isComponent: boolean;
-  static defaultOptions: ViewOptions = {};
 
   private _viewId: string = getUniqueId();
-  readonly options: ViewOptions;
   protected el: RootElement;
   protected ui: { [key: string]: string } = {};
   private _ui: { [key: string]: NodeListOf<HTMLElement> } = {};
@@ -35,16 +35,12 @@ export default abstract class View extends Emitter {
   protected errorEl?: HTMLElement;
 
   constructor(options: ViewOptions = {}, app: ZeyonApp) {
-    super({ events: options.events, includeNativeEvents: true }, app);
+    super({ events: options.events, includeNativeEvents: true, ...options }, app);
 
     // Initialize promises for readiness and rendering
     this.isRendered = new Promise<this>((resolve) => {
       this.resolveIsRendered = resolve;
     });
-
-    // Merge default and passed options into stored property
-    const defaultOptions = (this.constructor as typeof View).defaultOptions || {};
-    this.options = { ...defaultOptions, ...options };
 
     // Declare the unprocessed root element
     const tagName = this.renderOptions.tagName || (this.constructor as typeof View).tagName;
@@ -293,14 +289,18 @@ export default abstract class View extends Emitter {
     };
   }
 
-  async newChild<V extends View>(id: string, viewOptions: V['options']): Promise<V> {
+  async newChild<K extends keyof ClassMapType>(
+    registrationId: K,
+    viewOptions: any, // ClassMapType[K]['options'], -- TODO: Fix so that we can determine correct options interface from registrationId K
+  ): Promise<ClassMapType[K]> {
     if (this.isDestroyed) {
       return Promise.reject(new Error('Component is destroyed'));
     }
 
-    return this.app.newInstance<V>(id, viewOptions).then((child) => {
+    // Now call newInstance with registrationId
+    return this.app.newView(registrationId, viewOptions).then((child) => {
       if (this.isDestroyed) {
-        child.destroy(); // If our parent was destroyed while waiting to load the child
+        child.destroy();
         return Promise.reject(new Error('Component is destroyed'));
       }
 
@@ -361,7 +361,7 @@ export default abstract class View extends Emitter {
     const attributes = this.options.model;
 
     if (typeof attributes === 'string') {
-      model = await this.app.newInstance<Model<Attributes>>(`model-${this.options.model}`);
+      model = await this.app.newModel(`model-${this.options.model}`);
     } else {
       const type = this.options.modelType;
 
@@ -369,7 +369,7 @@ export default abstract class View extends Emitter {
         if (Array.isArray(type)) {
           console.warn(`Ambiguous model type: ${type.join(', ')}. Please specify modelType in view options.`, this);
         } else {
-          model = await this.app.newInstance<Model<Attributes>>(`model-${type}`, {
+          model = await this.app.newModel(`model-${type}`, {
             attributes,
           });
         }

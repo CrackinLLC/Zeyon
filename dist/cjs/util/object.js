@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getDeepCopy = exports.isEqual = void 0;
+exports.isEqual = isEqual;
+exports.getDeepCopy = getDeepCopy;
 function isEqual(a, b) {
     if (a === b)
         return true;
@@ -14,7 +15,6 @@ function isEqual(a, b) {
     }
     return false;
 }
-exports.isEqual = isEqual;
 function compareArrays(a, b) {
     if (a.length !== b.length)
         return false;
@@ -55,5 +55,4 @@ function getDeepCopy(value) {
     }
     return value;
 }
-exports.getDeepCopy = getDeepCopy;
 //# sourceMappingURL=object.js.map

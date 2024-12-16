@@ -4,9 +4,9 @@ import { convertToRootElement } from './util/element';
 import { errorTemplate } from './util/error';
 import { getUniqueId, toHyphenCase } from './util/string';
 import { getCompiledTemplate } from './util/template';
-export default class View extends Emitter {
+class View extends Emitter {
     constructor(options = {}, app) {
-        super({ events: options.events, includeNativeEvents: true }, app);
+        super({ events: options.events, includeNativeEvents: true, ...options }, app);
         this._viewId = getUniqueId();
         this.ui = {};
         this._ui = {};
@@ -16,8 +16,6 @@ export default class View extends Emitter {
         this.isRendered = new Promise((resolve) => {
             this.resolveIsRendered = resolve;
         });
-        const defaultOptions = this.constructor.defaultOptions || {};
-        this.options = { ...defaultOptions, ...options };
         const tagName = this.renderOptions.tagName || this.constructor.tagName;
         this.el = convertToRootElement(document.createElement(tagName), this);
         if (this.options.id) {
@@ -202,11 +200,11 @@ export default class View extends Emitter {
             ...optionValues,
         };
     }
-    async newChild(id, viewOptions) {
+    async newChild(registrationId, viewOptions) {
         if (this.isDestroyed) {
             return Promise.reject(new Error('Component is destroyed'));
         }
-        return this.app.newInstance(id, viewOptions).then((child) => {
+        return this.app.newView(registrationId, viewOptions).then((child) => {
             if (this.isDestroyed) {
                 child.destroy();
                 return Promise.reject(new Error('Component is destroyed'));
@@ -254,7 +252,7 @@ export default class View extends Emitter {
         let model;
         const attributes = this.options.model;
         if (typeof attributes === 'string') {
-            model = await this.app.newInstance(`model-${this.options.model}`);
+            model = await this.app.newModel(`model-${this.options.model}`);
         }
         else {
             const type = this.options.modelType;
@@ -263,7 +261,7 @@ export default class View extends Emitter {
                     console.warn(`Ambiguous model type: ${type.join(', ')}. Please specify modelType in view options.`, this);
                 }
                 else {
-                    model = await this.app.newInstance(`model-${type}`, {
+                    model = await this.app.newModel(`model-${type}`, {
                         attributes,
                     });
                 }
@@ -340,7 +338,7 @@ export default class View extends Emitter {
     }
 }
 View.tagName = 'div';
-View.defaultOptions = {};
+export default View;
 export function isAttachReference(val) {
     return (val &&
         typeof val === 'object' &&

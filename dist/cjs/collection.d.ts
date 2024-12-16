@@ -4,8 +4,9 @@ import { CollectionFilterDefinition, CollectionFilterOptions, CollectionLike, Co
 import { Attributes, ModelType } from './imports/model';
 import Model from './model';
 export default abstract class Collection<A extends Attributes, M extends Model<any>> extends Emitter implements CollectionLike<A, M> {
-    options: CollectionOptions;
     protected app: ZeyonApp;
+    options: CollectionOptions;
+    defaultOptions: CollectionOptions;
     protected abstract getModelClass(): typeof Model<A>;
     protected items: M[];
     length: number;
@@ -15,7 +16,7 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
     protected activeFilters: {
         [key: string]: (item: M) => boolean;
     };
-    constructor(options: CollectionOptions, app: ZeyonApp);
+    constructor(options: CollectionOptions | undefined, app: ZeyonApp);
     newModel(attributes: Partial<A> | Partial<A>[], silent?: boolean): Promise<this>;
     add(models: M | M[], silent?: boolean): this;
     remove(itemIds: number | number[] | undefined, silent?: boolean): M | M[] | undefined;

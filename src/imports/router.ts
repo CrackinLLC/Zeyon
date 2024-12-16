@@ -1,15 +1,19 @@
-export interface RouterOptions<CustomRouteProps = any> {
-  routes: RouteConfig<CustomRouteProps>[];
+import type { ClassMapType } from '../generated/ClassMapType';
+
+export interface RouterOptions {
   urlPrefix?: string; // A custom url prefix used across the entire application
 }
 
-export interface RouteConfig<CustomRouteProps = any> {
-  regId: string; // Unique registration id for the route. MUST BE UNIQUE across the entire application.
-  urlFragment: string; // Fragment to append to the url path (excludes leading/trailing slashes)
+export interface RegisterRoutesParam<CustomRouteProps = any> {
+  routes: RouteConfig<CustomRouteProps>[];
+}
 
-  name?: string; // Human-friendly display string for route
+// TODO: Extend to allow for metadata instead and support dynamic fetching
+export interface RouteConfig<CustomRouteProps = any> {
+  registrationId: keyof ClassMapType;
+  urlFragment: string; // Fragment to append to the url path (excludes leading/trailing slashes)
+  is404?: boolean; // Defines the 404 page for the application (last one defined takes precedence)
   childRoutes?: RouteConfig<CustomRouteProps>[];
-  is404?: boolean; // Defines the 404 page for the application (last defined takes precedence)
 
   // Custom values passed into navigation events. Parent values are inherited by their childRoutes and can be overridden.
   custom?: CustomRouteProps;
@@ -26,7 +30,7 @@ export interface RouteNode<CustomRouteProps = any> {
 
 // Similar to our RouteNode, but specifically organized for our sitemap
 export interface SiteMapRouteDetail<CustomProps = any> {
-  regId: string;
+  regId: keyof ClassMapType;
   name?: string;
   fullUrl: string;
   custom: CustomProps;

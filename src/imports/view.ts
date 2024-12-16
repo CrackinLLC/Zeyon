@@ -1,14 +1,14 @@
 import type Model from '../model';
 import type View from '../view';
+import { EmitterOptions } from './emitter';
 import type { Attributes } from './model';
 
-export interface ViewOptions {
+export interface ViewOptions extends Omit<EmitterOptions, 'includeNativeEvents'> {
   id?: string;
   classNames?: string[];
   attributes?: Record<string, string | undefined>; // Inline DOM attributes, not to be confused with model attributes
   attachTo?: HTMLElement | NodeListOf<HTMLElement> | AttachReference | string;
   prepend?: boolean;
-  events?: string[];
   preventDefault?: boolean; // Capture click events on view el and prevent default behavior
 
   params?: Record<string, string>;

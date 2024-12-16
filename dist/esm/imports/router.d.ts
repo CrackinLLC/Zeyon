@@ -1,13 +1,15 @@
-export interface RouterOptions<CustomRouteProps = any> {
-    routes: RouteConfig<CustomRouteProps>[];
+import type { ClassMapType } from '../generated/ClassMapType';
+export interface RouterOptions {
     urlPrefix?: string;
 }
+export interface RegisterRoutesParam<CustomRouteProps = any> {
+    routes: RouteConfig<CustomRouteProps>[];
+}
 export interface RouteConfig<CustomRouteProps = any> {
-    regId: string;
+    registrationId: keyof ClassMapType;
     urlFragment: string;
-    name?: string;
-    childRoutes?: RouteConfig<CustomRouteProps>[];
     is404?: boolean;
+    childRoutes?: RouteConfig<CustomRouteProps>[];
     custom?: CustomRouteProps;
 }
 export interface RouteNode<CustomRouteProps = any> {
@@ -18,7 +20,7 @@ export interface RouteNode<CustomRouteProps = any> {
     custom?: CustomRouteProps;
 }
 export interface SiteMapRouteDetail<CustomProps = any> {
-    regId: string;
+    regId: keyof ClassMapType;
     name?: string;
     fullUrl: string;
     custom: CustomProps;

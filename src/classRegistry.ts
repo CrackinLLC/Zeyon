@@ -1,37 +1,43 @@
-import type ZeyonApp from './app';
-import { ClassDefinition, ClassEntry, ClassMetadata, ClassRegistryOptions } from './imports/classRegistry';
+import { classMapData } from './generated/classMapData';
+import type { ClassMapType } from './generated/ClassMapType';
+import { ClassDefinition } from './imports/classRegistry';
 
 import Emitter from './emitter';
 
 export default class ClassRegistry extends Emitter {
-  private classMap: Map<string, ClassEntry> = new Map();
+  static override registrationId: string = 'zeyon-registry';
 
-  constructor(options: ClassRegistryOptions = {}, app: ZeyonApp) {
-    super(options, app);
+  private classMap: Map<string, ClassDefinition> = new Map();
 
-    if (options.registryClassList) {
-      Object.entries(options.registryClassList).forEach(([id, classDef]) => {
-        this.registerClass(id, classDef);
-      });
-    }
+  public async initialize(): Promise<void> {
+    this.registerClasses(Object.values(classMapData));
   }
 
   /**
    * Registers a class definition with the registry.
-   * @param identifier - The unique identifier for the class.
-   * @param classDef - The class definition to register.
-   * @param metadata - Optional metadata for the class.
+   * @param c - The class definition to register.
    */
-  public registerClass(identifier: string, classDef: ClassDefinition, metadata: ClassMetadata = {}): void {
-    const isOverwrite = this.classMap.has(identifier);
-    this.classMap.set(identifier, { classDef, metadata });
+  public registerClass(c: ClassDefinition): void {
+    const id = c.registrationId;
+    const isOverwrite = this.classMap.has(id);
 
+    this.classMap.set(id, c);
     if (isOverwrite) {
-      this.emit('classOverwritten', { identifier });
-      console.warn(`Class identifier "${identifier}" was overwritten.`);
+      // TODO: Rather than overwriting by default, require a boolean to force the overwrite, otherwise throw an error
+      this.emit('classOverwritten', { id });
+      console.warn(`Class identifier "${id}" was overwritten.`);
     } else {
-      this.emit('classRegistered', { identifier });
+      this.emit('classRegistered', { id });
     }
+  }
+
+  public registerClasses(classes: ClassDefinition[]) {
+    classes.forEach((c: ClassDefinition | unknown) => {
+      if (typeof c === 'function' && (c as any).registrationId && c.prototype instanceof Emitter) {
+        // c looks like a valid ClassDefinition
+        this.registerClass(c as ClassDefinition);
+      }
+    });
   }
 
   /**
@@ -39,12 +45,16 @@ export default class ClassRegistry extends Emitter {
    * @param identifier - The class identifier.
    * @returns The class definition or undefined if not found.
    */
-  public getClass(identifier: string): ClassDefinition | undefined {
-    const entry = this.classMap.get(identifier);
+  public async getClass<T extends Emitter>(id: keyof ClassMapType): Promise<ClassDefinition<T> | undefined> {
+    const entry = this.classMap.get(String(id)) as ClassDefinition<T> | undefined;
 
-    // TODO: If class is not loaded and we have API access, call this.fetch here
+    if (!entry) {
+      // TODO: If class is not loaded and we have API access, fetch class here
+      //
+      // TODO: If failed to fetch, notify user that class could not be retrieved
+    }
 
-    return entry?.classDef;
+    return entry;
   }
 
   /**

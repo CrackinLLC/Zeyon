@@ -3,8 +3,9 @@ import type Collection from './collection';
 import Emitter from './emitter';
 import { AttributeDefinition, Attributes, ModelOptions, ModelType } from './imports/model';
 export default abstract class Model<A extends Attributes> extends Emitter {
-    readonly options: ModelOptions<A>;
     protected app: ZeyonApp;
+    options: ModelOptions<A>;
+    defaultOptions: ModelOptions<A>;
     static type: ModelType;
     static definition: {
         [key: string]: AttributeDefinition;

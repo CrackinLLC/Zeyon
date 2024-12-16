@@ -14,6 +14,9 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
   extends Emitter
   implements CollectionLike<A, M>
 {
+  declare options: CollectionOptions;
+  declare defaultOptions: CollectionOptions;
+
   protected abstract getModelClass(): typeof Model<A>;
 
   protected items: M[] = [];
@@ -24,10 +27,10 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
   protected filterOptions: CollectionFilterOptions = {};
   protected activeFilters: { [key: string]: (item: M) => boolean } = {};
 
-  constructor(public options: CollectionOptions = {}, protected app: ZeyonApp) {
-    super({ events: [...(options.events || []), ...collectionEvents] }, app);
+  constructor(options: CollectionOptions = {}, protected app: ZeyonApp) {
+    super({ ...options, events: [...(options.events || []), ...collectionEvents] }, app);
 
-    const { ids } = options;
+    const { ids } = this.options;
     const funcs = [];
 
     if (ids && ids.length > 0) {
@@ -46,13 +49,13 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
     const attributesArray = Array.isArray(attributes) ? attributes : [attributes];
 
     for (const attrs of attributesArray) {
-      const model = await this.app.newInstance<M>(`model-${this.getType()}`, {
+      const model = await this.app.newModel(`model-${this.getType()}`, {
         attributes: attrs,
         collection: this,
       });
 
       if (model) {
-        this.add(model, silent);
+        this.add(model as unknown as M, silent);
       }
     }
 

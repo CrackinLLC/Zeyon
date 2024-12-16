@@ -31,14 +31,15 @@ const nativeEvents = [
 ];
 class Emitter {
     constructor(options = {}, app) {
-        this.options = options;
         this.app = app;
+        this.options = {};
         this.eventListeners = {};
         this.validEvents = new Set();
         this.debouncedEmitters = {};
         this.debouncedEmitterDelay = 50;
         this.isDestroyed = false;
-        const { events = [], includeNativeEvents = false } = options;
+        this.options = { ...this.constructor.defaultOptions, ...options };
+        const { events = [], includeNativeEvents = false } = this.options;
         this.isReady = new Promise((resolve) => {
             this.resolveIsReady = resolve;
         });
@@ -166,7 +167,12 @@ class Emitter {
         this.destroyEvents();
     }
     onDestroy() { }
+    getStaticMember(key) {
+        return this.constructor[key];
+    }
 }
+Emitter.registrationId = '';
+Emitter.defaultOptions = {};
 exports.default = Emitter;
 class Listener {
     constructor(options) {

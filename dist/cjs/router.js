@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const emitter_1 = __importDefault(require("./emitter"));
 class Router extends emitter_1.default {
-    constructor({ routes, urlPrefix }, app) {
+    constructor({ urlPrefix }, app) {
         super({
             events: [
                 'navigate',
@@ -13,12 +13,15 @@ class Router extends emitter_1.default {
             ],
         }, app);
         this.currentPath = '';
+        this.routes = [];
         this.urlMap = { segment: '', children: new Map() };
         this.siteMap = [];
-        this.routes = routes;
         this.urlPrefix = urlPrefix;
         this.currentPath = this.standardizeUrl(new URL(this.app.window.location.href).pathname);
         this.preprocessRoutes();
+    }
+    registerRoutes(routes) {
+        this.routes = { ...this.routes, ...routes };
     }
     start() {
         this.app.window.addEventListener('popstate', () => this.loadRouteFromUrl());
@@ -119,15 +122,15 @@ class Router extends emitter_1.default {
             }
             try {
                 this.currentRoute = await this.app
-                    .newInstance(route.regId, {
+                    .newRouteView(route.registrationId, {
                     ...(params && Object.keys(params).length ? { params } : {}),
                     ...(query ? { query } : {}),
                     ...(hash ? { hash } : {}),
                     attachTo: this.app.el,
                 })
-                    .then((view) => view.render());
+                    .then((routeView) => routeView.render());
                 this.currentRouteConfig = route;
-                this.emit('navigate', { regId: route.regId, ...(customProps || {}) });
+                this.emit('navigate', { regId: route.registrationId, ...(customProps || {}) });
             }
             catch (error) {
                 console.error('Error loading route:', error);
@@ -197,8 +200,7 @@ class Router extends emitter_1.default {
                 this.notFound = config;
             }
             const siteMapEntry = {
-                regId: config.regId,
-                name: config.name,
+                regId: config.registrationId,
                 fullUrl,
                 custom,
                 children: [],
@@ -230,5 +232,6 @@ class Router extends emitter_1.default {
         }
     }
 }
+Router.registrationId = 'zeyon-router';
 exports.default = Router;
 //# sourceMappingURL=router.js.map

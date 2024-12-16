@@ -1,15 +1,14 @@
 import Emitter from './emitter';
 import { modelEvents } from './imports/model';
 import { isEqual } from './util/object';
-export default class Model extends Emitter {
+class Model extends Emitter {
     constructor(options, app) {
-        super({ events: [...(options.events || []), ...modelEvents] }, app);
-        this.options = options;
+        super({ ...options, events: [...(options.events || []), ...modelEvents] }, app);
         this.app = app;
         this.hasUnsavedChanges = false;
         this.selected = false;
         this.collection = null;
-        const { attributes = {}, collection } = options;
+        const { attributes = {}, collection } = this.options;
         this.attributes = { ...attributes };
         this.attributesOriginal = { ...this.attributes };
         if (collection) {
@@ -137,6 +136,7 @@ export default class Model extends Emitter {
 }
 Model.type = "unknown";
 Model.definition = {};
+export default Model;
 function getCustomEventsFromAttributes(attributeNames) {
     const eventTypes = ['set', 'change', 'unset'];
     const eventList = [];

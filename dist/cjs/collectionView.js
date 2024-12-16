@@ -11,8 +11,8 @@ class CollectionView extends view_1.default {
         this.childItems = [];
         this.extendValidEvents(['change']);
         this.renderChildItems = (0, debounce_1.debounce)(this.renderChildItems.bind(this));
-        this.collection = options.collection;
-        this.childView = options.childView;
+        this.collection = this.options.collection;
+        this.childView = this.options.childView;
     }
     async render() {
         await super.render();

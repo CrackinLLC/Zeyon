@@ -2,6 +2,7 @@
   "compilerOptions": {
     "rootDir": "./src",
 
+    "target": "ES2020",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -23,6 +24,6 @@
     "noUnusedParameters": true,
     "noUnusedLocals": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/generateMaps.ts"],
   "exclude": ["node_modules", "tests", "**/*.test.ts"]
 }

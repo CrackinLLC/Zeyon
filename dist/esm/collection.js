@@ -2,8 +2,7 @@ import Emitter from './emitter';
 import { collectionEvents, } from './imports/collection';
 export default class Collection extends Emitter {
     constructor(options = {}, app) {
-        super({ events: [...(options.events || []), ...collectionEvents] }, app);
-        this.options = options;
+        super({ ...options, events: [...(options.events || []), ...collectionEvents] }, app);
         this.app = app;
         this.items = [];
         this.length = 0;
@@ -11,7 +10,7 @@ export default class Collection extends Emitter {
         this.visibleLength = 0;
         this.filterOptions = {};
         this.activeFilters = {};
-        const { ids } = options;
+        const { ids } = this.options;
         const funcs = [];
         if (ids && ids.length > 0) {
             const attrs = ids.map((id) => {
@@ -25,7 +24,7 @@ export default class Collection extends Emitter {
     async newModel(attributes, silent = false) {
         const attributesArray = Array.isArray(attributes) ? attributes : [attributes];
         for (const attrs of attributesArray) {
-            const model = await this.app.newInstance(`model-${this.getType()}`, {
+            const model = await this.app.newModel(`model-${this.getType()}`, {
                 attributes: attrs,
                 collection: this,
             });

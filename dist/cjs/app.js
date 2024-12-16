@@ -12,15 +12,34 @@ class ZeyonApp {
         this.name = '';
         this.isStarted = false;
         this.loadingState = null;
-        const { name, el, urlPrefix, routes, registryClassList } = options;
+        const { name, el, urlPrefix } = options;
         this.isReady = new Promise((resolve) => {
             this.resolveIsReady = resolve;
         });
         this.name = name || '';
         this.el = el;
         this.window = window;
-        this.router = new router_1.default({ routes, urlPrefix }, this);
-        this.registry = new classRegistry_1.default({ registryClassList }, this);
+        this.router = new router_1.default({ urlPrefix }, this);
+        this.registry = new classRegistry_1.default({}, this);
+    }
+    registerRoutes(routes) {
+        this.router.registerRoutes(routes);
+        return this;
+    }
+    setGlobalViews(layouts) {
+        layouts.forEach(({ selector, registrationId, options }) => {
+            const element = document.querySelector(selector);
+            if (element) {
+                this.newView(registrationId, {
+                    ...(options || {}),
+                    attachTo: element,
+                }).then((view) => view?.render());
+            }
+            else {
+                console.warn(`Element not found for selector: ${selector}`);
+            }
+        });
+        return this;
     }
     async start() {
         if (!this.isStarted) {
@@ -41,24 +60,38 @@ class ZeyonApp {
         }
         return this;
     }
-    async newInstance(id, options = {}) {
-        const def = this.registry.getClass(id);
+    async newView(registrationId, options) {
+        const instance = await this.newInstance(registrationId, options);
+        return instance;
+    }
+    async newRouteView(registrationId, options) {
+        const instance = await this.newInstance(registrationId, options);
+        return instance;
+    }
+    async newModel(registrationId, options) {
+        const instance = await this.newInstance(registrationId, options);
+        return instance;
+    }
+    async newCollection(registrationId, options) {
+        const instance = await this.newInstance(registrationId, options);
+        return instance;
+    }
+    async newCollectionView(registrationId, options) {
+        const instance = await this.newInstance(registrationId, options);
+        return instance;
+    }
+    async newInstance(registrationId, options) {
+        const def = await this.registry.getClass(registrationId);
         if (!def) {
-            const errorMessage = `Failed to locate class with id "${id}".`;
+            const errorMessage = `Failed to locate class with id "${registrationId}".`;
             console.error(errorMessage);
             throw new Error(errorMessage);
         }
-        try {
-            const instance = new def(options, this);
-            if (instance.isReady instanceof Promise) {
-                await instance.isReady;
-            }
-            return instance;
+        const instance = new def(options || {}, this);
+        if (instance.isReady instanceof Promise) {
+            await instance.isReady;
         }
-        catch (e) {
-            console.error(`Failed to instantiate class with id "${id}".`, e);
-            throw e;
-        }
+        return instance;
     }
     toggleClass(className, add) {
         this.el.classList.toggle(className, add);

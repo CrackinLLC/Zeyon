@@ -9,8 +9,12 @@ import View from './view';
  * @template C The type of the collection.
  * @template V The type of the child view.
  */
-export default class CollectionView<C extends CollectionLike = CollectionLike, CV extends View = View> extends View {
+export default abstract class CollectionView<
+  C extends CollectionLike = CollectionLike,
+  CV extends View = View,
+> extends View {
   declare options: CollectionViewOptions<C, CV>;
+  declare defaultOptions: CollectionViewOptions<C, CV>;
 
   /**
    * The collection being managed by this view.
@@ -32,8 +36,8 @@ export default class CollectionView<C extends CollectionLike = CollectionLike, C
 
     this.extendValidEvents(['change']);
     this.renderChildItems = debounce(this.renderChildItems.bind(this));
-    this.collection = options.collection;
-    this.childView = options.childView;
+    this.collection = this.options.collection;
+    this.childView = this.options.childView;
   }
 
   /**

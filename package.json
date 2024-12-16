@@ -19,6 +19,9 @@
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:cjs": "tsc -p tsconfig.cjs.json"
   },
+  "bin": {
+    "zeyon": "./dist/generateMaps.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CrackinLLC/Zeyon.git"
@@ -40,6 +43,7 @@
     "handlebars": "^4.7.8"
   },
   "devDependencies": {
-    "typescript": "^4.0.0"
+    "@types/node": "^22.10.2",
+    "typescript": "^5.0.0"
   }
 }
