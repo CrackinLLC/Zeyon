@@ -15,9 +15,14 @@
     "dist/**/*"
   ],
   "scripts": {
+    "start": "http-server -p 3000 .",
     "build": "npm run build:esm && npm run build:cjs",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "build:cjs": "tsc -p tsconfig.cjs.json"
+    "build:cjs": "tsc -p tsconfig.cjs.json",
+    "test:unit": "vitest --config vitest.config.ts",
+    "pretest:integration": "npm run build",
+    "test:integration": "start-server-and-test 'npm run start' http://localhost:3000 'cypress run'",
+    "test": "npm run test:unit && npm run test:integration"
   },
   "bin": {
     "zeyon": "./dist/generateMaps.js"
@@ -44,6 +49,10 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "typescript": "^5.0.0"
+    "cypress": "^13.17.0",
+    "http-server": "^14.1.1",
+    "start-server-and-test": "^2.0.9",
+    "typescript": "^5.0.0",
+    "vitest": "^2.1.8"
   }
 }
