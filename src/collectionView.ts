@@ -1,5 +1,5 @@
-import type ZeyonApp from './app';
 import type Collection from './collection';
+import { ZeyonAppLike } from './imports/app';
 import type { CollectionViewOptions } from './imports/collectionView';
 import { debounce } from './util/debounce';
 import View from './view';
@@ -21,14 +21,14 @@ export default abstract class CollectionView<C extends Collection = Collection, 
   /**
    * The view class used to render each child item.
    */
-  protected childView?: new (options: any, app: ZeyonApp) => CV;
+  protected childView?: new (options: any, app: ZeyonAppLike) => CV;
 
   /**
    * An array of instantiated child views.
    */
   protected childItems: CV[] = [];
 
-  constructor(options: CollectionViewOptions<C, CV>, app: ZeyonApp) {
+  constructor(options: CollectionViewOptions<C, CV>, app: ZeyonAppLike) {
     super(options, app);
 
     this.extendValidEvents(['change']);

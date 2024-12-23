@@ -1,6 +1,7 @@
 import { classMapData } from './generated/classMapData';
 import type { ClassMapKey } from './generated/ClassMapType';
-import { AnyDefinition } from './imports/classRegistry';
+import { ZeyonAppLike } from './imports/app';
+import { AnyDefinition, ClassRegistryOptions } from './imports/classRegistry';
 
 import Emitter from './emitter';
 
@@ -9,7 +10,16 @@ export default class ClassRegistry extends Emitter {
 
   private classMap: Map<string, AnyDefinition> = new Map();
 
-  public async initialize(): Promise<void> {
+  constructor(options: ClassRegistryOptions = {}, app: ZeyonAppLike) {
+    super(
+      {
+        ...options,
+        events: [...(options.events || []), 'registered', 'overwritten'],
+      },
+      app,
+    );
+
+    // TODO: Currently registers all classes, but needs to be conditional for dynamic module loading
     this.registerClasses(Object.values(classMapData));
   }
 
@@ -24,10 +34,10 @@ export default class ClassRegistry extends Emitter {
     this.classMap.set(id, c);
     if (isOverwrite) {
       // TODO: Rather than overwriting by default, require a boolean to force the overwrite, otherwise throw an error
-      this.emit('classOverwritten', { id });
+      this.emit('overwritten', { id });
       console.warn(`Class identifier "${id}" was overwritten.`);
     } else {
-      this.emit('classRegistered', { id });
+      this.emit('registered', { id });
     }
   }
 

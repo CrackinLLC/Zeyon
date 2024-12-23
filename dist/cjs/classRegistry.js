@@ -6,11 +6,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const classMapData_1 = require("./generated/classMapData");
 const emitter_1 = __importDefault(require("./emitter"));
 class ClassRegistry extends emitter_1.default {
-    constructor() {
-        super(...arguments);
+    constructor(options = {}, app) {
+        super({
+            ...options,
+            events: [...(options.events || []), 'registered', 'overwritten'],
+        }, app);
         this.classMap = new Map();
-    }
-    async initialize() {
         this.registerClasses(Object.values(classMapData_1.classMapData));
     }
     registerClass(c) {
@@ -18,11 +19,11 @@ class ClassRegistry extends emitter_1.default {
         const isOverwrite = this.classMap.has(id);
         this.classMap.set(id, c);
         if (isOverwrite) {
-            this.emit('classOverwritten', { id });
+            this.emit('overwritten', { id });
             console.warn(`Class identifier "${id}" was overwritten.`);
         }
         else {
-            this.emit('classRegistered', { id });
+            this.emit('registered', { id });
         }
     }
     registerClasses(classes) {

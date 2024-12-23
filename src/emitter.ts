@@ -1,37 +1,11 @@
-import ZeyonApp from './app';
 import type { ClassMapKey } from './generated/ClassMapType';
-import type { CustomEventHandler, EmitterOptions } from './imports/emitter';
+import { ZeyonAppLike } from './imports/app';
+import { ClassConfigurationOptions, CustomEventHandler, EmitterOptions, nativeEvents } from './imports/emitter';
 import { debounce } from './util/debounce';
 
 const generalEvents = [
   '*', // Triggered for all events, with an additional "event type" argument supplied.
   'destroyed', // When the instance is destroyed.
-];
-
-// Native events supported by browsers. Used in view class only.
-const nativeEvents = [
-  'beforeinput',
-  'blur',
-  'click',
-  'contextmenu',
-  'copy',
-  'dblclick',
-  'focus',
-  'focusin',
-  'focusout',
-  'input',
-  'keydown',
-  'keypress',
-  'keyup',
-  'mousedown',
-  'mouseenter',
-  'mouseleave',
-  'mousemove',
-  'mouseout',
-  'mouseover',
-  'mouseup',
-  'paste',
-  'scroll',
 ];
 
 /**
@@ -40,9 +14,9 @@ const nativeEvents = [
  */
 export default abstract class Emitter {
   static registrationId: string = '';
+  static config: ClassConfigurationOptions<Emitter> = {};
 
   public options: EmitterOptions = {};
-  static defaultOptions: EmitterOptions = {};
 
   /**
    * Promise that resolves once the instance is ready
@@ -60,22 +34,20 @@ export default abstract class Emitter {
   /**
    * @param options - Emitter options including custom events and whether to include native events.
    */
-  constructor(options: EmitterOptions = {}, protected app: ZeyonApp) {
-    this.options = { ...(this.constructor as typeof Emitter).defaultOptions, ...options };
+  constructor(options: EmitterOptions = {}, protected app: ZeyonAppLike) {
+    const config = this.getStaticMember('config') as ClassConfigurationOptions<this>;
 
-    const { events = [], includeNativeEvents = false } = this.options;
+    this.options = { ...config.defaultOptions, ...options };
+
+    const { events = [] } = this.options;
 
     // Initialize readiness promises
     this.isReady = new Promise<this>((resolve) => {
       this.resolveIsReady = resolve;
     });
 
-    [...generalEvents, ...events].forEach((event) => this.validEvents.add(event));
-    if (includeNativeEvents) {
-      nativeEvents.forEach((event) => this.validEvents.add(event));
-    }
-
-    this.rebuildListenersObject();
+    const eventList = [...generalEvents, ...events, ...(config.events || [])];
+    this.extendValidEvents(eventList);
   }
 
   protected markAsReady(): void {

@@ -1,6 +1,7 @@
-import type ZeyonApp from './app';
 import Emitter from './emitter';
 import type { ClassMapTypeView } from './generated/ClassMapType';
+import { ZeyonAppLike } from './imports/app';
+import { nativeEvents } from './imports/emitter';
 import { AttachReference, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
 import { convertToRootElement, RootElement } from './util/element';
@@ -33,12 +34,11 @@ export default abstract class View extends Emitter {
   protected templateWrapper?: string;
   protected errorEl?: HTMLElement;
 
-  constructor(options: ViewOptions = {}, app: ZeyonApp) {
+  constructor(options: ViewOptions = {}, app: ZeyonAppLike) {
     super(
       {
         ...options,
-        events: options.events,
-        includeNativeEvents: true,
+        events: nativeEvents,
       },
       app,
     );

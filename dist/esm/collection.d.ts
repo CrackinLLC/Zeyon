@@ -1,9 +1,9 @@
-import type ZeyonApp from './app';
 import Emitter from './emitter';
 import type { ClassMapTypeModel } from './generated/ClassMapType';
+import { ZeyonAppLike } from './imports/app';
 import { CollectionFilterDefinition, CollectionFilterOptions, CollectionOptions } from './imports/collection';
 export default abstract class Collection extends Emitter {
-    protected app: ZeyonApp;
+    protected app: ZeyonAppLike;
     options: CollectionOptions;
     defaultOptions: CollectionOptions;
     abstract modelRegistrationId: keyof ClassMapTypeModel;
@@ -15,7 +15,7 @@ export default abstract class Collection extends Emitter {
     visibleLength: number;
     protected filterOptions: CollectionFilterOptions;
     protected activeFilters: Record<string, (item: this['model']) => boolean>;
-    constructor(options: CollectionOptions | undefined, app: ZeyonApp);
+    constructor(options: CollectionOptions | undefined, app: ZeyonAppLike);
     newModel(attributes: Partial<this['attrib']> | Partial<this['attrib']>[], silent?: boolean): Promise<this>;
     add(models: this['model'] | this['model'][], silent?: boolean): this;
     remove(itemIds: number | number[] | undefined, silent?: boolean): this['model'] | this['model'][] | undefined;

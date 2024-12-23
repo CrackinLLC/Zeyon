@@ -10,7 +10,7 @@ import type {
   ClassMapTypeRouteView,
   ClassMapTypeView,
 } from './generated/ClassMapType';
-import type { GlobalViewConfig, ZeyonAppOptions } from './imports/app';
+import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from './imports/app';
 import { RouteConfig } from './imports/router';
 import type Model from './model';
 import Router from './router';
@@ -21,7 +21,7 @@ import type View from './view';
 /**
  * The central hub of the application, managing interactions between components.
  */
-export default class ZeyonApp<CustomRouteProps = any> {
+export default class ZeyonApp<CustomRouteProps = any> implements ZeyonAppLike<CustomRouteProps> {
   /**
    * Custom identifying string for the current application.
    */

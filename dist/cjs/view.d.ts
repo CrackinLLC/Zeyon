@@ -1,6 +1,6 @@
-import type ZeyonApp from './app';
 import Emitter from './emitter';
 import type { ClassMapTypeView } from './generated/ClassMapType';
+import { ZeyonAppLike } from './imports/app';
 import { AttachReference, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
 import { RootElement } from './util/element';
@@ -28,7 +28,7 @@ export default abstract class View extends Emitter {
     protected template?: string;
     protected templateWrapper?: string;
     protected errorEl?: HTMLElement;
-    constructor(options: ViewOptions | undefined, app: ZeyonApp);
+    constructor(options: ViewOptions | undefined, app: ZeyonAppLike);
     render(): Promise<this>;
     protected onRender(): Promise<void>;
     protected prepareRootElement(): void;

@@ -1,11 +1,12 @@
 import { classMapData } from './generated/classMapData';
 import Emitter from './emitter';
 class ClassRegistry extends Emitter {
-    constructor() {
-        super(...arguments);
+    constructor(options = {}, app) {
+        super({
+            ...options,
+            events: [...(options.events || []), 'registered', 'overwritten'],
+        }, app);
         this.classMap = new Map();
-    }
-    async initialize() {
         this.registerClasses(Object.values(classMapData));
     }
     registerClass(c) {
@@ -13,11 +14,11 @@ class ClassRegistry extends Emitter {
         const isOverwrite = this.classMap.has(id);
         this.classMap.set(id, c);
         if (isOverwrite) {
-            this.emit('classOverwritten', { id });
+            this.emit('overwritten', { id });
             console.warn(`Class identifier "${id}" was overwritten.`);
         }
         else {
-            this.emit('classRegistered', { id });
+            this.emit('registered', { id });
         }
     }
     registerClasses(classes) {

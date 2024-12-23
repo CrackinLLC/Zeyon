@@ -24,6 +24,7 @@
     "noUnusedParameters": true,
     "noUnusedLocals": true
   },
+
   "include": ["src/**/*", "src/generateMaps.ts"],
   "exclude": ["node_modules", "tests", "**/*.test.ts"]
 }

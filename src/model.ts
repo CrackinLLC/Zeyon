@@ -1,6 +1,6 @@
-import type ZeyonApp from './app';
 import type Collection from './collection';
 import Emitter from './emitter';
+import { ZeyonAppLike } from './imports/app';
 import { AttributeDefinition, Attributes, AttributeType, modelEvents, ModelOptions, ModelType } from './imports/model';
 import { isEqual } from './util/object';
 
@@ -55,7 +55,7 @@ export default abstract class Model extends Emitter {
    * @param options - Options for initializing the model.
    * @param app - The application core instance.
    */
-  constructor(options: ModelOptions<Attributes>, protected app: ZeyonApp) {
+  constructor(options: ModelOptions<Attributes>, protected app: ZeyonAppLike) {
     super(
       {
         ...options,

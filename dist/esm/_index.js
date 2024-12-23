@@ -8,16 +8,15 @@ import Emitter from './emitter';
 import Model from './model';
 import RouteView from './routeView';
 import View from './view';
-export { Collection, CollectionView, Emitter, Model, RouteView, Router, View, ZeyonApp };
+export { Collection, CollectionView, Emitter, Model, Router, RouteView, View, ZeyonApp };
 export default {
     create: (options) => new ZeyonApp(options),
-    registerClass(registrationId, meta = {}) {
+    registerClass(registrationId) {
         return function (constructor) {
             if (constructor.prototype.hasOwnProperty('constructor')) {
                 console.warn(`Class ${registrationId} defines its own constructor. This is discouraged. Include an 'initialize' method instead.`);
             }
             constructor.registrationId = registrationId;
-            constructor.registrationMeta = meta;
             return constructor;
         };
     },

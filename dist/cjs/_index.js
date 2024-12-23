@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ZeyonApp = exports.View = exports.Router = exports.RouteView = exports.Model = exports.Emitter = exports.CollectionView = exports.Collection = void 0;
+exports.ZeyonApp = exports.View = exports.RouteView = exports.Router = exports.Model = exports.Emitter = exports.CollectionView = exports.Collection = void 0;
 require("../util/polyfill");
 require("../util/template");
 const app_1 = __importDefault(require("./app"));
@@ -24,13 +24,12 @@ const view_1 = __importDefault(require("./view"));
 exports.View = view_1.default;
 exports.default = {
     create: (options) => new app_1.default(options),
-    registerClass(registrationId, meta = {}) {
+    registerClass(registrationId) {
         return function (constructor) {
             if (constructor.prototype.hasOwnProperty('constructor')) {
                 console.warn(`Class ${registrationId} defines its own constructor. This is discouraged. Include an 'initialize' method instead.`);
             }
             constructor.registrationId = registrationId;
-            constructor.registrationMeta = meta;
             return constructor;
         };
     },

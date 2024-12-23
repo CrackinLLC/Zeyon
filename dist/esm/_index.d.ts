@@ -16,10 +16,10 @@ export type { EmitterOptions } from './imports/emitter';
 export type { ModelOptions } from './imports/model';
 export type { RouteViewOptions } from './imports/routeView';
 export type { ViewOptions } from './imports/view';
-export { Collection, CollectionView, Emitter, Model, RouteView, Router, View, ZeyonApp };
+export { Collection, CollectionView, Emitter, Model, Router, RouteView, View, ZeyonApp };
 declare const _default: {
     create: (options: any) => ZeyonApp<any>;
-    registerClass(registrationId: string, meta?: Record<string, any>): <T extends {
+    registerClass(registrationId: string): <T extends {
         new (...args: any[]): {};
     }>(constructor: T) => T;
     Collection: typeof Collection;

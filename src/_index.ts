@@ -20,13 +20,13 @@ export type { ModelOptions } from './imports/model';
 export type { RouteViewOptions } from './imports/routeView';
 export type { ViewOptions } from './imports/view';
 
-export { Collection, CollectionView, Emitter, Model, RouteView, Router, View, ZeyonApp };
+export { Collection, CollectionView, Emitter, Model, Router, RouteView, View, ZeyonApp };
 export default {
   // Instantiate a Zeyon application instance
   create: (options: any) => new ZeyonApp(options),
 
   // Applied as a decorator, used to facilitate registering developer-created class definitions with the application registry
-  registerClass(registrationId: string, meta: Record<string, any> = {}) {
+  registerClass(registrationId: string) {
     return function <T extends { new (...args: any[]): {} }>(constructor: T) {
       if ((constructor as any).prototype.hasOwnProperty('constructor')) {
         console.warn(
@@ -34,9 +34,8 @@ export default {
         );
       }
 
-      // Store the registrationId and meta on the constructor
+      // Store the registrationId on the constructor
       (constructor as any).registrationId = registrationId;
-      (constructor as any).registrationMeta = meta;
       return constructor;
     };
   },
@@ -46,7 +45,7 @@ export default {
    
     import Zeyon from 'zeyon';
 
-    @Zeyon.registerClass('header-view', { version: '1.0.0' })
+    @Zeyon.registerClass('header-view')
     export class HeaderView extends Emitter {
       initialize(options: any) {
         // Do stuff...

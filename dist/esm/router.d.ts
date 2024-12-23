@@ -1,5 +1,5 @@
-import type ZeyonApp from './app';
 import Emitter from './emitter';
+import { ZeyonAppLike } from './imports/app';
 import type { RouteConfig, RouterOptions, SiteMapRouteDetail } from './imports/router';
 import type RouteView from './routeView';
 export default class Router<CustomRouteProps = any> extends Emitter {
@@ -12,7 +12,7 @@ export default class Router<CustomRouteProps = any> extends Emitter {
     private urlMap;
     private siteMap;
     private urlPrefix;
-    constructor({ urlPrefix }: RouterOptions, app: ZeyonApp);
+    constructor({ urlPrefix }: RouterOptions, app: ZeyonAppLike);
     registerRoutes<C extends CustomRouteProps>(routes: RouteConfig<C>[]): void;
     start(): void;
     getCurrentPath(): string;

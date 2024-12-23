@@ -1,7 +1,7 @@
-import type ZeyonApp from '../app';
 import type Collection from '../collection';
 import type CollectionView from '../collectionView';
 import type Emitter from '../emitter';
+import { ZeyonAppLike } from '../imports/app';
 import type { CollectionOptions } from '../imports/collection';
 import type { CollectionViewOptions } from '../imports/collectionView';
 import type { EmitterOptions } from '../imports/emitter';
@@ -26,27 +26,27 @@ export interface ClassMetadata {
     version?: string;
 }
 export interface EmitterDefinition<I extends Emitter> {
-    new (options: I['options'], app: ZeyonApp): I;
+    new (options: I['options'], app: ZeyonAppLike): I;
     registrationId: string;
 }
 export interface ViewDefinition<I extends View> {
-    new (options: I['options'], app: ZeyonApp): I;
+    new (options: I['options'], app: ZeyonAppLike): I;
     registrationId: string;
 }
 export interface RouteViewDefinition<I extends RouteView> {
-    new (options: I['options'], app: ZeyonApp): I;
+    new (options: I['options'], app: ZeyonAppLike): I;
     registrationId: string;
 }
 export interface ModelDefinition<I extends Model> {
-    new (options: I['options'], app: ZeyonApp): I;
+    new (options: I['options'], app: ZeyonAppLike): I;
     registrationId: string;
 }
 export interface CollectionDefinition<I extends Collection> {
-    new (options: I['options'], app: ZeyonApp): I;
+    new (options: I['options'], app: ZeyonAppLike): I;
     registrationId: string;
 }
 export interface CollectionViewDefinition<I extends CollectionView> {
-    new (options: I['options'], app: ZeyonApp): I;
+    new (options: I['options'], app: ZeyonAppLike): I;
     registrationId: string;
 }
 //# sourceMappingURL=classRegistry.d.ts.map

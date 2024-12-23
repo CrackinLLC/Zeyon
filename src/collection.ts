@@ -1,6 +1,6 @@
-import type ZeyonApp from './app';
 import Emitter from './emitter';
 import type { ClassMapTypeModel } from './generated/ClassMapType';
+import { ZeyonAppLike } from './imports/app';
 import {
   collectionEvents,
   CollectionFilterDefinition,
@@ -24,7 +24,7 @@ export default abstract class Collection extends Emitter {
   protected filterOptions: CollectionFilterOptions = {};
   protected activeFilters: Record<string, (item: this['model']) => boolean>;
 
-  constructor(options: CollectionOptions = {}, protected app: ZeyonApp) {
+  constructor(options: CollectionOptions = {}, protected app: ZeyonAppLike) {
     super(
       {
         ...options,

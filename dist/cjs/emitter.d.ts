@@ -1,11 +1,11 @@
-import ZeyonApp from './app';
 import type { ClassMapKey } from './generated/ClassMapType';
-import type { CustomEventHandler, EmitterOptions } from './imports/emitter';
+import { ZeyonAppLike } from './imports/app';
+import { ClassConfigurationOptions, CustomEventHandler, EmitterOptions } from './imports/emitter';
 export default abstract class Emitter {
-    protected app: ZeyonApp;
+    protected app: ZeyonAppLike;
     static registrationId: string;
+    static config: ClassConfigurationOptions<Emitter>;
     options: EmitterOptions;
-    static defaultOptions: EmitterOptions;
     isReady: Promise<this>;
     private resolveIsReady;
     private eventListeners;
@@ -13,7 +13,7 @@ export default abstract class Emitter {
     private debouncedEmitters;
     protected debouncedEmitterDelay: number;
     protected isDestroyed: boolean;
-    constructor(options: EmitterOptions | undefined, app: ZeyonApp);
+    constructor(options: EmitterOptions | undefined, app: ZeyonAppLike);
     protected markAsReady(): void;
     initialize(): Promise<void>;
     private rebuildListenersObject;

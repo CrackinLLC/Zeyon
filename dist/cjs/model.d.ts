@@ -1,9 +1,9 @@
-import type ZeyonApp from './app';
 import type Collection from './collection';
 import Emitter from './emitter';
+import { ZeyonAppLike } from './imports/app';
 import { AttributeDefinition, Attributes, ModelOptions, ModelType } from './imports/model';
 export default abstract class Model extends Emitter {
-    protected app: ZeyonApp;
+    protected app: ZeyonAppLike;
     abstract attrib: Attributes;
     options: ModelOptions<this['attrib']>;
     defaultOptions: ModelOptions<this['attrib']>;
@@ -16,7 +16,7 @@ export default abstract class Model extends Emitter {
     protected hasUnsavedChanges: boolean;
     protected selected: boolean;
     private collection;
-    constructor(options: ModelOptions<Attributes>, app: ZeyonApp);
+    constructor(options: ModelOptions<Attributes>, app: ZeyonAppLike);
     protected markUnsavedChanges(): this;
     protected areAttributesEqual(a: Partial<this['attrib']>, b: Partial<this['attrib']>): boolean;
     hasChanges(): boolean;

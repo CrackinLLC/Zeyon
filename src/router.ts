@@ -1,5 +1,5 @@
-import type ZeyonApp from './app';
 import Emitter from './emitter';
+import { ZeyonAppLike } from './imports/app';
 import type { RouteConfig, RouteNode, RouterOptions, SiteMapRouteDetail } from './imports/router';
 import type RouteView from './routeView';
 
@@ -16,7 +16,7 @@ export default class Router<CustomRouteProps = any> extends Emitter {
   private siteMap: SiteMapRouteDetail<CustomRouteProps>[] = [];
   private urlPrefix: string | undefined;
 
-  constructor({ urlPrefix }: RouterOptions, app: ZeyonApp) {
+  constructor({ urlPrefix }: RouterOptions, app: ZeyonAppLike) {
     super(
       {
         events: [

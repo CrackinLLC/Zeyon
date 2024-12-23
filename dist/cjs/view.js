@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isAttachReference = isAttachReference;
 const emitter_1 = __importDefault(require("./emitter"));
+const emitter_2 = require("./imports/emitter");
 const model_1 = __importDefault(require("./model"));
 const element_1 = require("./util/element");
 const error_1 = require("./util/error");
@@ -14,8 +15,7 @@ class View extends emitter_1.default {
     constructor(options = {}, app) {
         super({
             ...options,
-            events: options.events,
-            includeNativeEvents: true,
+            events: emitter_2.nativeEvents,
         }, app);
         this._viewId = (0, string_1.getUniqueId)();
         this.ui = {};

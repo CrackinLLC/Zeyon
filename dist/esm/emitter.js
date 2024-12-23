@@ -1,31 +1,8 @@
+import { nativeEvents } from './imports/emitter';
 import { debounce } from './util/debounce';
 const generalEvents = [
     '*',
     'destroyed',
-];
-const nativeEvents = [
-    'beforeinput',
-    'blur',
-    'click',
-    'contextmenu',
-    'copy',
-    'dblclick',
-    'focus',
-    'focusin',
-    'focusout',
-    'input',
-    'keydown',
-    'keypress',
-    'keyup',
-    'mousedown',
-    'mouseenter',
-    'mouseleave',
-    'mousemove',
-    'mouseout',
-    'mouseover',
-    'mouseup',
-    'paste',
-    'scroll',
 ];
 class Emitter {
     constructor(options = {}, app) {
@@ -36,16 +13,14 @@ class Emitter {
         this.debouncedEmitters = {};
         this.debouncedEmitterDelay = 50;
         this.isDestroyed = false;
-        this.options = { ...this.constructor.defaultOptions, ...options };
-        const { events = [], includeNativeEvents = false } = this.options;
+        const config = this.getStaticMember('config');
+        this.options = { ...config.defaultOptions, ...options };
+        const { events = [] } = this.options;
         this.isReady = new Promise((resolve) => {
             this.resolveIsReady = resolve;
         });
-        [...generalEvents, ...events].forEach((event) => this.validEvents.add(event));
-        if (includeNativeEvents) {
-            nativeEvents.forEach((event) => this.validEvents.add(event));
-        }
-        this.rebuildListenersObject();
+        const eventList = [...generalEvents, ...events, ...(config.events || [])];
+        this.extendValidEvents(eventList);
     }
     markAsReady() {
         this.resolveIsReady(this);
@@ -173,7 +148,7 @@ class Emitter {
     }
 }
 Emitter.registrationId = '';
-Emitter.defaultOptions = {};
+Emitter.config = {};
 export default Emitter;
 class Listener {
     constructor(options) {

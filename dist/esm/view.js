@@ -1,4 +1,5 @@
 import Emitter from './emitter';
+import { nativeEvents } from './imports/emitter';
 import Model from './model';
 import { convertToRootElement } from './util/element';
 import { errorTemplate } from './util/error';
@@ -8,8 +9,7 @@ class View extends Emitter {
     constructor(options = {}, app) {
         super({
             ...options,
-            events: options.events,
-            includeNativeEvents: true,
+            events: nativeEvents,
         }, app);
         this._viewId = getUniqueId();
         this.ui = {};
