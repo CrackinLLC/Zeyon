@@ -8,7 +8,10 @@ const model_1 = require("./imports/model");
 const object_1 = require("./util/object");
 class Model extends emitter_1.default {
     constructor(options, app) {
-        super({ ...options, events: [...(options.events || []), ...model_1.modelEvents] }, app);
+        super({
+            ...options,
+            events: [...(options.events || []), ...model_1.modelEvents],
+        }, app);
         this.app = app;
         this.hasUnsavedChanges = false;
         this.selected = false;

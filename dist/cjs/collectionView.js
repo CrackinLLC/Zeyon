@@ -33,7 +33,7 @@ class CollectionView extends view_1.default {
     getTemplateOptions() {
         return super.getTemplateOptions({
             ...(this.collection ? { collection: this.collection.getVisibleAttributes() } : {}),
-            ...(this.collection ? { collectionType: this.collection.getType() } : {}),
+            ...(this.collection ? { collectionType: this.collection.modelRegistrationId } : {}),
         });
     }
     renderChildItems() {

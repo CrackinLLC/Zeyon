@@ -2,7 +2,6 @@ import type Collection from './collection';
 import type CollectionView from './collectionView';
 import type { ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from './generated/ClassMapType';
 import type { GlobalViewConfig, ZeyonAppOptions } from './imports/app';
-import type { Attributes } from './imports/model';
 import { RouteConfig } from './imports/router';
 import type Model from './model';
 import Router from './router';
@@ -26,8 +25,8 @@ export default class ZeyonApp<CustomRouteProps = any> {
     navigate(urlFragment: string, openNewTab?: boolean): this;
     newView<K extends keyof ClassMapTypeView>(registrationId: K, options?: ClassMapTypeView[K]['options']): Promise<ClassMapTypeView[K] & View>;
     newRouteView<K extends keyof ClassMapTypeRouteView>(registrationId: K, options?: ClassMapTypeRouteView[K]['options']): Promise<ClassMapTypeRouteView[K] & RouteView>;
-    newModel<K extends keyof ClassMapTypeModel>(registrationId: K, options?: ClassMapTypeModel[K]['options']): Promise<ClassMapTypeModel[K] & Model<Attributes>>;
-    newCollection<K extends keyof ClassMapTypeCollection>(registrationId: K, options?: ClassMapTypeCollection[K]['options']): Promise<ClassMapTypeCollection[K] & Collection<Attributes, Model<Attributes>>>;
+    newModel<K extends keyof ClassMapTypeModel>(registrationId: K, options?: ClassMapTypeModel[K]['options']): Promise<Model>;
+    newCollection<K extends keyof ClassMapTypeCollection>(registrationId: K, options?: ClassMapTypeCollection[K]['options']): Promise<ClassMapTypeCollection[K] & Collection>;
     newCollectionView<K extends keyof ClassMapTypeCollectionView>(registrationId: K, options?: ClassMapTypeCollectionView[K]['options']): Promise<ClassMapTypeCollectionView[K] & CollectionView>;
     private newInstance;
     toggleClass(className: string, add?: boolean): this;

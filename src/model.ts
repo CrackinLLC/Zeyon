@@ -8,9 +8,11 @@ import { isEqual } from './util/object';
  * Abstract base class for models, to represent data entities with attributes, and tracks changes while emitting change related events.
  * Ideal for managing application state and database interactions.
  */
-export default abstract class Model<A extends Attributes> extends Emitter {
-  declare options: ModelOptions<A>;
-  declare defaultOptions: ModelOptions<A>;
+export default abstract class Model extends Emitter {
+  abstract attrib: Attributes;
+
+  declare options: ModelOptions<this['attrib']>;
+  declare defaultOptions: ModelOptions<this['attrib']>;
 
   /**
    * The type of the model. Extending classes should redefine this.
@@ -25,12 +27,12 @@ export default abstract class Model<A extends Attributes> extends Emitter {
   /**
    * The current attributes of the model.
    */
-  protected attributes: A;
+  protected attributes: this['attrib'];
 
   /**
    * The original attributes of the model, used for change tracking.
    */
-  protected attributesOriginal: A;
+  protected attributesOriginal: this['attrib'];
 
   /**
    * Flag indicating if the model has unsaved changes.
@@ -46,20 +48,26 @@ export default abstract class Model<A extends Attributes> extends Emitter {
    * Reference to the collection this model belongs to, if any.
    * A less strict type is permitted here, as the Collection class will enforce much stricter typing of the models it works with.
    */
-  private collection: Collection<A, any> | null = null;
+  private collection: Collection | null = null;
 
   /**
    * Constructs a new model instance.
    * @param options - Options for initializing the model.
    * @param app - The application core instance.
    */
-  constructor(options: ModelOptions<A>, protected app: ZeyonApp) {
-    super({ ...options, events: [...(options.events || []), ...modelEvents] }, app);
+  constructor(options: ModelOptions<Attributes>, protected app: ZeyonApp) {
+    super(
+      {
+        ...options,
+        events: [...(options.events || []), ...modelEvents],
+      },
+      app,
+    );
 
-    const { attributes = {} as Partial<A>, collection } = this.options;
+    const { attributes = {} as Partial<this['attrib']>, collection } = this.options;
 
     // Initialize attributes
-    this.attributes = { ...attributes } as A;
+    this.attributes = { ...attributes } as this['attrib'];
     this.attributesOriginal = { ...this.attributes };
 
     if (collection) {
@@ -74,7 +82,7 @@ export default abstract class Model<A extends Attributes> extends Emitter {
   /**
    * Marks whether the model has unsaved changes.
    */
-  protected markUnsavedChanges(): Model<A> {
+  protected markUnsavedChanges(): this {
     this.hasUnsavedChanges = !this.areAttributesEqual(this.attributes, this.attributesOriginal);
 
     return this;
@@ -86,7 +94,7 @@ export default abstract class Model<A extends Attributes> extends Emitter {
    * @param b - The second attributes object.
    * @returns True if the attributes are equal, false otherwise.
    */
-  protected areAttributesEqual(a: Partial<A>, b: Partial<A>): boolean {
+  protected areAttributesEqual(a: Partial<this['attrib']>, b: Partial<this['attrib']>): boolean {
     return isEqual(a, b);
   }
 
@@ -104,7 +112,7 @@ export default abstract class Model<A extends Attributes> extends Emitter {
    * @param silent - If true, suppresses change events.
    * @returns The model instance.
    */
-  public set(attributes: Partial<A> = {}, silent: boolean = false): Model<A> {
+  public set(attributes: Partial<this['attrib']> = {}, silent: boolean = false): this {
     if (!attributes || Object.keys(attributes).length === 0) {
       return this;
     }
@@ -115,10 +123,10 @@ export default abstract class Model<A extends Attributes> extends Emitter {
     this.attributes = { ...this.attributes, ...this.validateAttributes(attributes) };
 
     if (!silent) {
-      const changes: Partial<A> = {};
+      const changes: Partial<this['attrib']> = {};
 
       for (const key of Object.keys(attributes)) {
-        const k = key as keyof A;
+        const k = key as keyof this['attrib'];
 
         if (!isEqual(this.attributes[k], oldAttributes[k])) {
           changes[k] = this.attributes[k];
@@ -157,9 +165,9 @@ export default abstract class Model<A extends Attributes> extends Emitter {
    * Unsets (removes) an attribute from the model.
    * @param attributeName - The name of the attribute to unset.
    */
-  public unset(attributeName: keyof A): Model<A> {
+  public unset(attributeName: keyof this['attrib']): this {
     if (this.attributes[attributeName] !== undefined) {
-      this.set({ [attributeName]: undefined } as Partial<A>);
+      this.set({ [attributeName]: undefined } as Partial<this['attrib']>);
     }
 
     return this;
@@ -170,7 +178,7 @@ export default abstract class Model<A extends Attributes> extends Emitter {
    * @param attributeName - The name of the attribute.
    * @returns The value of the attribute.
    */
-  public get<T extends A[keyof A]>(attributeName: keyof A): T {
+  public get<T extends keyof this['attrib']>(attributeName: keyof this['attrib']): T {
     return this.attributes[attributeName] as T;
   }
 
@@ -186,11 +194,11 @@ export default abstract class Model<A extends Attributes> extends Emitter {
    * Gets a copy of the model's attributes.
    * @returns The attributes.
    */
-  public getAttributes(): A {
+  public getAttributes(): this['attrib'] {
     return { ...this.attributes };
   }
 
-  public setCollection(collection?: Collection<A, any>): Model<A> {
+  public setCollection(collection?: Collection): this {
     if (collection && collection !== this.collection) {
       this.collection = collection;
     }
@@ -198,7 +206,7 @@ export default abstract class Model<A extends Attributes> extends Emitter {
     return this;
   }
 
-  public getCollection(): Collection<A, any> | null {
+  public getCollection(): Collection | null {
     return this.collection;
   }
 
@@ -206,7 +214,7 @@ export default abstract class Model<A extends Attributes> extends Emitter {
    * Marks the model as selected or deselected.
    * @param selected - True to select, false to deselect.
    */
-  public select(selected: boolean): Model<A> {
+  public select(selected: boolean): this {
     this.selected = selected;
     this.emit('selected', selected);
 
@@ -226,7 +234,7 @@ export default abstract class Model<A extends Attributes> extends Emitter {
    * @param silent - If true, suppresses reset events.
    * @returns The model instance.
    */
-  public reset(silent: boolean = false): Model<A> {
+  public reset(silent: boolean = false): this {
     this.attributes = { ...this.attributesOriginal };
 
     if (!silent) {
@@ -254,17 +262,17 @@ export default abstract class Model<A extends Attributes> extends Emitter {
    * @param attributes - The attributes to validate.
    * @returns The validated and coerced attributes.
    */
-  public validateAttributes(attributes: Partial<A>): Partial<A> {
-    const validatedAttributes: Partial<A> = {};
+  public validateAttributes(attributes: Partial<this['attrib']>): Partial<this['attrib']> {
+    const validatedAttributes: Partial<this['attrib']> = {};
     const definition = (this.constructor as typeof Model).definition;
 
     for (const key in attributes) {
       if (Object.prototype.hasOwnProperty.call(definition, key)) {
-        const value = attributes[key as keyof A];
-        validatedAttributes[key as keyof A] = coerceAttribute(value, definition[key]);
+        const value = attributes[key as keyof this['attrib']];
+        validatedAttributes[key as keyof this['attrib']] = coerceAttribute(value, definition[key]);
       } else {
         console.warn(`Attribute "${key}" is not defined in attributesDefinition.`);
-        validatedAttributes[key as keyof A] = attributes[key as keyof A];
+        validatedAttributes[key as keyof this['attrib']] = attributes[key as keyof this['attrib']];
       }
     }
 

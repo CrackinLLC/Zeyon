@@ -12,7 +12,11 @@ const string_1 = require("./util/string");
 const template_1 = require("./util/template");
 class View extends emitter_1.default {
     constructor(options = {}, app) {
-        super({ events: options.events, includeNativeEvents: true, ...options }, app);
+        super({
+            ...options,
+            events: options.events,
+            includeNativeEvents: true,
+        }, app);
         this._viewId = (0, string_1.getUniqueId)();
         this.ui = {};
         this._ui = {};

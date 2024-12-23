@@ -2,16 +2,19 @@ import Emitter from './emitter';
 import { collectionEvents, } from './imports/collection';
 export default class Collection extends Emitter {
     constructor(options = {}, app) {
-        super({ ...options, events: [...(options.events || []), ...collectionEvents] }, app);
+        super({
+            ...options,
+            events: [...(options.events || []), ...collectionEvents],
+        }, app);
         this.app = app;
         this.items = [];
         this.length = 0;
         this.visibleItems = [];
         this.visibleLength = 0;
         this.filterOptions = {};
-        this.activeFilters = {};
         const { ids } = this.options;
         const funcs = [];
+        this.activeFilters = {};
         if (ids && ids.length > 0) {
             const attrs = ids.map((id) => {
                 return { id };
@@ -24,7 +27,7 @@ export default class Collection extends Emitter {
     async newModel(attributes, silent = false) {
         const attributesArray = Array.isArray(attributes) ? attributes : [attributes];
         for (const attrs of attributesArray) {
-            const model = await this.app.newModel(`model-${this.getType()}`, {
+            const model = await this.app.newModel(this.getModelType(), {
                 attributes: attrs,
                 collection: this,
             });
@@ -37,8 +40,8 @@ export default class Collection extends Emitter {
     add(models, silent = false) {
         const modelsArray = Array.isArray(models) ? models : [models];
         modelsArray.forEach((model) => {
-            if (this.getModelClass().type !== this.getType()) {
-                console.error(`Only instances of ${this.getType()} can be added to the collection.`);
+            if (this.modelRegistrationId !== model.getRegistrationId()) {
+                console.error(`Only instances of ${this.modelRegistrationId} can be added to the collection.`);
                 return;
             }
             const id = model.getId();
@@ -87,8 +90,8 @@ export default class Collection extends Emitter {
         this.applyFilters();
         return removedItems;
     }
-    getType() {
-        return this.getModelClass().type || "unknown";
+    getModelType() {
+        return this.modelRegistrationId;
     }
     getItems() {
         return this.items;
@@ -97,7 +100,7 @@ export default class Collection extends Emitter {
         return this.items.map((item) => item.getAttributes());
     }
     getAttributeKeys() {
-        return this.getModelClass().getAttributeKeys();
+        return [];
     }
     getVisibleItems() {
         return this.visibleItems;

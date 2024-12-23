@@ -1,7 +1,8 @@
 import type ZeyonApp from '../app';
+import type Collection from '../collection';
 import type CollectionView from '../collectionView';
 import type Emitter from '../emitter';
-import type { CollectionLike, CollectionOptions } from '../imports/collection';
+import type { CollectionOptions } from '../imports/collection';
 import type { CollectionViewOptions } from '../imports/collectionView';
 import type { EmitterOptions } from '../imports/emitter';
 import type { Attributes, ModelOptions } from '../imports/model';
@@ -9,25 +10,43 @@ import type { RouterOptions } from '../imports/router';
 import type { ViewOptions } from '../imports/view';
 import type Model from '../model';
 import type RouteView from '../routeView';
-import type Router from '../router';
 import type View from '../view';
-interface ClassRegistryOptions extends EmitterOptions {
+export type ClassOptions = EmitterOptions | RouterOptions | CollectionOptions | CollectionViewOptions<Collection, View> | ModelOptions<Attributes> | ViewOptions;
+export type AnyDefinition = EmitterDefinition<any> | ViewDefinition<any> | RouteViewDefinition<any> | ModelDefinition<any> | CollectionDefinition<any> | CollectionViewDefinition<any>;
+export interface ClassRegistryOptions extends EmitterOptions {
     registryClassList?: {
-        [id: string]: ClassDefinition;
+        [id: string]: AnyDefinition & {
+            options: ClassOptions;
+        };
     };
 }
-interface ClassMetadata {
+export interface ClassMetadata {
     regiatrationId: string;
     options: ClassOptions;
     version?: string;
 }
-type ClassOptions = EmitterOptions | RouterOptions | CollectionOptions | CollectionViewOptions<CollectionLike, View> | ModelOptions | ViewOptions;
-type ClassInstance = (Emitter | Router | CollectionLike | CollectionView<CollectionLike> | Model<Attributes> | View | RouteView) & {
-    options: ClassOptions;
-};
-interface ClassDefinition<T extends ClassInstance = Emitter> {
-    new (options: T['options'], app: ZeyonApp): T;
+export interface EmitterDefinition<I extends Emitter> {
+    new (options: I['options'], app: ZeyonApp): I;
     registrationId: string;
 }
-export { ClassDefinition, ClassInstance, ClassMetadata, ClassOptions, ClassRegistryOptions };
+export interface ViewDefinition<I extends View> {
+    new (options: I['options'], app: ZeyonApp): I;
+    registrationId: string;
+}
+export interface RouteViewDefinition<I extends RouteView> {
+    new (options: I['options'], app: ZeyonApp): I;
+    registrationId: string;
+}
+export interface ModelDefinition<I extends Model> {
+    new (options: I['options'], app: ZeyonApp): I;
+    registrationId: string;
+}
+export interface CollectionDefinition<I extends Collection> {
+    new (options: I['options'], app: ZeyonApp): I;
+    registrationId: string;
+}
+export interface CollectionViewDefinition<I extends CollectionView> {
+    new (options: I['options'], app: ZeyonApp): I;
+    registrationId: string;
+}
 //# sourceMappingURL=classRegistry.d.ts.map

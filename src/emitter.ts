@@ -1,4 +1,5 @@
 import ZeyonApp from './app';
+import type { ClassMapKey } from './generated/ClassMapType';
 import type { CustomEventHandler, EmitterOptions } from './imports/emitter';
 import { debounce } from './util/debounce';
 
@@ -312,6 +313,10 @@ export default abstract class Emitter {
 
   public getStaticMember(key: keyof typeof Emitter): unknown {
     return (this.constructor as typeof Emitter)[key];
+  }
+
+  public getRegistrationId(): ClassMapKey {
+    return this.getStaticMember('registrationId') as ClassMapKey;
   }
 }
 

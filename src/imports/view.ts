@@ -1,7 +1,6 @@
 import type Model from '../model';
 import type View from '../view';
 import { EmitterOptions } from './emitter';
-import type { Attributes } from './model';
 
 export interface ViewOptions extends Omit<EmitterOptions, 'includeNativeEvents'> {
   id?: string;
@@ -15,7 +14,7 @@ export interface ViewOptions extends Omit<EmitterOptions, 'includeNativeEvents'>
   query?: Record<string, string>;
   hash?: string;
 
-  model?: Model<Attributes> | Partial<{}> | string;
+  model?: Model | Partial<{}> | string;
   modelType?: string; // Will attempt to infer model type based on attributes, but for ambiguous cases should explicitly state type here
 }
 

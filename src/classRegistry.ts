@@ -1,13 +1,13 @@
 import { classMapData } from './generated/classMapData';
 import type { ClassMapKey } from './generated/ClassMapType';
-import { ClassDefinition } from './imports/classRegistry';
+import { AnyDefinition } from './imports/classRegistry';
 
 import Emitter from './emitter';
 
 export default class ClassRegistry extends Emitter {
   static override registrationId: string = 'zeyon-registry';
 
-  private classMap: Map<string, ClassDefinition> = new Map();
+  private classMap: Map<string, AnyDefinition> = new Map();
 
   public async initialize(): Promise<void> {
     this.registerClasses(Object.values(classMapData));
@@ -17,7 +17,7 @@ export default class ClassRegistry extends Emitter {
    * Registers a class definition with the registry.
    * @param c - The class definition to register.
    */
-  public registerClass(c: ClassDefinition): void {
+  public registerClass(c: AnyDefinition): void {
     const id = c.registrationId;
     const isOverwrite = this.classMap.has(id);
 
@@ -31,11 +31,11 @@ export default class ClassRegistry extends Emitter {
     }
   }
 
-  public registerClasses(classes: ClassDefinition[]) {
-    classes.forEach((c: ClassDefinition | unknown) => {
+  public registerClasses(classes: AnyDefinition[]) {
+    classes.forEach((c: AnyDefinition | unknown) => {
       if (typeof c === 'function' && (c as any).registrationId && c.prototype instanceof Emitter) {
-        // c looks like a valid ClassDefinition
-        this.registerClass(c as ClassDefinition);
+        // c looks like a valid Definition
+        this.registerClass(c as AnyDefinition);
       }
     });
   }
@@ -45,8 +45,8 @@ export default class ClassRegistry extends Emitter {
    * @param identifier - The class identifier.
    * @returns The class definition or undefined if not found.
    */
-  public async getClass<T extends Emitter>(id: ClassMapKey): Promise<ClassDefinition<T> | undefined> {
-    const entry = this.classMap.get(String(id)) as ClassDefinition<T> | undefined;
+  public async getClass(id: ClassMapKey): Promise<AnyDefinition | undefined> {
+    const entry = this.classMap.get(String(id)) as AnyDefinition | undefined;
 
     if (!entry) {
       // TODO: If class is not loaded and we have API access, fetch class here

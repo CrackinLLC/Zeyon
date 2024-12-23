@@ -1,10 +1,9 @@
 import type Collection from '../collection';
-import type Model from '../model';
 import { EmitterOptions } from './emitter';
 
-export interface ModelOptions<A extends Attributes = Attributes> extends EmitterOptions {
+export interface ModelOptions<A extends Attributes> extends EmitterOptions {
   attributes?: Partial<A>;
-  collection?: Collection<A, any>;
+  collection?: Collection;
 }
 
 export const enum ModelType {
@@ -35,11 +34,6 @@ export interface AttributeDefinition {
   default?: unknown; // Default value of the attribute when a new model is instantiated
   optional?: boolean;
 }
-
-/**
- * Helper for getting generic A from a model without exposing the attributes property
- */
-export type AttributesOf<M extends Model<any>> = M extends Model<infer A> ? A : never;
 
 export const modelEvents = [
   'add', // When the model is added to a collection.

@@ -3,7 +3,10 @@ import { modelEvents } from './imports/model';
 import { isEqual } from './util/object';
 class Model extends Emitter {
     constructor(options, app) {
-        super({ ...options, events: [...(options.events || []), ...modelEvents] }, app);
+        super({
+            ...options,
+            events: [...(options.events || []), ...modelEvents],
+        }, app);
         this.app = app;
         this.hasUnsavedChanges = false;
         this.selected = false;

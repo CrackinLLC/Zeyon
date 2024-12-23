@@ -1,4 +1,5 @@
 import ZeyonApp from './app';
+import type { ClassMapKey } from './generated/ClassMapType';
 import type { CustomEventHandler, EmitterOptions } from './imports/emitter';
 export default abstract class Emitter {
     protected app: ZeyonApp;
@@ -32,5 +33,6 @@ export default abstract class Emitter {
     destroy(): void;
     protected onDestroy(): void;
     getStaticMember(key: keyof typeof Emitter): unknown;
+    getRegistrationId(): ClassMapKey;
 }
 //# sourceMappingURL=emitter.d.ts.map

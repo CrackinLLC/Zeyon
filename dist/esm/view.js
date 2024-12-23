@@ -6,7 +6,11 @@ import { getUniqueId, toHyphenCase } from './util/string';
 import { getCompiledTemplate } from './util/template';
 class View extends Emitter {
     constructor(options = {}, app) {
-        super({ events: options.events, includeNativeEvents: true, ...options }, app);
+        super({
+            ...options,
+            events: options.events,
+            includeNativeEvents: true,
+        }, app);
         this._viewId = getUniqueId();
         this.ui = {};
         this._ui = {};

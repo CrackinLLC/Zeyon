@@ -1,7 +1,6 @@
 import type ZeyonApp from './app';
 import Emitter from './emitter';
 import type { ClassMapTypeView } from './generated/ClassMapType';
-import { Attributes } from './imports/model';
 import { AttachReference, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
 import { RootElement } from './util/element';
@@ -21,7 +20,7 @@ export default abstract class View extends Emitter {
     protected children: {
         [id: string]: View;
     };
-    protected model?: Model<Attributes>;
+    protected model?: Model;
     isRendered: Promise<this>;
     private resolveIsRendered;
     private wasRendered;
@@ -54,8 +53,8 @@ export default abstract class View extends Emitter {
     getViewId(): string;
     protected setViewId(str: string): void;
     getId(): number | undefined;
-    getModel(): Model<Attributes> | undefined;
-    protected setModel(): Promise<Model<Attributes> | undefined>;
+    getModel(): Model | undefined;
+    protected setModel(): Promise<Model | undefined>;
     setAttributes(attributes?: Record<string, string | undefined | null>, options?: {
         dataPrefix?: boolean;
     }): this;

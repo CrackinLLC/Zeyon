@@ -1,7 +1,6 @@
 import type Model from '../model';
 import type View from '../view';
 import { EmitterOptions } from './emitter';
-import type { Attributes } from './model';
 export interface ViewOptions extends Omit<EmitterOptions, 'includeNativeEvents'> {
     id?: string;
     classNames?: string[];
@@ -12,7 +11,7 @@ export interface ViewOptions extends Omit<EmitterOptions, 'includeNativeEvents'>
     params?: Record<string, string>;
     query?: Record<string, string>;
     hash?: string;
-    model?: Model<Attributes> | Partial<{}> | string;
+    model?: Model | Partial<{}> | string;
     modelType?: string;
 }
 export interface RenderOptions {

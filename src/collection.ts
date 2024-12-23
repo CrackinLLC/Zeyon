@@ -1,41 +1,45 @@
 import type ZeyonApp from './app';
 import Emitter from './emitter';
+import type { ClassMapTypeModel } from './generated/ClassMapType';
 import {
   collectionEvents,
   CollectionFilterDefinition,
   CollectionFilterOptions,
-  CollectionLike,
   CollectionOptions,
 } from './imports/collection';
-import { Attributes, ModelType } from './imports/model';
-import Model from './model';
 
-export default abstract class Collection<A extends Attributes, M extends Model<any>>
-  extends Emitter
-  implements CollectionLike<A, M>
-{
+export default abstract class Collection extends Emitter {
   declare options: CollectionOptions;
   declare defaultOptions: CollectionOptions;
 
-  protected abstract getModelClass(): typeof Model<A>;
+  abstract modelRegistrationId: keyof ClassMapTypeModel;
+  declare model: ClassMapTypeModel[this['modelRegistrationId']];
+  declare attrib: this['model']['attrib'];
 
-  protected items: M[] = [];
+  protected items: this['model'][] = [];
   public length: number = 0;
-  protected visibleItems: M[] = [];
+  protected visibleItems: this['model'][] = [];
   public visibleLength: number = 0;
 
   protected filterOptions: CollectionFilterOptions = {};
-  protected activeFilters: { [key: string]: (item: M) => boolean } = {};
+  protected activeFilters: Record<string, (item: this['model']) => boolean>;
 
   constructor(options: CollectionOptions = {}, protected app: ZeyonApp) {
-    super({ ...options, events: [...(options.events || []), ...collectionEvents] }, app);
+    super(
+      {
+        ...options,
+        events: [...(options.events || []), ...collectionEvents],
+      },
+      app,
+    );
 
     const { ids } = this.options;
     const funcs = [];
 
+    this.activeFilters = {};
     if (ids && ids.length > 0) {
       const attrs = ids.map((id) => {
-        return { id } as A;
+        return { id } as this['attrib'];
       });
 
       funcs.push(this.newModel(attrs));
@@ -45,34 +49,37 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
     Promise.all(funcs).then(() => this.markAsReady());
   }
 
-  public async newModel(attributes: Partial<A> | Partial<A>[], silent: boolean = false): Promise<this> {
+  public async newModel(
+    attributes: Partial<this['attrib']> | Partial<this['attrib']>[],
+    silent: boolean = false,
+  ): Promise<this> {
     const attributesArray = Array.isArray(attributes) ? attributes : [attributes];
 
     for (const attrs of attributesArray) {
-      const model = await this.app.newModel(`model-${this.getType()}`, {
+      const model = await this.app.newModel(this.getModelType(), {
         attributes: attrs,
-        collection: this as unknown as Collection<Attributes, any>, // TODO: Can we figure out how to avoid casting here to satisfy TS?
+        collection: this,
       });
 
       if (model) {
-        this.add(model as unknown as M, silent);
+        this.add(model, silent);
       }
     }
 
     return this;
   }
 
-  public add(models: M | M[], silent: boolean = false): this {
+  public add(models: this['model'] | this['model'][], silent: boolean = false): this {
     const modelsArray = Array.isArray(models) ? models : [models];
 
     modelsArray.forEach((model) => {
-      if (this.getModelClass().type !== this.getType()) {
-        console.error(`Only instances of ${this.getType()} can be added to the collection.`);
+      if (this.modelRegistrationId !== model.getRegistrationId()) {
+        console.error(`Only instances of ${this.modelRegistrationId} can be added to the collection.`);
         return;
       }
 
       const id = model.getId();
-      let existingModel: M | undefined;
+      let existingModel: this['model'] | undefined;
       if (id) {
         existingModel = model.getId() ? this.findById(id) : undefined;
       }
@@ -107,10 +114,13 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
     return this;
   }
 
-  public remove(itemIds: number | number[] | undefined, silent: boolean = false): M | M[] | undefined {
+  public remove(
+    itemIds: number | number[] | undefined,
+    silent: boolean = false,
+  ): this['model'] | this['model'][] | undefined {
     if (itemIds === undefined) return undefined;
     const ids = Array.isArray(itemIds) ? itemIds : [itemIds];
-    const removedItems: M[] = [];
+    const removedItems: this['model'][] = [];
 
     ids.forEach((id: number) => {
       const index = this.items.findIndex((item) => item.getId() === id);
@@ -130,11 +140,11 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
     return removedItems;
   }
 
-  public getType(): ModelType {
-    return this.getModelClass().type || ModelType.Unknown;
+  public getModelType(): keyof ClassMapTypeModel {
+    return this.modelRegistrationId;
   }
 
-  public getItems(): M[] {
+  public getItems(): this['model'][] {
     return this.items;
   }
 
@@ -143,10 +153,10 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
   }
 
   public getAttributeKeys(): string[] {
-    return this.getModelClass().getAttributeKeys();
+    return []; // TODO: Fix this
   }
 
-  public getVisibleItems(): M[] {
+  public getVisibleItems(): this['model'][] {
     return this.visibleItems;
   }
 
@@ -154,7 +164,7 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
     return this.visibleItems.map((item) => item.getAttributes());
   }
 
-  public getSelectedItems(includeHidden = false): M[] {
+  public getSelectedItems(includeHidden = false): this['model'][] {
     if (includeHidden) {
       return this.items.filter((item) => item.isSelected());
     }
@@ -171,11 +181,11 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
       .filter((id): id is number => id !== undefined);
   }
 
-  public findById(itemId: number): M | undefined {
+  public findById(itemId: number): this['model'] | undefined {
     return this.items.find((item) => item.getId() === itemId);
   }
 
-  public sort(compareFn: (a: M, b: M) => number): this {
+  public sort(compareFn: (a: this['model'], b: this['model']) => number): this {
     this.items.sort(compareFn);
     this.applyFilters();
     this.emit('sort', this.visibleItems);
@@ -233,11 +243,11 @@ export default abstract class Collection<A extends Attributes, M extends Model<a
     return this;
   }
 
-  public getFilterFunction(key: string, value: any): ((item: M) => boolean) | undefined {
+  public getFilterFunction(key: string, value: any): ((item: this['model']) => boolean) | undefined {
     if (key === 'text') {
       const attributesToSearch = this.getTextSearchAttributes();
 
-      return (item: M) => {
+      return (item: this['model']) => {
         const attributes = item.getAttributes();
         return attributesToSearch.some((attrKey) => {
           const attrValue = attributes[attrKey];

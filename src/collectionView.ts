@@ -1,5 +1,5 @@
 import type ZeyonApp from './app';
-import type { CollectionLike } from './imports/collection';
+import type Collection from './collection';
 import type { CollectionViewOptions } from './imports/collectionView';
 import { debounce } from './util/debounce';
 import View from './view';
@@ -9,10 +9,7 @@ import View from './view';
  * @template C The type of the collection.
  * @template V The type of the child view.
  */
-export default abstract class CollectionView<
-  C extends CollectionLike = CollectionLike,
-  CV extends View = View,
-> extends View {
+export default abstract class CollectionView<C extends Collection = Collection, CV extends View = View> extends View {
   declare options: CollectionViewOptions<C, CV>;
   declare defaultOptions: CollectionViewOptions<C, CV>;
 
@@ -67,7 +64,7 @@ export default abstract class CollectionView<
   protected getTemplateOptions(): Record<string, unknown> {
     return super.getTemplateOptions({
       ...(this.collection ? { collection: this.collection.getVisibleAttributes() } : {}),
-      ...(this.collection ? { collectionType: this.collection.getType() } : {}),
+      ...(this.collection ? { collectionType: this.collection.modelRegistrationId } : {}),
     });
   }
 
@@ -79,7 +76,7 @@ export default abstract class CollectionView<
 
     this.destroyChildItems();
 
-    this.collection.getVisibleItems().forEach((model) => {
+    this.collection.getVisibleItems().forEach((model: C['model']) => {
       if (this.childView) {
         const childView = new this.childView(
           {

@@ -1,6 +1,5 @@
 import type Collection from '../collection';
 import type ColectionView from '../collectionView';
-import type { Attributes } from '../imports/model';
 import type Model from '../model';
 import type RouteView from '../routeView';
 import type View from '../view';
@@ -14,11 +13,11 @@ export interface ClassMapTypeRouteView {
 }
 
 export interface ClassMapTypeModel {
-  [key: string]: Model<Attributes>;
+  [key: string]: Model;
 }
 
 export interface ClassMapTypeCollection {
-  [key: string]: Collection<Attributes, Model<Attributes>>;
+  [key: string]: Collection;
 }
 
 export interface ClassMapTypeCollectionView {

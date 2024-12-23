@@ -170,6 +170,9 @@ class Emitter {
     getStaticMember(key) {
         return this.constructor[key];
     }
+    getRegistrationId() {
+        return this.getStaticMember('registrationId');
+    }
 }
 Emitter.registrationId = '';
 Emitter.defaultOptions = {};

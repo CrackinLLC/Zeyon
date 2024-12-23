@@ -11,7 +11,6 @@ import type {
   ClassMapTypeView,
 } from './generated/ClassMapType';
 import type { GlobalViewConfig, ZeyonAppOptions } from './imports/app';
-import type { Attributes } from './imports/model';
 import { RouteConfig } from './imports/router';
 import type Model from './model';
 import Router from './router';
@@ -160,18 +159,15 @@ export default class ZeyonApp<CustomRouteProps = any> {
   public async newModel<K extends keyof ClassMapTypeModel>(
     registrationId: K,
     options?: ClassMapTypeModel[K]['options'],
-  ): Promise<ClassMapTypeModel[K] & Model<Attributes>> {
-    return this.newInstance<keyof ClassMapTypeModel, Model<Attributes>>(registrationId, options);
+  ): Promise<Model> {
+    return this.newInstance<keyof ClassMapTypeModel, Model>(registrationId, options);
   }
 
   public async newCollection<K extends keyof ClassMapTypeCollection>(
     registrationId: K,
     options?: ClassMapTypeCollection[K]['options'],
-  ): Promise<ClassMapTypeCollection[K] & Collection<Attributes, Model<Attributes>>> {
-    return this.newInstance<keyof ClassMapTypeCollection, Collection<Attributes, Model<Attributes>>>(
-      registrationId,
-      options,
-    );
+  ): Promise<ClassMapTypeCollection[K] & Collection> {
+    return this.newInstance<keyof ClassMapTypeCollection, Collection>(registrationId, options);
   }
 
   public async newCollectionView<K extends keyof ClassMapTypeCollectionView>(

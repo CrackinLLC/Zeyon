@@ -1,8 +1,8 @@
 import type ZeyonApp from './app';
-import type { CollectionLike } from './imports/collection';
+import type Collection from './collection';
 import type { CollectionViewOptions } from './imports/collectionView';
 import View from './view';
-export default abstract class CollectionView<C extends CollectionLike = CollectionLike, CV extends View = View> extends View {
+export default abstract class CollectionView<C extends Collection = Collection, CV extends View = View> extends View {
     options: CollectionViewOptions<C, CV>;
     defaultOptions: CollectionViewOptions<C, CV>;
     protected collection?: C;

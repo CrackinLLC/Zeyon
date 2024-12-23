@@ -1,7 +1,6 @@
 import type ZeyonApp from './app';
 import Emitter from './emitter';
 import type { ClassMapTypeView } from './generated/ClassMapType';
-import { Attributes } from './imports/model';
 import { AttachReference, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
 import { convertToRootElement, RootElement } from './util/element';
@@ -23,7 +22,7 @@ export default abstract class View extends Emitter {
   protected renderOptions: RenderOptions = {};
 
   protected children: { [id: string]: View } = {};
-  protected model?: Model<Attributes>;
+  protected model?: Model;
 
   public isRendered: Promise<this>;
   private resolveIsRendered!: (value: this) => void;
@@ -35,7 +34,14 @@ export default abstract class View extends Emitter {
   protected errorEl?: HTMLElement;
 
   constructor(options: ViewOptions = {}, app: ZeyonApp) {
-    super({ events: options.events, includeNativeEvents: true, ...options }, app);
+    super(
+      {
+        ...options,
+        events: options.events,
+        includeNativeEvents: true,
+      },
+      app,
+    );
 
     // Initialize promises for readiness and rendering
     this.isRendered = new Promise<this>((resolve) => {
@@ -346,18 +352,18 @@ export default abstract class View extends Emitter {
     return this.model?.getId() || undefined;
   }
 
-  getModel(): Model<Attributes> | undefined {
+  getModel(): Model | undefined {
     return this.model;
   }
 
-  protected async setModel(): Promise<Model<Attributes> | undefined> {
+  protected async setModel(): Promise<Model | undefined> {
     if (!this.options.model) {
       return;
     } else if (this.options.model instanceof Model) {
       return this.options.model;
     }
 
-    let model: Model<Attributes> | undefined;
+    let model: Model | undefined;
     const attributes = this.options.model;
 
     if (typeof attributes === 'string') {

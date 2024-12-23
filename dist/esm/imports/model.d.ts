@@ -1,9 +1,8 @@
 import type Collection from '../collection';
-import type Model from '../model';
 import { EmitterOptions } from './emitter';
-export interface ModelOptions<A extends Attributes = Attributes> extends EmitterOptions {
+export interface ModelOptions<A extends Attributes> extends EmitterOptions {
     attributes?: Partial<A>;
-    collection?: Collection<A, any>;
+    collection?: Collection;
 }
 export declare const enum ModelType {
     Unknown = "unknown"
@@ -27,6 +26,5 @@ export interface AttributeDefinition {
     default?: unknown;
     optional?: boolean;
 }
-export type AttributesOf<M extends Model<any>> = M extends Model<infer A> ? A : never;
 export declare const modelEvents: string[];
 //# sourceMappingURL=model.d.ts.map
