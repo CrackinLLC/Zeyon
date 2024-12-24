@@ -310,20 +310,20 @@ export default class Router<CustomRouteProps = any> extends Emitter {
     );
   }
 
-  private standardizeUrl(url: string, addBase = false): string {
+  private standardizeUrl(url: string, includePrefix = false): string {
     if (this.urlPrefix) {
-      if (addBase) {
+      if (includePrefix) {
         url = `${this.urlPrefix}${url}`;
       } else if (url.startsWith(this.urlPrefix)) {
         url = url.slice(this.urlPrefix.length);
       }
     }
 
-    if (!url || url === '/') {
-      return '/';
-    } else {
-      // Ensure path does not have trailing slash (unless it's root '/')
+    if (!!url && url !== '/') {
+      // Ensure non-root path doesn't have trailing slash
       return `/${url.replace(/^\/|\/$/g, '')}`;
     }
+
+    return '/';
   }
 }

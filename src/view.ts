@@ -357,6 +357,7 @@ export default abstract class View extends Emitter {
   }
 
   protected async setModel(): Promise<Model | undefined> {
+    console.log({ model: this.options.model });
     if (!this.options.model) {
       return;
     } else if (this.options.model instanceof Model) {
@@ -364,11 +365,11 @@ export default abstract class View extends Emitter {
     }
 
     let model: Model | undefined;
-    const attributes = this.options.model;
 
-    if (typeof attributes === 'string') {
+    if (typeof this.options.model === 'string') {
       model = await this.app.newModel(`model-${this.options.model}`);
     } else {
+      const attributes = this.options.model;
       const type = this.options.modelType;
 
       if (type) {

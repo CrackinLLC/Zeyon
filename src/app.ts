@@ -44,14 +44,14 @@ export default class ZeyonApp<CustomRouteProps = any> implements ZeyonAppLike<Cu
   private resolveIsReady!: (value: this) => void;
 
   /**
-   * The application's router.
-   */
-  public router: Router;
-
-  /**
    * A global reference for our window object to prevent window duplication
    */
   public window: Window;
+
+  /**
+   * The application's router.
+   */
+  private router: Router;
 
   /**
    * A map of class definitions for dynamic instantiation.

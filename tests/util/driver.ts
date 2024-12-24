@@ -8,3 +8,5 @@ export interface TestDriver {
 export interface DriverElement {
   // placeholder for element handling
 }
+
+export const getPrivate = (c: unknown, key: string) => (c as any)[key];
