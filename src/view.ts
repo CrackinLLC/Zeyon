@@ -58,8 +58,8 @@ export default abstract class View extends Emitter {
     }
 
     // Define our model and call the local initialize method before declaring the view ready.
-    const funcs = [this.setModel(), this.initialize()];
-    Promise.all(funcs).then(() => this.markAsReady());
+    const asyncFuncs = [this.setModel(), this.initialize()];
+    Promise.all(asyncFuncs).then(() => this.markAsReady());
   }
 
   /**

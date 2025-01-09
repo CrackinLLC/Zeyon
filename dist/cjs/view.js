@@ -31,8 +31,8 @@ class View extends emitter_1.default {
         if (this.options.id) {
             this.setViewId(this.options.id);
         }
-        const funcs = [this.setModel(), this.initialize()];
-        Promise.all(funcs).then(() => this.markAsReady());
+        const asyncFuncs = [this.setModel(), this.initialize()];
+        Promise.all(asyncFuncs).then(() => this.markAsReady());
     }
     async render() {
         if (this.isDestroyed)

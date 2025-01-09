@@ -137,6 +137,7 @@ class Emitter {
         if (this.isDestroyed)
             return;
         this.isDestroyed = true;
+        this.emit('destroyed');
         this.onDestroy();
         this.isReady = undefined;
         this.destroyEvents();

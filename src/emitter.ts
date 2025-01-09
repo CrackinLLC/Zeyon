@@ -274,6 +274,7 @@ export default abstract class Emitter {
     if (this.isDestroyed) return;
     this.isDestroyed = true;
 
+    this.emit('destroyed');
     this.onDestroy();
 
     // @ts-ignore - Cleaning up for purposes of destroying the class
