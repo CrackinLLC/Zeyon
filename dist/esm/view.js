@@ -146,7 +146,6 @@ class View extends Emitter {
         this.el.classList.toggle(className, force);
     }
     findChildEl(selector) {
-        console.log(this.el, selector, 'result:', this.el.querySelector(selector));
         return this.el.querySelector(selector) || null;
     }
     getUiByIdSingle(id) {
@@ -175,13 +174,9 @@ class View extends Emitter {
         }
     }
     renderTemplate() {
-        console.log('??? 1', this.compiledTemplate, this.isDestroyed);
         if (this.compiledTemplate && !this.isDestroyed) {
-            console.log('??? 2');
             this.el.innerHTML = this.compiledTemplate(this.getTemplateOptions());
-            console.log('CHECK 1');
             this.on('click', (ev) => {
-                console.log('CHECK 2, CLICKED');
                 if (ev.defaultPrevented)
                     return;
                 let target = ev.target;
@@ -200,7 +195,6 @@ class View extends Emitter {
                 try {
                     const linkUrl = new URL(href, window.location.href);
                     const sameHost = linkUrl.hostname === window.location.hostname && linkUrl.port === (window.location.port || '');
-                    console.log('CHECK 3', sameHost);
                     if (sameHost) {
                         this.app.navigate(linkUrl.pathname + linkUrl.search + linkUrl.hash);
                     }
@@ -319,7 +313,6 @@ class View extends Emitter {
         (options.attachTo || this.el).append(errorElement);
         this.errorEl = errorElement;
         this.addClass('is-error');
-        console.log({ error: this.errorEl, attachTo: options.attachTo });
     }
     removeErrorState() {
         this.errorEl?.remove();
