@@ -14,7 +14,7 @@ export interface ViewOptions extends Omit<EmitterOptions, 'includeNativeEvents'>
   query?: Record<string, string>;
   hash?: string;
 
-  model?: Model | Partial<{}> | string;
+  model?: Model | string;
   modelType?: string; // Will attempt to infer model type based on attributes, but for ambiguous cases should explicitly state type here
 }
 

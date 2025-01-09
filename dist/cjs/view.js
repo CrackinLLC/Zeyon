@@ -31,7 +31,7 @@ class View extends emitter_1.default {
         if (this.options.id) {
             this.setViewId(this.options.id);
         }
-        const funcs = [this.setModel().then((model) => (this.model = model)), this.initialize()];
+        const funcs = [this.setModel(), this.initialize()];
         Promise.all(funcs).then(() => this.markAsReady());
     }
     async render() {
@@ -69,18 +69,19 @@ class View extends emitter_1.default {
     prepareRootElement() {
         let name = this.constructor.name;
         name = name.charAt(0) === '_' ? name.slice(1) : name;
+        let attributesToSet = this.options.attributes || {};
         if (this.constructor.isRoute) {
             this.addClass('ui-route');
-            this.setAttributes({ id: name });
+            attributesToSet.id = name;
         }
         else if (this.constructor.isComponent) {
             this.addClass('ui-component', `ui-component-${(0, string_1.toHyphenCase)(name)}`);
         }
         else {
-            this.setAttributes({ id: name });
+            attributesToSet.id = name;
         }
         this.addClass(...(this.options.classNames || []));
-        this.setAttributes(this.options.attributes);
+        this.setAttributes(attributesToSet);
     }
     attachRootElement() {
         if (!this.options.attachTo)
@@ -150,6 +151,10 @@ class View extends emitter_1.default {
     toggleClass(className, force) {
         this.el.classList.toggle(className, force);
     }
+    findChildEl(selector) {
+        console.log(this.el, selector, 'result:', this.el.querySelector(selector));
+        return this.el.querySelector(selector) || null;
+    }
     getUiByIdSingle(id) {
         const els = this.getUiById(id);
         if (els) {
@@ -176,26 +181,42 @@ class View extends emitter_1.default {
         }
     }
     renderTemplate() {
+        console.log('??? 1', this.compiledTemplate, this.isDestroyed);
         if (this.compiledTemplate && !this.isDestroyed) {
+            console.log('??? 2');
             this.el.innerHTML = this.compiledTemplate(this.getTemplateOptions());
+            console.log('CHECK 1');
             this.on('click', (ev) => {
-                if (ev.defaultPrevented) {
+                console.log('CHECK 2, CLICKED');
+                if (ev.defaultPrevented)
                     return;
-                }
-                let targetElement = ev.target;
-                while (targetElement && targetElement !== this.el) {
-                    if (targetElement.tagName.toLowerCase() === 'a')
+                let target = ev.target;
+                while (target && target !== this.el) {
+                    if (target.tagName.toLowerCase() === 'a')
                         break;
-                    targetElement = targetElement.parentElement;
+                    target = target.parentElement;
                 }
-                if (targetElement && targetElement.tagName.toLowerCase() === 'a') {
-                    const anchor = targetElement;
-                    const href = anchor.getAttribute('href');
-                    if (href && href !== '#') {
-                        console.log('We caught an anchor click and are handling it.');
-                        ev.preventDefault();
-                        this.app.navigate(href);
+                if (!target || target.tagName.toLowerCase() !== 'a')
+                    return;
+                const anchor = target;
+                const href = anchor.getAttribute('href');
+                if (!href || href === '#')
+                    return;
+                ev.preventDefault();
+                try {
+                    const linkUrl = new URL(href, window.location.href);
+                    const sameHost = linkUrl.hostname === window.location.hostname && linkUrl.port === (window.location.port || '');
+                    console.log('CHECK 3', sameHost);
+                    if (sameHost) {
+                        this.app.navigate(linkUrl.pathname + linkUrl.search + linkUrl.hash);
                     }
+                    else {
+                        const targetAttr = anchor.getAttribute('target') || '_self';
+                        window.open(linkUrl.href, targetAttr);
+                    }
+                }
+                catch (err) {
+                    console.warn('Invalid link or error parsing URL:', href, err);
                 }
             });
         }
@@ -254,56 +275,44 @@ class View extends emitter_1.default {
     }
     async setModel() {
         if (!this.options.model) {
-            return;
+            return undefined;
         }
-        else if (this.options.model instanceof model_1.default) {
-            return this.options.model;
+        if (this.options.model instanceof model_1.default) {
+            this.model = this.options.model;
+            return this.model;
         }
-        let model;
-        const attributes = this.options.model;
-        if (typeof attributes === 'string') {
-            model = await this.app.newModel(`model-${this.options.model}`);
+        if (typeof this.options.model === 'string') {
+            this.model = await this.app.newModel(this.options.model);
+            return this.model;
         }
-        else {
-            const type = this.options.modelType;
-            if (type) {
-                if (Array.isArray(type)) {
-                    console.warn(`Ambiguous model type: ${type.join(', ')}. Please specify modelType in view options.`, this);
-                }
-                else {
-                    model = await this.app.newModel(`model-${type}`, {
-                        attributes,
-                    });
-                }
-            }
-            else {
-                console.warn(`Unknown model type. Please specify modelType in view options.`, this);
-            }
-        }
-        return model;
+        return undefined;
     }
-    setAttributes(attributes, options) {
-        if (!attributes)
+    setAttributes(attributes) {
+        if (!attributes) {
             return this;
-        const { dataPrefix = false } = options || {};
+        }
         for (const [name, value] of Object.entries(attributes)) {
-            let attributeName = name;
-            if (dataPrefix && !name.startsWith('data-') && !name.startsWith('aria-')) {
-                attributeName = `data-${name}`;
-            }
-            if (value === null || value === undefined) {
-                this.el.removeAttribute(attributeName);
-                if (attributeName.startsWith('data-')) {
-                    const dataKey = attributeName.slice(5);
+            if (value == null) {
+                this.el.removeAttribute(name);
+                if (name.startsWith('data-')) {
+                    const dataKey = name.slice(5);
                     delete this.el.dataset[dataKey];
                 }
+                continue;
             }
-            else {
-                this.el.setAttribute(attributeName, value);
-                if (attributeName.startsWith('data-')) {
-                    const dataKey = attributeName.slice(5);
+            try {
+                this.el.setAttribute(name, value);
+                if (name.startsWith('data-')) {
+                    const dataKey = name.slice(5);
                     this.el.dataset[dataKey] = value;
                 }
+            }
+            catch (error) {
+                console.warn(`Unable to set attribute "${name}" with value "${value}".`, {
+                    message: error.message,
+                    name: error.name,
+                    code: error.code,
+                });
             }
         }
         return this;
@@ -316,6 +325,7 @@ class View extends emitter_1.default {
         (options.attachTo || this.el).append(errorElement);
         this.errorEl = errorElement;
         this.addClass('is-error');
+        console.log({ error: this.errorEl, attachTo: options.attachTo });
     }
     removeErrorState() {
         this.errorEl?.remove();

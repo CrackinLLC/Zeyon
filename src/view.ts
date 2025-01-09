@@ -58,7 +58,7 @@ export default abstract class View extends Emitter {
     }
 
     // Define our model and call the local initialize method before declaring the view ready.
-    const funcs = [this.setModel().then((model) => (this.model = model)), this.initialize()];
+    const funcs = [this.setModel(), this.initialize()];
     Promise.all(funcs).then(() => this.markAsReady());
   }
 
@@ -119,18 +119,19 @@ export default abstract class View extends Emitter {
   protected prepareRootElement() {
     let name = (this.constructor as any).name;
     name = name.charAt(0) === '_' ? name.slice(1) : name;
+    let attributesToSet = this.options.attributes || {};
 
     if ((this.constructor as any).isRoute) {
       this.addClass('ui-route');
-      this.setAttributes({ id: name });
+      attributesToSet.id = name;
     } else if ((this.constructor as any).isComponent) {
       this.addClass('ui-component', `ui-component-${toHyphenCase(name)}`);
     } else {
-      this.setAttributes({ id: name });
+      attributesToSet.id = name;
     }
 
     this.addClass(...(this.options.classNames || []));
-    this.setAttributes(this.options.attributes);
+    this.setAttributes(attributesToSet);
   }
 
   /**
@@ -214,6 +215,10 @@ export default abstract class View extends Emitter {
     this.el.classList.toggle(className, force);
   }
 
+  findChildEl(selector: string): HTMLElement | null {
+    return (this.el.querySelector(selector) as HTMLElement) || null;
+  }
+
   getUiByIdSingle<T extends HTMLElement = HTMLElement>(id: string): T | undefined {
     const els = this.getUiById(id);
 
@@ -255,30 +260,38 @@ export default abstract class View extends Emitter {
     if (this.compiledTemplate && !this.isDestroyed) {
       this.el.innerHTML = this.compiledTemplate(this.getTemplateOptions());
 
-      // Intercept anchor tag clicks and handle them in the app
       this.on('click', (ev) => {
-        // Ignore, if the event's default action has already been prevented
-        if (ev.defaultPrevented) {
-          return;
+        if (ev.defaultPrevented) return;
+
+        let target = ev.target as HTMLElement | null;
+
+        while (target && target !== this.el) {
+          if (target.tagName.toLowerCase() === 'a') break;
+          target = target.parentElement;
         }
 
-        // Traverse up the DOM tree to find the nearest ancestor 'a' tag
-        let targetElement = ev.target as HTMLElement | null;
-        while (targetElement && targetElement !== this.el) {
-          if (targetElement.tagName.toLowerCase() === 'a') break;
-          targetElement = targetElement.parentElement;
-        }
+        if (!target || target.tagName.toLowerCase() !== 'a') return;
+        const anchor = target as HTMLAnchorElement;
+        const href = anchor.getAttribute('href');
 
-        if (targetElement && targetElement.tagName.toLowerCase() === 'a') {
-          const anchor = targetElement as HTMLAnchorElement;
-          const href = anchor.getAttribute('href');
+        if (!href || href === '#') return;
+        ev.preventDefault(); // Intercept all anchor clicks
 
-          if (href && href !== '#') {
-            console.log('We caught an anchor click and are handling it.');
+        try {
+          const linkUrl = new URL(href, window.location.href);
+          const sameHost =
+            linkUrl.hostname === window.location.hostname && linkUrl.port === (window.location.port || '');
 
-            ev.preventDefault();
-            this.app.navigate(href);
+          if (sameHost) {
+            // Local link => call app.navigate
+            this.app.navigate(linkUrl.pathname + linkUrl.search + linkUrl.hash);
+          } else {
+            // External => open in same or new tab
+            const targetAttr = anchor.getAttribute('target') || '_self';
+            window.open(linkUrl.href, targetAttr);
           }
+        } catch (err) {
+          console.warn('Invalid link or error parsing URL:', href, err);
         }
       });
     }
@@ -357,66 +370,55 @@ export default abstract class View extends Emitter {
   }
 
   protected async setModel(): Promise<Model | undefined> {
-    console.log({ model: this.options.model });
     if (!this.options.model) {
-      return;
-    } else if (this.options.model instanceof Model) {
-      return this.options.model;
+      return undefined;
     }
 
-    let model: Model | undefined;
+    if (this.options.model instanceof Model) {
+      this.model = this.options.model;
+      return this.model;
+    }
 
     if (typeof this.options.model === 'string') {
-      model = await this.app.newModel(`model-${this.options.model}`);
-    } else {
-      const attributes = this.options.model;
-      const type = this.options.modelType;
-
-      if (type) {
-        if (Array.isArray(type)) {
-          console.warn(`Ambiguous model type: ${type.join(', ')}. Please specify modelType in view options.`, this);
-        } else {
-          model = await this.app.newModel(`model-${type}`, {
-            attributes,
-          });
-        }
-      } else {
-        console.warn(`Unknown model type. Please specify modelType in view options.`, this);
-      }
+      this.model = await this.app.newModel(this.options.model);
+      return this.model;
     }
 
-    return model;
+    return undefined;
   }
 
   /**
    * Sets or removes attributes on the root element.
-   * @param attributes - A record of attribute names and their values. If the value is null or undefined, the attribute is removed.
-   * @param options - Optional settings for attribute handling.
+   * - Passing `null`/`undefined` removes the attribute.
+   * - If an error occurs (e.g., invalid name), it logs a warning and continues.
    */
-  setAttributes(attributes?: Record<string, string | undefined | null>, options?: { dataPrefix?: boolean }) {
-    if (!attributes) return this;
-
-    const { dataPrefix = false } = options || {};
+  public setAttributes(attributes?: Record<string, string | null | undefined>): this {
+    if (!attributes) {
+      return this;
+    }
 
     for (const [name, value] of Object.entries(attributes)) {
-      let attributeName = name;
-
-      if (dataPrefix && !name.startsWith('data-') && !name.startsWith('aria-')) {
-        attributeName = `data-${name}`;
-      }
-
-      if (value === null || value === undefined) {
-        this.el.removeAttribute(attributeName);
-        if (attributeName.startsWith('data-')) {
-          const dataKey = attributeName.slice(5);
+      if (value == null) {
+        this.el.removeAttribute(name);
+        if (name.startsWith('data-')) {
+          const dataKey = name.slice(5);
           delete (this.el.dataset as any)[dataKey];
         }
-      } else {
-        this.el.setAttribute(attributeName, value);
-        if (attributeName.startsWith('data-')) {
-          const dataKey = attributeName.slice(5);
+        continue;
+      }
+
+      try {
+        this.el.setAttribute(name, value);
+        if (name.startsWith('data-')) {
+          const dataKey = name.slice(5);
           (this.el.dataset as any)[dataKey] = value;
         }
+      } catch (error: any) {
+        console.warn(`Unable to set attribute "${name}" with value "${value}".`, {
+          message: error.message,
+          name: error.name,
+          code: (error as any).code,
+        });
       }
     }
 
@@ -434,6 +436,7 @@ export default abstract class View extends Emitter {
     this.removeErrorState();
 
     const errorElement = errorTemplate(msg);
+
     (options.attachTo || this.el).append(errorElement);
     this.errorEl = errorElement;
 

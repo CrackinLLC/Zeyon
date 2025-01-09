@@ -210,21 +210,19 @@ class Router extends Emitter {
         };
         this.siteMap = this.routes.map((routeConfig) => processConfig(routeConfig, this.urlMap, {}, ''));
     }
-    standardizeUrl(url, addBase = false) {
+    standardizeUrl(url, includePrefix = false) {
         if (this.urlPrefix) {
-            if (addBase) {
+            if (includePrefix) {
                 url = `${this.urlPrefix}${url}`;
             }
             else if (url.startsWith(this.urlPrefix)) {
                 url = url.slice(this.urlPrefix.length);
             }
         }
-        if (!url || url === '/') {
-            return '/';
-        }
-        else {
+        if (!!url && url !== '/') {
             return `/${url.replace(/^\/|\/$/g, '')}`;
         }
+        return '/';
     }
 }
 Router.registrationId = 'zeyon-router';

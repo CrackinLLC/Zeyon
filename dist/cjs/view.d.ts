@@ -41,6 +41,7 @@ export default abstract class View extends Emitter {
     removeClassByPrefix(prefix: string): this;
     swapClasses(classA: string, classB: string, condition: boolean): void;
     toggleClass(className: string, force?: boolean): void;
+    findChildEl(selector: string): HTMLElement | null;
     getUiByIdSingle<T extends HTMLElement = HTMLElement>(id: string): T | undefined;
     getUiById<T extends HTMLElement = HTMLElement>(id: string): NodeListOf<T> | undefined;
     protected generateUiSelections(selectorAttribute?: string): void;
@@ -55,9 +56,7 @@ export default abstract class View extends Emitter {
     getId(): number | undefined;
     getModel(): Model | undefined;
     protected setModel(): Promise<Model | undefined>;
-    setAttributes(attributes?: Record<string, string | undefined | null>, options?: {
-        dataPrefix?: boolean;
-    }): this;
+    setAttributes(attributes?: Record<string, string | null | undefined>): this;
     setErrorState(msg: string, options?: ErrorStateOptions): void;
     protected removeErrorState(): void;
     destroy(): void;

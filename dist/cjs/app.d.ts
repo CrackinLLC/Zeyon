@@ -4,7 +4,6 @@ import type { ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeMo
 import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from './imports/app';
 import { RouteConfig } from './imports/router';
 import type Model from './model';
-import Router from './router';
 import type RouteView from './routeView';
 import type View from './view';
 export default class ZeyonApp<CustomRouteProps = any> implements ZeyonAppLike<CustomRouteProps> {
@@ -14,8 +13,8 @@ export default class ZeyonApp<CustomRouteProps = any> implements ZeyonAppLike<Cu
     isStarted: boolean;
     isReady: Promise<this>;
     private resolveIsReady;
-    router: Router;
     window: Window;
+    private router;
     private registry;
     private loadingState;
     constructor(options: ZeyonAppOptions);

@@ -2,7 +2,6 @@ import type Collection from '../collection';
 import type CollectionView from '../collectionView';
 import type { ClassMapKey, ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from '../generated/ClassMapType';
 import type Model from '../model';
-import type Router from '../router';
 import type RouteView from '../routeView';
 import type View from '../view';
 import type { RouteConfig } from './router';
@@ -22,7 +21,6 @@ export interface ZeyonAppLike<CustomRouteProps = any> {
     el: HTMLElement;
     isStarted: boolean;
     isReady: Promise<this>;
-    router: Router<CustomRouteProps>;
     window: Window;
     options: ZeyonAppOptions;
     registerRoutes<C extends CustomRouteProps>(routes: RouteConfig<C>[]): this;

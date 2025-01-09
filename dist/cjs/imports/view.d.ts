@@ -11,7 +11,7 @@ export interface ViewOptions extends Omit<EmitterOptions, 'includeNativeEvents'>
     params?: Record<string, string>;
     query?: Record<string, string>;
     hash?: string;
-    model?: Model | Partial<{}> | string;
+    model?: Model | string;
     modelType?: string;
 }
 export interface RenderOptions {
