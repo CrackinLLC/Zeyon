@@ -33,6 +33,9 @@ exports.default = {
             return constructor;
         };
     },
+    defineRoutes(routes) {
+        return routes;
+    },
     Collection: collection_1.default,
     CollectionView: collectionView_1.default,
     Emitter: emitter_1.default,

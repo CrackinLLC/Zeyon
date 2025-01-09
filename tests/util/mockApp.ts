@@ -10,32 +10,32 @@ import type {
   ClassMapTypeView,
 } from '../../src/generated/ClassMapType';
 import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from '../../src/imports/app';
-import type { RouteConfig } from '../../src/imports/router';
 import type Model from '../../src/model';
 import type Router from '../../src/router';
 import type RouteView from '../../src/routeView';
 import type View from '../../src/view';
 
-export class MockZeyonApp<CustomRouteProps = any> implements ZeyonAppLike<CustomRouteProps> {
+export class MockZeyonApp<CustomRouteProps = any> implements ZeyonAppLike {
   public name = '';
   public el: HTMLElement;
   public isStarted = false;
   public isReady: Promise<this>;
-  public router: Router<CustomRouteProps>;
+  public router: Router;
   public window: Window;
 
-  constructor(public options: ZeyonAppOptions = { el: document.createElement('div') }) {
+  constructor(
+    public options: ZeyonAppOptions = {
+      el: document.createElement('div'),
+      routes: [],
+    },
+  ) {
     this.isReady = new Promise<this>((resolve) => resolve(this));
     this.el = options.el;
     this.name = options.name || '';
     this.window = window;
   }
 
-  public registerRoutes<C extends CustomRouteProps>(routes: RouteConfig<C>[]): this {
-    return this;
-  }
-
-  public setGlobalViews(layouts: GlobalViewConfig | GlobalViewConfig[]): this {
+  public renderGlobalView(layouts: GlobalViewConfig | GlobalViewConfig[]): this {
     return this;
   }
 
@@ -51,14 +51,26 @@ export class MockZeyonApp<CustomRouteProps = any> implements ZeyonAppLike<Custom
     registrationId: K,
     options?: ClassMapTypeView[K]['options'],
   ): Promise<ClassMapTypeView[K] & View> {
-    return {} as ClassMapTypeView[K] & View;
+    const stub: Partial<View> = {
+      async render(): Promise<View> {
+        return stub as View;
+      },
+    };
+
+    return stub as ClassMapTypeView[K] & View;
   }
 
   public async newRouteView<K extends keyof ClassMapTypeRouteView>(
     registrationId: K,
     options?: ClassMapTypeRouteView[K]['options'],
   ): Promise<ClassMapTypeRouteView[K] & RouteView> {
-    return {} as ClassMapTypeRouteView[K] & RouteView;
+    const stub: Partial<RouteView> = {
+      async render(): Promise<RouteView> {
+        return stub as RouteView;
+      },
+    };
+
+    return stub as ClassMapTypeRouteView[K] & RouteView;
   }
 
   public async newModel<K extends keyof ClassMapTypeModel>(

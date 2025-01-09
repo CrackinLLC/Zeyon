@@ -1,29 +1,31 @@
 import Emitter from './emitter';
 import { ZeyonAppLike } from './imports/app';
-import type { RouteConfig, RouterOptions, SiteMapRouteDetail } from './imports/router';
+import type { RouteConfig, RouterOptions, SiteMapRouteConfig } from './imports/router';
 import type RouteView from './routeView';
-export default class Router<CustomRouteProps = any> extends Emitter {
+export default class Router extends Emitter {
     static registrationId: string;
     private currentPath;
     private currentRoute;
     private currentRouteConfig;
     private routes;
-    private notFound;
     private urlMap;
+    private registrationIdMap;
     private siteMap;
+    private root;
+    private notFound;
     private urlPrefix;
-    constructor({ urlPrefix }: RouterOptions, app: ZeyonAppLike);
-    registerRoutes<C extends CustomRouteProps>(routes: RouteConfig<C>[]): void;
+    constructor({ urlPrefix, routes }: RouterOptions, app: ZeyonAppLike);
+    registerRoutes(routes: RouteConfig[]): void;
     start(): void;
     getCurrentPath(): string;
     getCurrentRoute(): RouteView | undefined;
-    getCurrentRouteConfig(): RouteConfig<CustomRouteProps> | undefined;
-    getSiteMap(options?: {
-        exclude?: Partial<CustomRouteProps>;
-    }): SiteMapRouteDetail<CustomRouteProps>[];
+    getCurrentRouteConfig(): RouteConfig | undefined;
+    getRouteById(regId: string): RouteConfig | undefined;
+    getSiteMap(urlPath?: string): SiteMapRouteConfig | SiteMapRouteConfig[];
     setQueryParams(params: {
         [key: string]: string | null | undefined;
     }): void;
+    navigateToRoot(): void;
     navigate({ path, preserveQuery, force, }: {
         path?: string;
         preserveQuery?: boolean;
@@ -32,7 +34,7 @@ export default class Router<CustomRouteProps = any> extends Emitter {
     back(): void;
     private loadRouteFromUrl;
     private matchPathToRoute;
-    private preprocessRoutes;
+    private matchDynamicSegments;
     private standardizeUrl;
 }
 //# sourceMappingURL=router.d.ts.map

@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const emitter_1 = __importDefault(require("./emitter"));
 class Router extends emitter_1.default {
-    constructor({ urlPrefix }, app) {
+    constructor({ urlPrefix, routes }, app) {
         super({
             events: [
                 'navigate',
@@ -14,14 +14,54 @@ class Router extends emitter_1.default {
         }, app);
         this.currentPath = '';
         this.routes = [];
-        this.urlMap = { segment: '', children: new Map() };
+        this.urlMap = {};
+        this.registrationIdMap = {};
         this.siteMap = [];
         this.urlPrefix = urlPrefix;
         this.currentPath = this.standardizeUrl(new URL(this.app.window.location.href).pathname);
-        this.preprocessRoutes();
+        this.registerRoutes(routes);
+        console.log(this.urlMap);
     }
     registerRoutes(routes) {
-        this.routes = { ...this.routes, ...routes };
+        this.routes = routes;
+        this.urlMap = {};
+        this.registrationIdMap = {};
+        this.siteMap = [];
+        const processRoute = (route, parentPath, parentSiteNode) => {
+            const fullPath = this.standardizeUrl(parentPath + '/' + route.urlFragment);
+            if (this.urlMap[fullPath]) {
+                throw new Error(`Route collision: another route already exists at "${fullPath}".`);
+            }
+            this.urlMap[fullPath] = route;
+            this.registrationIdMap[String(route.registrationId)] = route;
+            if (fullPath === '/') {
+                if (this.root) {
+                    console.warn('Multiple root routes defined. Only the last one will be used.');
+                }
+                this.root = route;
+            }
+            if (route.is404) {
+                this.notFound = route;
+            }
+            const siteNode = {
+                registrationId: route.registrationId,
+                fullUrl: fullPath,
+                custom: route.custom,
+                childRoutes: [],
+            };
+            if (parentSiteNode) {
+                parentSiteNode.childRoutes?.push(siteNode);
+            }
+            else {
+                this.siteMap.push(siteNode);
+            }
+            if (route.childRoutes && route.childRoutes.length > 0) {
+                for (const child of route.childRoutes) {
+                    processRoute(child, fullPath, siteNode);
+                }
+            }
+        };
+        this.routes.forEach((r) => processRoute(r, '', null));
     }
     start() {
         this.app.window.addEventListener('popstate', () => this.loadRouteFromUrl());
@@ -36,26 +76,27 @@ class Router extends emitter_1.default {
     getCurrentRouteConfig() {
         return this.currentRouteConfig;
     }
-    getSiteMap(options = {}) {
-        const { exclude } = options;
-        if (!exclude)
+    getRouteById(regId) {
+        return this.registrationIdMap[regId];
+    }
+    getSiteMap(urlPath) {
+        if (!urlPath) {
             return this.siteMap;
-        const filterSiteMap = (routes) => {
-            return routes
-                .filter((route) => {
-                for (const [key, value] of Object.entries(exclude)) {
-                    if (route.custom[key] === value) {
-                        return false;
-                    }
+        }
+        const findSiteMapNode = (urlPath, nodes) => {
+            for (const node of nodes) {
+                if (node.fullUrl === urlPath) {
+                    return node;
                 }
-                return true;
-            })
-                .map((route) => ({
-                ...route,
-                children: filterSiteMap(route.children),
-            }));
+                if (node.childRoutes) {
+                    const match = findSiteMapNode(urlPath, node.childRoutes);
+                    if (match)
+                        return match;
+                }
+            }
+            return undefined;
         };
-        return filterSiteMap(this.siteMap);
+        return findSiteMapNode(urlPath, this.siteMap) || [];
     }
     setQueryParams(params) {
         const url = new URL(this.app.window.location.href);
@@ -71,8 +112,14 @@ class Router extends emitter_1.default {
         url.search = searchParams.toString();
         this.app.window.history.replaceState({}, '', url.toString());
     }
+    navigateToRoot() {
+        if (this.root) {
+            this.navigate({ path: '/' });
+        }
+    }
     async navigate({ path = this.app.window.location.pathname, preserveQuery = false, force = false, }) {
         path = this.standardizeUrl(path);
+        console.log('navigating to', path);
         let canProceed = true;
         if (this.currentRoute?.beforeNavigate) {
             canProceed = await this.currentRoute.beforeNavigate(path);
@@ -99,16 +146,13 @@ class Router extends emitter_1.default {
             this.currentPath = path;
             const matchResult = this.matchPathToRoute(path);
             let route;
-            let params;
-            let customProps;
+            let params = {};
             if (matchResult) {
                 route = matchResult.route;
-                params = matchResult.params;
-                customProps = matchResult.customProps;
+                params = matchResult.params || {};
             }
             else if (this.notFound) {
                 route = this.notFound;
-                customProps = route.custom;
             }
             else {
                 console.warn(`No matching route found for path: ${path}`);
@@ -121,16 +165,17 @@ class Router extends emitter_1.default {
                 this.currentRouteConfig = undefined;
             }
             try {
+                console.log('What do we have?', route);
                 this.currentRoute = await this.app
                     .newRouteView(route.registrationId, {
-                    ...(params && Object.keys(params).length ? { params } : {}),
-                    ...(query ? { query } : {}),
+                    ...(Object.keys(params).length ? { params } : {}),
+                    ...(Object.keys(query).length ? { query } : {}),
                     ...(hash ? { hash } : {}),
                     attachTo: this.app.el,
                 })
                     .then((routeView) => routeView.render());
                 this.currentRouteConfig = route;
-                this.emit('navigate', { regId: route.registrationId, ...(customProps || {}) });
+                this.emit('navigate', { regId: route.registrationId, ...(route.custom || {}) });
             }
             catch (error) {
                 console.error('Error loading route:', error);
@@ -138,82 +183,59 @@ class Router extends emitter_1.default {
         }
     }
     matchPathToRoute(path) {
-        const segments = path.split('/').filter(Boolean);
-        let currentNode = this.urlMap;
-        const params = {};
-        for (const segment of segments) {
-            let nextNode = currentNode.children.get(segment);
-            if (!nextNode) {
-                nextNode = currentNode.children.get(':###');
-                if (nextNode && nextNode.paramName) {
-                    params[nextNode.paramName] = decodeURIComponent(segment);
-                }
-                else {
-                    return undefined;
-                }
-            }
-            currentNode = nextNode;
-        }
-        if (currentNode.config) {
+        if (this.urlMap[path]) {
             return {
-                route: currentNode.config,
-                ...(params ? { params } : {}),
-                ...(currentNode.custom ? { customProps: currentNode.custom } : {}),
+                route: this.urlMap[path],
+                params: {},
             };
+        }
+        for (const patternKey of Object.keys(this.urlMap)) {
+            if (!patternKey.includes(':'))
+                continue;
+            const maybeParams = this.matchDynamicSegments(path, patternKey);
+            if (maybeParams) {
+                return {
+                    route: this.urlMap[patternKey],
+                    params: maybeParams,
+                };
+            }
         }
         return undefined;
     }
-    preprocessRoutes() {
-        const processConfig = (config, currentNode, parentCustom, parentUrl) => {
-            const segments = config.urlFragment.split('/').filter(Boolean);
-            let node = currentNode;
-            let fullUrl = parentUrl;
-            segments.forEach((segment) => {
-                let childNode;
-                let paramName;
-                if (segment.startsWith(':')) {
-                    paramName = segment.substring(1);
-                    childNode = node.children.get(':###');
-                    if (!childNode) {
-                        childNode = { segment: ':###', children: new Map(), paramName };
-                        node.children.set(':###', childNode);
+    matchDynamicSegments(path, pattern) {
+        const pathSegments = path.split('/').filter(Boolean);
+        const patternSegments = pattern.split('/').filter(Boolean);
+        const params = {};
+        let pi = 0;
+        for (let i = 0; i < patternSegments.length; i++) {
+            const segment = patternSegments[i];
+            const pathValue = pathSegments[pi];
+            if (!segment.startsWith(':')) {
+                if (segment !== pathValue) {
+                    return undefined;
+                }
+                pi++;
+            }
+            else {
+                const isOptional = segment.endsWith('?');
+                const paramName = isOptional
+                    ? segment.slice(1, -1)
+                    : segment.slice(1);
+                if (pathValue === undefined) {
+                    if (!isOptional) {
+                        return undefined;
                     }
                 }
                 else {
-                    childNode = node.children.get(segment);
-                    if (!childNode) {
-                        childNode = { segment, children: new Map() };
-                        node.children.set(segment, childNode);
-                    }
+                    params[paramName] = decodeURIComponent(pathValue);
+                    pi++;
                 }
-                node = childNode;
-                const segmentPart = paramName ? `:${paramName}` : segment;
-                fullUrl = this.standardizeUrl(`${fullUrl}/${segmentPart}`);
-            });
-            if (node.config) {
-                throw new Error(`Duplicate route for this path: ${config.urlFragment}`);
             }
-            const custom = { ...parentCustom, ...(config.custom || {}) };
-            node.config = config;
-            node.custom = custom;
-            if (config.is404) {
-                this.notFound = config;
-            }
-            const siteMapEntry = {
-                regId: config.registrationId,
-                fullUrl,
-                custom,
-                children: [],
-            };
-            if (config.childRoutes) {
-                config.childRoutes.forEach((childConfig) => {
-                    const childSiteMapEntry = processConfig(childConfig, node, custom, fullUrl);
-                    siteMapEntry.children.push(childSiteMapEntry);
-                });
-            }
-            return siteMapEntry;
-        };
-        this.siteMap = this.routes.map((routeConfig) => processConfig(routeConfig, this.urlMap, {}, ''));
+        }
+        if (pi < pathSegments.length) {
+            return undefined;
+        }
+        return params;
     }
     standardizeUrl(url, includePrefix = false) {
         if (this.urlPrefix) {

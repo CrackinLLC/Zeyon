@@ -19,7 +19,7 @@ describe('ZeyonApp Unit Tests', () => {
 
   beforeEach(() => {
     el = document.createElement('div');
-    options = { el, name: 'TestApp', urlPrefix: '/test' };
+    options = { el, name: 'TestApp', urlPrefix: '/test', routes: [] };
 
     app = new ZeyonApp(options);
     router = getPrivate(app, 'router');
@@ -109,20 +109,20 @@ describe('ZeyonApp Unit Tests', () => {
     (global as any).loaderTemplate = originalTemplate;
   });
 
-  it('setGlobalViews logs a warning if element not found', async () => {
+  it('renderGlobalView logs a warning if element not found', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    app.setGlobalViews({ selector: '#notfound', registrationId: 'some-id' as any });
+    app.renderGlobalView({ selector: '#notfound', registrationId: 'some-id' as any });
     expect(warnSpy).toHaveBeenCalledWith('Element not found for selector: #notfound');
     warnSpy.mockRestore();
   });
 
-  it('setGlobalViews calls newView for found elements', () => {
+  it('renderGlobalView calls newView for found elements', () => {
     const div = document.createElement('div');
     div.id = 'found';
     document.body.appendChild(div);
 
     const newViewSpy = vi.spyOn(app, 'newView');
-    app.setGlobalViews({ selector: '#found', registrationId: 'some-id' as any });
+    app.renderGlobalView({ selector: '#found', registrationId: 'some-id' as any });
     expect(newViewSpy).toHaveBeenCalledWith('some-id', expect.any(Object));
 
     div.remove();

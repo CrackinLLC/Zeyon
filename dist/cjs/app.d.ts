@@ -2,11 +2,10 @@ import type Collection from './collection';
 import type CollectionView from './collectionView';
 import type { ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from './generated/ClassMapType';
 import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from './imports/app';
-import { RouteConfig } from './imports/router';
 import type Model from './model';
 import type RouteView from './routeView';
 import type View from './view';
-export default class ZeyonApp<CustomRouteProps = any> implements ZeyonAppLike<CustomRouteProps> {
+export default class ZeyonApp implements ZeyonAppLike {
     options: ZeyonAppOptions;
     name: string;
     el: HTMLElement;
@@ -18,8 +17,7 @@ export default class ZeyonApp<CustomRouteProps = any> implements ZeyonAppLike<Cu
     private registry;
     private loadingState;
     constructor(options: ZeyonAppOptions);
-    registerRoutes<C extends CustomRouteProps>(routes: RouteConfig<C>[]): this;
-    setGlobalViews(layouts: GlobalViewConfig | GlobalViewConfig[]): this;
+    renderGlobalView(layouts: GlobalViewConfig | GlobalViewConfig[]): this;
     start(): Promise<this>;
     navigate(urlFragment: string, openNewTab?: boolean): this;
     newView<K extends keyof ClassMapTypeView>(registrationId: K, options?: ClassMapTypeView[K]['options']): Promise<ClassMapTypeView[K] & View>;

@@ -1,15 +1,12 @@
 import type { ClassMapTypeRouteView } from '../generated/ClassMapType';
 
 export interface RouterOptions {
+  routes: RouteConfig[];
   urlPrefix?: string; // A custom url prefix used across the entire application
 }
 
-export interface RegisterRoutesParam<CustomRouteProps = any> {
-  routes: RouteConfig<CustomRouteProps>[];
-}
-
 // TODO: Extend to allow for metadata instead and support dynamic fetching
-export interface RouteConfig<CustomRouteProps = any> {
+export interface RouteConfig<CustomRouteProps extends {} = {}> {
   registrationId: keyof ClassMapTypeRouteView;
   urlFragment: string; // Fragment to append to the url path (excludes leading/trailing slashes)
   is404?: boolean; // Defines the 404 page for the application (last one defined takes precedence)
@@ -19,24 +16,19 @@ export interface RouteConfig<CustomRouteProps = any> {
   custom?: CustomRouteProps;
 }
 
-// Internal map that reorganizes the routeConfigs for easier retrieval by url path
-export interface RouteNode<CustomRouteProps = any> {
-  segment: string; // The path segment leading to this node in the tree
-  children: Map<string, RouteNode<CustomRouteProps>>; // Child nodes
-  config?: RouteConfig<CustomRouteProps>; // The route config associated with this node
-  paramName?: string; // If node is dynamic, the name of the dynamic parameter
-  custom?: CustomRouteProps; // Aggregated custom properties
-}
+// Flat object intended to store all routes by their full path string
+export type FlatMap<CustomRouteProps extends {} = {}> = {
+  [idOrPath: string]: RouteConfig<CustomRouteProps>;
+};
 
-// Similar to our RouteNode, but specifically organized for our sitemap
-export interface SiteMapRouteDetail<CustomProps = any> {
-  regId: keyof ClassMapTypeRouteView;
-  name?: string;
+// Similar to our RouteConfig, but specifically intended for our sitemap
+export interface SiteMapRouteConfig extends Omit<RouteConfig, 'urlFragment' | 'is404' | 'childRoutes'> {
   fullUrl: string;
-  custom: CustomProps;
-  children: SiteMapRouteDetail<CustomProps>[];
+  childRoutes?: SiteMapRouteConfig[];
 }
 
-export type NavigateEventPayload<CustomRouteProps = any> = {
+export type SiteMap = SiteMapRouteConfig[];
+
+export type NavigateEventPayload<CustomRouteProps extends {} = {}> = {
   regId: string;
 } & CustomRouteProps;

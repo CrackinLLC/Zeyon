@@ -20,6 +20,9 @@ export default {
             return constructor;
         };
     },
+    defineRoutes(routes) {
+        return routes;
+    },
     Collection,
     CollectionView,
     Emitter,

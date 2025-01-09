@@ -11,7 +11,6 @@ import type {
   ClassMapTypeView,
 } from './generated/ClassMapType';
 import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from './imports/app';
-import { RouteConfig } from './imports/router';
 import type Model from './model';
 import Router from './router';
 import type RouteView from './routeView';
@@ -21,7 +20,7 @@ import type View from './view';
 /**
  * The central hub of the application, managing interactions between components.
  */
-export default class ZeyonApp<CustomRouteProps = any> implements ZeyonAppLike<CustomRouteProps> {
+export default class ZeyonApp implements ZeyonAppLike {
   /**
    * Custom identifying string for the current application.
    */
@@ -68,7 +67,7 @@ export default class ZeyonApp<CustomRouteProps = any> implements ZeyonAppLike<Cu
    * @param options - The application options.
    */
   constructor(public options: ZeyonAppOptions) {
-    const { name, el, urlPrefix } = options;
+    const { name, el, urlPrefix, routes } = options;
 
     // Initialize readiness promises
     this.isReady = new Promise<this>((resolve) => {
@@ -79,16 +78,11 @@ export default class ZeyonApp<CustomRouteProps = any> implements ZeyonAppLike<Cu
     this.el = el;
     this.window = window;
 
-    this.router = new Router<CustomRouteProps>({ urlPrefix }, this);
+    this.router = new Router({ urlPrefix, routes }, this);
     this.registry = new ClassRegistry({}, this);
   }
 
-  public registerRoutes<C extends CustomRouteProps>(routes: RouteConfig<C>[]) {
-    this.router.registerRoutes(routes);
-    return this;
-  }
-
-  public setGlobalViews(layouts: GlobalViewConfig | GlobalViewConfig[]) {
+  public renderGlobalView(layouts: GlobalViewConfig | GlobalViewConfig[]) {
     if (!Array.isArray(layouts)) {
       layouts = [layouts];
     }

@@ -7,8 +7,9 @@ import type View from '../view';
 import type { RouteConfig } from './router';
 import type { ViewOptions } from './view';
 export interface ZeyonAppOptions {
-    name?: string;
     el: HTMLElement;
+    routes: RouteConfig[];
+    name?: string;
     urlPrefix?: string;
 }
 export interface GlobalViewConfig {
@@ -16,15 +17,14 @@ export interface GlobalViewConfig {
     selector: string;
     options?: ViewOptions;
 }
-export interface ZeyonAppLike<CustomRouteProps = any> {
+export interface ZeyonAppLike {
+    options: ZeyonAppOptions;
     name: string;
     el: HTMLElement;
     isStarted: boolean;
     isReady: Promise<this>;
     window: Window;
-    options: ZeyonAppOptions;
-    registerRoutes<C extends CustomRouteProps>(routes: RouteConfig<C>[]): this;
-    setGlobalViews(layouts: GlobalViewConfig | GlobalViewConfig[]): this;
+    renderGlobalView(layouts: GlobalViewConfig | GlobalViewConfig[]): this;
     start(): Promise<this>;
     navigate(urlFragment: string, openNewTab?: boolean): this;
     newView<K extends keyof ClassMapTypeView>(registrationId: K, options?: ClassMapTypeView[K]['options']): Promise<ClassMapTypeView[K] & View>;

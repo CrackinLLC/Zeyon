@@ -7,21 +7,17 @@ export default class ZeyonApp {
         this.name = '';
         this.isStarted = false;
         this.loadingState = null;
-        const { name, el, urlPrefix } = options;
+        const { name, el, urlPrefix, routes } = options;
         this.isReady = new Promise((resolve) => {
             this.resolveIsReady = resolve;
         });
         this.name = name || '';
         this.el = el;
         this.window = window;
-        this.router = new Router({ urlPrefix }, this);
+        this.router = new Router({ urlPrefix, routes }, this);
         this.registry = new ClassRegistry({}, this);
     }
-    registerRoutes(routes) {
-        this.router.registerRoutes(routes);
-        return this;
-    }
-    setGlobalViews(layouts) {
+    renderGlobalView(layouts) {
         if (!Array.isArray(layouts)) {
             layouts = [layouts];
         }

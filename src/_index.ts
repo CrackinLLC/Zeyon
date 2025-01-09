@@ -2,9 +2,9 @@ import '../util/polyfill';
 import '../util/template';
 
 import ZeyonApp from './app';
+import type { ZeyonAppOptions } from './imports/app';
+import type { RouteConfig } from './imports/router';
 import Router from './router';
-export type { ZeyonAppOptions } from './imports/app';
-export type { RouteConfig } from './imports/router';
 
 import Collection from './collection';
 import CollectionView from './collectionView';
@@ -20,7 +20,7 @@ export type { ModelOptions } from './imports/model';
 export type { RouteViewOptions } from './imports/routeView';
 export type { ViewOptions } from './imports/view';
 
-export { Collection, CollectionView, Emitter, Model, Router, RouteView, View, ZeyonApp };
+export { Collection, CollectionView, Emitter, Model, RouteConfig, Router, RouteView, View, ZeyonApp, ZeyonAppOptions };
 export default {
   // Instantiate a Zeyon application instance
   create: (options: any) => new ZeyonApp(options),
@@ -51,8 +51,18 @@ export default {
         // Do stuff...
       }
     }
+  */
 
+  /**
+   * Used to ensure custom route properties conform to the interface supplied by the developer
+   * @param routes
+   * @returns
    */
+  defineRoutes<CustomRouteProps extends {} = {}>(
+    routes: RouteConfig<CustomRouteProps>[],
+  ): RouteConfig<CustomRouteProps>[] {
+    return routes;
+  },
 
   Collection,
   CollectionView,
