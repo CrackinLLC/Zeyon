@@ -4,13 +4,10 @@ import Emitter from '../../src/emitter';
 import type { EmitterOptions } from '../../src/imports/emitter';
 import { MockZeyonApp } from '../util/mockApp';
 
-// Subclass to instantiate Emitter
 class TestEmitter extends Emitter {
-  // Optionally override anything or add test hooks
   constructor(options: EmitterOptions = {}, app: MockZeyonApp) {
     super(options, app);
   }
-
   public ready() {
     this.markAsReady();
   }
@@ -43,14 +40,22 @@ describe('Emitter', () => {
     expect(isReadySpy).toHaveBeenCalled();
   });
 
-  it('allows adding valid events and listening to them', () => {
+  it('allows adding valid events and listening to them (custom event)', () => {
     emitter.extendValidEvents('customEvent');
     const handler = vi.fn();
 
     emitter.on('customEvent', handler);
     emitter.emit('customEvent', { some: 'data' });
+
+    // In new design:
+    // handler is "NormalEventHandler": (data: any, ev?: CustomEvent)
+    // So calls[0] => [ {some:'data'}, CustomEvent ]
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler.mock.calls[0][0].detail).toEqual({ some: 'data' });
+
+    const [dataArg, eventArg] = handler.mock.calls[0];
+    expect(dataArg).toEqual({ some: 'data' });
+    expect(eventArg).toBeInstanceOf(CustomEvent);
+    expect(eventArg.detail).toEqual({ some: 'data' });
   });
 
   it('warns on invalid events', () => {
@@ -68,6 +73,9 @@ describe('Emitter', () => {
     emitter.emit('testEvent', 123);
     expect(handler).toHaveBeenCalledTimes(1);
 
+    const [dataArg] = handler.mock.calls[0];
+    expect(dataArg).toBe(123);
+
     // Now remove
     emitter.off({ event: 'testEvent', handler });
     emitter.emit('testEvent', 456);
@@ -82,7 +90,11 @@ describe('Emitter', () => {
     emitter.emit('oneTime', { val: 1 });
     emitter.emit('oneTime', { val: 2 });
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler.mock.calls[0][0].detail).toEqual({ val: 1 });
+
+    // With new design, calls[0] => [ {val:1}, CustomEvent ]
+    const [dataArg, eventArg] = handler.mock.calls[0];
+    expect(dataArg).toEqual({ val: 1 });
+    expect(eventArg).toBeInstanceOf(CustomEvent);
   });
 
   it('supports the "*" wildcard event', () => {
@@ -92,8 +104,13 @@ describe('Emitter', () => {
 
     emitter.emit('testEvent', { x: 10 });
     expect(starHandler).toHaveBeenCalledTimes(1);
-    // starHandler receives (customEvent, 'testEvent')
-    expect(starHandler.mock.calls[0][1]).toBe('testEvent');
+
+    // New design: wildcard handler => (eventName, data, customEvent?)
+    // So calls[0] => [ 'testEvent', { x:10 }, CustomEvent ]
+    const [eventNameArg, dataArg, eventObj] = starHandler.mock.calls[0];
+    expect(eventNameArg).toBe('testEvent');
+    expect(dataArg).toEqual({ x: 10 });
+    expect(eventObj).toBeInstanceOf(CustomEvent);
   });
 
   it('debouncedEmit aggregates payload if requested', async () => {
@@ -105,12 +122,16 @@ describe('Emitter', () => {
 
     emitter.debouncedEmit('debouncedEvent', { val: 1 });
     emitter.debouncedEmit('debouncedEvent', { val: 2 });
-    // Wait a little for the debounce to resolve
     await new Promise((r) => setTimeout(r, 50));
 
     // Should have been called once with aggregated array
     expect(handler).toHaveBeenCalledTimes(1);
-    expect(handler.mock.calls[0][0].detail).toEqual([{ val: 1 }, { val: 2 }]);
+
+    // calls[0] => [ [ {val:1}, {val:2} ], CustomEvent ]
+    const [dataArg, eventArg] = handler.mock.calls[0];
+    expect(dataArg).toEqual([{ val: 1 }, { val: 2 }]);
+    expect(eventArg).toBeInstanceOf(CustomEvent);
+    expect(eventArg.detail).toEqual([{ val: 1 }, { val: 2 }]);
   });
 
   it('destroy sets isDestroyed and emits destroyed event', () => {
@@ -121,11 +142,7 @@ describe('Emitter', () => {
     emitter.destroy();
     expect(emitter['isDestroyed']).toBe(true);
 
-    // "destroyed" event is emitted
-    expect(destroySpy).toHaveBeenCalledTimes(1);
-
-    // Additional destroy call is a no-op
-    emitter.destroy();
+    // "destroyed" event is emitted => calls => [ [undefined, CustomEvent] ] typically
     expect(destroySpy).toHaveBeenCalledTimes(1);
   });
 

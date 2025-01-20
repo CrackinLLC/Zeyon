@@ -1,13 +1,12 @@
 import type Collection from './collection';
 import Emitter from './emitter';
 import { ZeyonAppLike } from './imports/app';
-import { AttributeDefinition, Attributes, ModelOptions, ModelType } from './imports/model';
+import { AttributeDefinition, Attributes, ModelOptions } from './imports/model';
 export default abstract class Model extends Emitter {
     protected app: ZeyonAppLike;
     abstract attrib: Attributes;
     options: ModelOptions<this['attrib']>;
     defaultOptions: ModelOptions<this['attrib']>;
-    static type: ModelType;
     static definition: {
         [key: string]: AttributeDefinition;
     };
@@ -22,7 +21,7 @@ export default abstract class Model extends Emitter {
     hasChanges(): boolean;
     set(attributes?: Partial<this['attrib']>, silent?: boolean): this;
     unset(attributeName: keyof this['attrib']): this;
-    get<T extends keyof this['attrib']>(attributeName: keyof this['attrib']): T;
+    get<K extends keyof this['attrib']>(attributeName: K): this['attrib'][K];
     getId(): number | undefined;
     getAttributes(): this['attrib'];
     setCollection(collection?: Collection): this;
@@ -32,7 +31,6 @@ export default abstract class Model extends Emitter {
     reset(silent?: boolean): this;
     destroy(): void;
     validateAttributes(attributes: Partial<this['attrib']>): Partial<this['attrib']>;
-    getType(): ModelType;
     static getAttributeKeys(): string[];
 }
 //# sourceMappingURL=model.d.ts.map

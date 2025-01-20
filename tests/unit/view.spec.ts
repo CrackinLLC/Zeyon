@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { nativeEvents } from '../../src/imports/emitter';
 import { Attributes } from '../../src/imports/model';
 import type { ViewOptions } from '../../src/imports/view';
+import { nativeEvents } from '../../src/imports/view';
 import Model from '../../src/model';
 import View from '../../src/view';
 import { getPrivate } from '../util/driver';

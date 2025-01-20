@@ -21,4 +21,5 @@ export interface AttachReference {
     view: View;
     id: string;
 }
+export declare const nativeEvents: string[];
 //# sourceMappingURL=view.d.ts.map

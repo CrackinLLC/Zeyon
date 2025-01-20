@@ -1,4 +1,3 @@
-import { nativeEvents } from './imports/emitter';
 import { debounce } from './util/debounce';
 const generalEvents = [
     '*',
@@ -25,6 +24,9 @@ class Emitter {
     markAsReady() {
         this.resolveIsReady(this);
     }
+    isNativeEvent(eventName) {
+        return !!eventName && false;
+    }
     async initialize() { }
     rebuildListenersObject() {
         this.destroyEvents();
@@ -47,15 +49,17 @@ class Emitter {
     getValidEvents() {
         return [...this.validEvents.values()];
     }
-    on(event, handler, subscriber = this) {
-        if (!this.validEvents.has(event)) {
-            return this.logInvalidEvent(event, this);
+    on(eventName, handler, subscriber = this) {
+        if (!this.validEvents.has(eventName) && eventName !== '*') {
+            return this.logInvalidEvent(eventName, this);
         }
-        this.eventListeners[event].push(new Listener({
+        const isNative = this.isNativeEvent(eventName);
+        this.eventListeners[eventName].push(new Listener({
             subscriber,
-            eventName: event,
+            eventName,
             handler,
-            el: this['el'] || null,
+            el: isNative ? this.el : undefined,
+            isNative,
         }));
         return this;
     }
@@ -83,19 +87,22 @@ class Emitter {
         return this;
     }
     once(event, handler, subscriber) {
-        const wrappedHandler = (ev) => {
-            handler(ev);
+        const wrappedHandler = (...args) => {
+            handler.apply(subscriber, args);
             this.off({ event, handler: wrappedHandler, subscriber });
         };
-        this.on(event, wrappedHandler, subscriber);
-        return this;
+        return this.on(event, wrappedHandler, subscriber);
     }
-    emit(event, detail) {
-        if (!this.validEvents.has(event)) {
-            return this.logInvalidEvent(event, this);
+    emit(eventName, detail) {
+        if (!this.validEvents.has(eventName) && eventName !== '*') {
+            return this.logInvalidEvent(eventName, this);
         }
-        const listeners = [...this.eventListeners[event], ...this.eventListeners['*']];
-        listeners?.forEach((listener) => listener.trigger(detail, event));
+        const listeners = [...(this.eventListeners[eventName] || []), ...(this.eventListeners['*'] || [])];
+        for (const listener of listeners) {
+            if (!listener.getIsNative()) {
+                listener.trigger(detail, eventName);
+            }
+        }
         return this;
     }
     debouncedEmit(event, payload, shouldAggregate = true) {
@@ -153,44 +160,65 @@ Emitter.config = {};
 export default Emitter;
 class Listener {
     constructor(options) {
-        const { subscriber, eventName, handler, el } = options;
+        const { subscriber, eventName, handler, el, isNative } = options;
         this.subscriber = subscriber;
         this.eventName = eventName;
         this.handler = handler;
         this.el = el;
-        this.isNativeEvent = !!this.el && nativeEvents.includes(eventName);
-        if (this.isNativeEvent && this.el) {
-            this.boundHandler = (ev) => {
+        this.isNative = isNative;
+        this.isWildcard = this.eventName === '*';
+        if (this.isNative) {
+            this.boundHandler = (domEvent) => {
                 if (this.subscriber) {
-                    this.handler.call(this.subscriber, ev);
+                    this.handler.call(this.subscriber, undefined, domEvent);
                 }
                 else {
-                    this.handler(ev);
+                    this.handler(undefined, domEvent);
                 }
             };
             this.el.addEventListener(this.eventName, this.boundHandler);
         }
     }
-    trigger(detail = {}, event) {
-        if (this.isNativeEvent) {
-            if (this.el) {
-                const eventObj = new Event(this.eventName);
-                this.el.dispatchEvent(eventObj);
+    trigger(detail = {}, actualEventName) {
+        if (this.isNative) {
+            const domEvent = new Event(this.eventName);
+            if (this.el)
+                this.el.dispatchEvent(domEvent);
+            const nativeHandler = this.handler;
+            if (this.subscriber) {
+                nativeHandler.call(this.subscriber, undefined, domEvent);
+            }
+            else {
+                nativeHandler(undefined, domEvent);
+            }
+        }
+        else if (this.isWildcard) {
+            const wildcardHandler = this.handler;
+            const customEvent = new CustomEvent(actualEventName ?? this.eventName, { detail });
+            if (this.subscriber) {
+                wildcardHandler.call(this.subscriber, actualEventName || '', detail, customEvent);
+            }
+            else {
+                wildcardHandler(actualEventName || '', detail, customEvent);
             }
         }
         else {
+            const normalHandler = this.handler;
             const customEvent = new CustomEvent(this.eventName, { detail });
-            if (this.eventName === '*') {
-                this.handler(customEvent, event);
+            if (this.subscriber) {
+                normalHandler.call(this.subscriber, detail, customEvent);
             }
             else {
-                this.handler(customEvent);
+                normalHandler(detail, customEvent);
             }
         }
         return this;
     }
+    getIsNative() {
+        return this.isNative;
+    }
     destroy() {
-        if (this.isNativeEvent && this.el && this.boundHandler) {
+        if (this.isNative && this.el && this.boundHandler) {
             this.el.removeEventListener(this.eventName, this.boundHandler);
         }
         this.subscriber = undefined;

@@ -50,8 +50,6 @@ export default class Router extends Emitter {
     this.currentPath = this.standardizeUrl(new URL(this.app.window.location.href).pathname);
 
     this.registerRoutes(routes);
-
-    console.log(this.urlMap);
   }
 
   /**
@@ -205,8 +203,6 @@ export default class Router extends Emitter {
   }) {
     path = this.standardizeUrl(path);
 
-    console.log('navigating to', path);
-
     // Hook to allow a view to prevent navigation if needed
     let canProceed = true;
     if (this.currentRoute?.beforeNavigate) {
@@ -266,8 +262,6 @@ export default class Router extends Emitter {
       }
 
       try {
-        console.log('What do we have?', route);
-
         this.currentRoute = await this.app
           .newRouteView(route.registrationId, {
             ...(Object.keys(params).length ? { params } : {}),

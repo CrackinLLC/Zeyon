@@ -15,7 +15,6 @@ class Router extends Emitter {
         this.urlPrefix = urlPrefix;
         this.currentPath = this.standardizeUrl(new URL(this.app.window.location.href).pathname);
         this.registerRoutes(routes);
-        console.log(this.urlMap);
     }
     registerRoutes(routes) {
         this.routes = routes;
@@ -114,7 +113,6 @@ class Router extends Emitter {
     }
     async navigate({ path = this.app.window.location.pathname, preserveQuery = false, force = false, }) {
         path = this.standardizeUrl(path);
-        console.log('navigating to', path);
         let canProceed = true;
         if (this.currentRoute?.beforeNavigate) {
             canProceed = await this.currentRoute.beforeNavigate(path);
@@ -160,7 +158,6 @@ class Router extends Emitter {
                 this.currentRouteConfig = undefined;
             }
             try {
-                console.log('What do we have?', route);
                 this.currentRoute = await this.app
                     .newRouteView(route.registrationId, {
                     ...(Object.keys(params).length ? { params } : {}),

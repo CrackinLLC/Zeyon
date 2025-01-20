@@ -6,33 +6,35 @@ export interface ModelOptions<A extends Attributes> extends EmitterOptions {
   collection?: Collection;
 }
 
-export const enum ModelType {
-  Unknown = 'unknown',
-}
-
-/////////////////////////
-// Attribute interfaces
-
 export interface Attributes {
   [key: string]: unknown;
   id?: number;
 }
 
-export const enum AttributeType {
-  String = 'String',
-  StringArray = 'StringArray',
-  Number = 'Number',
-  NumberArray = 'NumberArray',
-  Object = 'Object',
-  ObjectArray = 'ObjectArray',
-  Boolean = 'Boolean',
-  Date = 'Date',
-}
+export type AttributeType =
+  | 'string'
+  | 'stringArray'
+  | 'number'
+  | 'numberArray'
+  | 'boolean'
+  | 'booleanArray'
+  | 'symbol'
+  | 'symbolArray'
+  | 'object'
+  | 'objectArray'
+  | 'date'
+  | 'dateArray';
 
 export interface AttributeDefinition {
   type: AttributeType;
-  default?: unknown; // Default value of the attribute when a new model is instantiated
-  optional?: boolean;
+  default?: unknown; // The default value of the attribute when a new instance is created.
+
+  optional?: boolean; // Flags undefined or null as valid values (Defaults to false).
+  allowed?: unknown[]; // An array of explicitly permitted values. Does not infringe on "optional" handling.
+  validate?: (val: unknown) => boolean; // Custom validation function.
+
+  minLength?: number; // Minimum length for strings and arrays.
+  maxLength?: number; // Maximum length for strings and arrays.
 }
 
 export const modelEvents = [
@@ -42,4 +44,4 @@ export const modelEvents = [
   'reset', // When all model attributes are reset to their default or undefined values.
   'selected', // When the model is selected or deselected.
 ];
-// Additional generated events include [attribute]:change, [attribute]:set, and [attribute]:unset
+// Additional generated events include [attribute_name]:change, [attribute_name]:set, and [attribute_name]:unset

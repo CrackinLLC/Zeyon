@@ -7,7 +7,8 @@ export default abstract class Collection extends Emitter {
     options: CollectionOptions;
     defaultOptions: CollectionOptions;
     abstract modelRegistrationId: keyof ClassMapTypeModel;
-    model: ClassMapTypeModel[this['modelRegistrationId']];
+    modelConstructor: ClassMapTypeModel[this['modelRegistrationId']]['definition'];
+    model: InstanceType<this['modelConstructor']>;
     attrib: this['model']['attrib'];
     protected items: this['model'][];
     length: number;

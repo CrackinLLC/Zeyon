@@ -2,6 +2,7 @@ import '../util/polyfill';
 import '../util/template';
 import ZeyonApp from './app';
 import type { ZeyonAppOptions } from './imports/app';
+import { AttributeDefinition } from './imports/model';
 import type { RouteConfig } from './imports/router';
 import Router from './router';
 import Collection from './collection';
@@ -10,6 +11,9 @@ import Emitter from './emitter';
 import Model from './model';
 import RouteView from './routeView';
 import View from './view';
+interface RegisterModelOptions {
+    attributes: Record<string, AttributeDefinition>;
+}
 export type { CollectionOptions } from './imports/collection';
 export type { CollectionViewOptions } from './imports/collectionView';
 export type { EmitterOptions } from './imports/emitter';
@@ -19,7 +23,19 @@ export type { ViewOptions } from './imports/view';
 export { Collection, CollectionView, Emitter, Model, RouteConfig, Router, RouteView, View, ZeyonApp, ZeyonAppOptions };
 declare const _default: {
     create: (options: any) => ZeyonApp;
-    registerClass(registrationId: string): <T extends {
+    registerView(registrationId: string): <T extends {
+        new (...args: any[]): {};
+    }>(constructor: T) => T;
+    registerRouteView(registrationId: string): <T extends {
+        new (...args: any[]): {};
+    }>(constructor: T) => T;
+    registerModel(registrationId: string, options?: RegisterModelOptions): <T extends {
+        new (...args: any[]): {};
+    }>(constructor: T) => T;
+    registerCollection(registrationId: string): <T extends {
+        new (...args: any[]): {};
+    }>(constructor: T) => T;
+    registerCollectionView(registrationId: string): <T extends {
         new (...args: any[]): {};
     }>(constructor: T) => T;
     defineRoutes<CustomRouteProps extends {} = {}>(routes: RouteConfig<CustomRouteProps>[]): RouteConfig<CustomRouteProps>[];

@@ -59,12 +59,8 @@ class Collection extends emitter_1.default {
             }
             else {
                 this.items.push(model);
-                model.setCollection(this).on('*', (event, eventName) => {
-                    let data = undefined;
-                    if (event instanceof CustomEvent) {
-                        data = event.detail;
-                    }
-                    this.emit(eventName, { model, data });
+                model.setCollection(this).on('*', (eventName, val, event) => {
+                    this.emit(eventName, { model, data: val });
                 }, this);
             }
             if (!silent) {

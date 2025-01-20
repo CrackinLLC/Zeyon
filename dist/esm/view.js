@@ -1,5 +1,5 @@
 import Emitter from './emitter';
-import { nativeEvents } from './imports/emitter';
+import { nativeEvents } from './imports/view';
 import Model from './model';
 import { convertToRootElement } from './util/element';
 import { errorTemplate } from './util/error';
@@ -51,7 +51,7 @@ class View extends Emitter {
         this.renderTemplate();
         this.generateUiSelections();
         if (this.options.preventDefault) {
-            this.on('click', (event) => event.preventDefault());
+            this.on('click', (val, ev) => ev.preventDefault());
         }
         await this.onRender();
         if (this.isDestroyed)
@@ -176,7 +176,7 @@ class View extends Emitter {
     renderTemplate() {
         if (this.compiledTemplate && !this.isDestroyed) {
             this.el.innerHTML = this.compiledTemplate(this.getTemplateOptions());
-            this.on('click', (ev) => {
+            this.on('click', (val, ev) => {
                 if (ev.defaultPrevented)
                     return;
                 let target = ev.target;
@@ -213,7 +213,7 @@ class View extends Emitter {
         return {
             id: this.getViewId(),
             ...(this.model ? { model: this.model.getAttributes() } : {}),
-            ...(this.model ? { modelType: this.model.getType() } : {}),
+            ...(this.model ? { modelId: this.model.getRegistrationId() } : {}),
             ...(this.model?.getCollection() ? { collection: this.model.getCollection()?.getVisibleAttributes() } : {}),
             ...this.options,
             ...optionValues,
@@ -318,6 +318,9 @@ class View extends Emitter {
         this.errorEl?.remove();
         this.errorEl = undefined;
         this.removeClass('is-error');
+    }
+    isNativeEvent(eventName) {
+        return !!this.el && nativeEvents.includes(eventName);
     }
     destroy() {
         if (this.isDestroyed)

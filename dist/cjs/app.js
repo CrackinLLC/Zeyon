@@ -62,25 +62,22 @@ class ZeyonApp {
     async newView(registrationId, options) {
         return this.newInstance(registrationId, options);
     }
-    async newRouteView(registrationId, options) {
+    newRouteView(registrationId, options) {
         return this.newInstance(registrationId, options);
     }
-    async newModel(registrationId, options) {
+    newModel(registrationId, options) {
         return this.newInstance(registrationId, options);
     }
-    async newCollection(registrationId, options) {
+    newCollection(registrationId, options) {
         return this.newInstance(registrationId, options);
     }
-    async newCollectionView(registrationId, options) {
+    newCollectionView(registrationId, options) {
         return this.newInstance(registrationId, options);
     }
     async newInstance(registrationId, options) {
         const def = await this.registry.getClass(registrationId);
-        if (!def) {
-            const errorMessage = `Failed to locate class with id "${registrationId}".`;
-            console.error(errorMessage);
-            throw new Error(errorMessage);
-        }
+        if (!def)
+            throw new Error(`No class with id: ${registrationId}`);
         const instance = new def(options || {}, this);
         if (instance.isReady instanceof Promise) {
             await instance.isReady;

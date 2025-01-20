@@ -47,7 +47,7 @@ export default abstract class View extends Emitter {
     protected generateUiSelections(selectorAttribute?: string): void;
     protected renderTemplate(): void;
     protected getTemplateOptions(optionValues?: Record<string, unknown>): Record<string, unknown>;
-    newChild<K extends keyof ClassMapTypeView>(registrationId: K, viewOptions: ClassMapTypeView[K]['options']): Promise<ClassMapTypeView[K]>;
+    newChild<K extends keyof ClassMapTypeView>(registrationId: K, viewOptions: ClassMapTypeView[K]['options']): Promise<InstanceType<ClassMapTypeView[K]['definition']>>;
     getChildById<T extends View>(id: string): T | undefined;
     getChildByModelId<T extends View>(id: number): T | undefined;
     protected destroyChildById(id: string): void;
@@ -59,6 +59,7 @@ export default abstract class View extends Emitter {
     setAttributes(attributes?: Record<string, string | null | undefined>): this;
     setErrorState(msg: string, options?: ErrorStateOptions): void;
     protected removeErrorState(): void;
+    protected isNativeEvent(eventName: string): boolean;
     destroy(): void;
     destroyChildren(): void;
 }

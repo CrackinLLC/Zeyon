@@ -1,8 +1,7 @@
 import Emitter from './emitter';
 import type { ClassMapTypeView } from './generated/ClassMapType';
 import { ZeyonAppLike } from './imports/app';
-import { nativeEvents } from './imports/emitter';
-import { AttachReference, RenderOptions, ViewOptions } from './imports/view';
+import { AttachReference, nativeEvents, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
 import { convertToRootElement, RootElement } from './util/element';
 import { ErrorStateOptions, errorTemplate } from './util/error';
@@ -94,7 +93,7 @@ export default abstract class View extends Emitter {
     this.generateUiSelections();
 
     if (this.options.preventDefault) {
-      this.on('click', (event) => event.preventDefault());
+      this.on('click', (val: undefined, ev: Event) => ev.preventDefault());
     }
 
     await this.onRender();
@@ -260,7 +259,7 @@ export default abstract class View extends Emitter {
     if (this.compiledTemplate && !this.isDestroyed) {
       this.el.innerHTML = this.compiledTemplate(this.getTemplateOptions());
 
-      this.on('click', (ev) => {
+      this.on('click', (val: undefined, ev: Event) => {
         if (ev.defaultPrevented) return;
 
         let target = ev.target as HTMLElement | null;
@@ -301,22 +300,21 @@ export default abstract class View extends Emitter {
     return {
       id: this.getViewId(),
       ...(this.model ? { model: this.model.getAttributes() } : {}),
-      ...(this.model ? { modelType: this.model.getType() } : {}),
+      ...(this.model ? { modelId: this.model.getRegistrationId() } : {}),
       ...(this.model?.getCollection() ? { collection: this.model.getCollection()?.getVisibleAttributes() } : {}),
       ...this.options,
       ...optionValues,
     };
   }
 
-  async newChild<K extends keyof ClassMapTypeView>(
+  public async newChild<K extends keyof ClassMapTypeView>(
     registrationId: K,
     viewOptions: ClassMapTypeView[K]['options'],
-  ): Promise<ClassMapTypeView[K]> {
+  ): Promise<InstanceType<ClassMapTypeView[K]['definition']>> {
     if (this.isDestroyed) {
       return Promise.reject(new Error('Component is destroyed'));
     }
 
-    // Now call newInstance with registrationId
     return this.app.newView(registrationId, viewOptions).then((child) => {
       if (this.isDestroyed) {
         child.destroy();
@@ -325,7 +323,6 @@ export default abstract class View extends Emitter {
 
       child.render();
       this.children[child.getViewId()] = child;
-
       return child;
     });
   }
@@ -450,6 +447,11 @@ export default abstract class View extends Emitter {
     this.errorEl?.remove();
     this.errorEl = undefined;
     this.removeClass('is-error');
+  }
+
+  protected isNativeEvent(eventName: string): boolean {
+    // If we have this.el and the event is in the known DOM events list
+    return !!this.el && nativeEvents.includes(eventName);
   }
 
   /**

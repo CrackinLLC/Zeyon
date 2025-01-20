@@ -13,7 +13,8 @@ export default abstract class Collection extends Emitter {
   declare defaultOptions: CollectionOptions;
 
   abstract modelRegistrationId: keyof ClassMapTypeModel;
-  declare model: ClassMapTypeModel[this['modelRegistrationId']];
+  declare modelConstructor: ClassMapTypeModel[this['modelRegistrationId']]['definition'];
+  declare model: InstanceType<this['modelConstructor']>;
   declare attrib: this['model']['attrib'];
 
   protected items: this['model'][] = [];
@@ -91,14 +92,8 @@ export default abstract class Collection extends Emitter {
 
         model.setCollection(this).on(
           '*',
-          (event, eventName) => {
-            let data: unknown = undefined;
-
-            if (event instanceof CustomEvent) {
-              data = event.detail;
-            }
-
-            this.emit(eventName!, { model, data });
+          (eventName, val, event) => {
+            this.emit(eventName!, { model, data: val });
           },
           this,
         );

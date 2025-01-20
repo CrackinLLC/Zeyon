@@ -1,7 +1,7 @@
 import type Collection from './collection';
 import Emitter from './emitter';
 import { ZeyonAppLike } from './imports/app';
-import { AttributeDefinition, Attributes, AttributeType, modelEvents, ModelOptions, ModelType } from './imports/model';
+import { AttributeDefinition, Attributes, modelEvents, ModelOptions } from './imports/model';
 import { isEqual } from './util/object';
 
 /**
@@ -13,11 +13,6 @@ export default abstract class Model extends Emitter {
 
   declare options: ModelOptions<this['attrib']>;
   declare defaultOptions: ModelOptions<this['attrib']>;
-
-  /**
-   * The type of the model. Extending classes should redefine this.
-   */
-  public static type: ModelType = ModelType.Unknown;
 
   /**
    * A definition that indicates particular characteristics of each attribute (e.g. value type, default, is optional, etc)
@@ -178,8 +173,8 @@ export default abstract class Model extends Emitter {
    * @param attributeName - The name of the attribute.
    * @returns The value of the attribute.
    */
-  public get<T extends keyof this['attrib']>(attributeName: keyof this['attrib']): T {
-    return this.attributes[attributeName] as T;
+  public get<K extends keyof this['attrib']>(attributeName: K): this['attrib'][K] {
+    return this.attributes[attributeName];
   }
 
   /**
@@ -279,9 +274,9 @@ export default abstract class Model extends Emitter {
     return validatedAttributes;
   }
 
-  getType(): ModelType {
-    return (this.constructor as typeof Model).type;
-  }
+  // getType(): ModelType {
+  //   return (this.constructor as typeof Model).type;
+  // }
 
   static getAttributeKeys(): string[] {
     return Object.keys(this.definition);
@@ -312,22 +307,30 @@ function coerceAttribute(value: any, definition: AttributeDefinition): any {
   }
 
   switch (definition.type) {
-    case AttributeType.String:
+    case 'string':
       return String(value);
-    case AttributeType.StringArray:
+    case 'stringArray':
       return Array.isArray(value) ? value.map(String) : [];
-    case AttributeType.Number:
+    case 'number':
       return Number(value);
-    case AttributeType.NumberArray:
+    case 'numberArray':
       return Array.isArray(value) ? value.map(Number) : [];
-    case AttributeType.Object:
-      return value; // TODO: How might object coercion work here?
-    case AttributeType.ObjectArray:
-      return value; // TODO: How might object coercion work here?
-    case AttributeType.Boolean:
+    case 'boolean':
       return Boolean(value);
-    case AttributeType.Date:
-      return value; // TODO: How might date coercion work here?
+    case 'booleanArray':
+      return Array.isArray(value) ? value.map(Boolean) : [];
+    case 'symbol':
+      return value; // TODO: Figure out symbol coercion
+    case 'symbolArray':
+      return value; // TODO: Figure out symbol coercion
+    case 'object':
+      return value; // TODO: Figure out object coercion
+    case 'objectArray':
+      return value; // TODO: Figure out object coercion
+    case 'date':
+      return value; // TODO: Figure out date coercion
+    case 'dateArray':
+      return value; // TODO: Figure out date coercion
     default:
       return value;
   }

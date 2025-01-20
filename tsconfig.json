@@ -21,10 +21,9 @@
 
     "noImplicitReturns": true,
     "noImplicitAny": true,
-    "noUnusedParameters": true,
     "noUnusedLocals": true
   },
 
-  "include": ["src/**/*", "src/generateMaps.ts"],
+  "include": ["declaration.d.ts", "src/**/*", "src/generateMaps.ts", "src/generated/**/*.d.ts"],
   "exclude": ["node_modules", "tests", "**/*.test.ts"]
 }

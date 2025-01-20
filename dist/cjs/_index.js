@@ -22,15 +22,51 @@ const routeView_1 = __importDefault(require("./routeView"));
 exports.RouteView = routeView_1.default;
 const view_1 = __importDefault(require("./view"));
 exports.View = view_1.default;
+function registerClass(registrationId) {
+    return function (constructor) {
+        if (constructor.prototype.hasOwnProperty('constructor')) {
+            console.warn(`Class ${registrationId} defines its own constructor. This is discouraged. Instead, define an 'initialize' method that is run when instantiating.`);
+        }
+        constructor.registrationId = registrationId;
+        return constructor;
+    };
+}
 exports.default = {
     create: (options) => new app_1.default(options),
-    registerClass(registrationId) {
+    registerView(registrationId) {
         return function (constructor) {
-            if (constructor.prototype.hasOwnProperty('constructor')) {
-                console.warn(`Class ${registrationId} defines its own constructor. This is discouraged. Include an 'initialize' method instead.`);
+            const decoratedClass = registerClass(registrationId)(constructor);
+            return decoratedClass;
+        };
+    },
+    registerRouteView(registrationId) {
+        return function (constructor) {
+            const decoratedClass = registerClass(registrationId)(constructor);
+            return decoratedClass;
+        };
+    },
+    registerModel(registrationId, options) {
+        return function (constructor) {
+            const decoratedClass = registerClass(registrationId)(constructor);
+            if (options?.attributes) {
+                decoratedClass.definition = {
+                    ...decoratedClass.definition,
+                    ...options.attributes,
+                };
             }
-            constructor.registrationId = registrationId;
-            return constructor;
+            return decoratedClass;
+        };
+    },
+    registerCollection(registrationId) {
+        return function (constructor) {
+            const decoratedClass = registerClass(registrationId)(constructor);
+            return decoratedClass;
+        };
+    },
+    registerCollectionView(registrationId) {
+        return function (constructor) {
+            const decoratedClass = registerClass(registrationId)(constructor);
+            return decoratedClass;
         };
     },
     defineRoutes(routes) {

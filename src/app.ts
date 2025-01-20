@@ -1,6 +1,4 @@
 import ClassRegistry from './classRegistry';
-import type Collection from './collection';
-import type CollectionView from './collectionView';
 import type Emitter from './emitter';
 import type {
   ClassMapKey,
@@ -11,11 +9,8 @@ import type {
   ClassMapTypeView,
 } from './generated/ClassMapType';
 import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from './imports/app';
-import type Model from './model';
 import Router from './router';
-import type RouteView from './routeView';
 import { loaderTemplate } from './util/loader';
-import type View from './view';
 
 /**
  * The central hub of the application, managing interactions between components.
@@ -139,57 +134,51 @@ export default class ZeyonApp implements ZeyonAppLike {
   public async newView<K extends keyof ClassMapTypeView>(
     registrationId: K,
     options?: ClassMapTypeView[K]['options'],
-  ): Promise<ClassMapTypeView[K] & View> {
-    return this.newInstance<keyof ClassMapTypeView, View>(registrationId, options);
+  ): Promise<InstanceType<ClassMapTypeView[K]['definition']>> {
+    return this.newInstance<InstanceType<ClassMapTypeView[K]['definition']>>(registrationId, options);
   }
 
-  public async newRouteView<K extends keyof ClassMapTypeRouteView>(
+  public newRouteView<K extends keyof ClassMapTypeRouteView>(
     registrationId: K,
     options?: ClassMapTypeRouteView[K]['options'],
-  ): Promise<ClassMapTypeRouteView[K] & RouteView> {
-    return this.newInstance<keyof ClassMapTypeRouteView, RouteView>(registrationId, options);
+  ): Promise<InstanceType<ClassMapTypeRouteView[K]['definition']>> {
+    return this.newInstance<InstanceType<ClassMapTypeRouteView[K]['definition']>>(registrationId, options);
   }
 
-  public async newModel<K extends keyof ClassMapTypeModel>(
+  public newModel<K extends keyof ClassMapTypeModel>(
     registrationId: K,
     options?: ClassMapTypeModel[K]['options'],
-  ): Promise<Model> {
-    return this.newInstance<keyof ClassMapTypeModel, Model>(registrationId, options);
+  ): Promise<InstanceType<ClassMapTypeModel[K]['definition']>> {
+    return this.newInstance<InstanceType<ClassMapTypeModel[K]['definition']>>(registrationId, options);
   }
 
-  public async newCollection<K extends keyof ClassMapTypeCollection>(
+  public newCollection<K extends keyof ClassMapTypeCollection>(
     registrationId: K,
     options?: ClassMapTypeCollection[K]['options'],
-  ): Promise<ClassMapTypeCollection[K] & Collection> {
-    return this.newInstance<keyof ClassMapTypeCollection, Collection>(registrationId, options);
+  ): Promise<InstanceType<ClassMapTypeCollection[K]['definition']>> {
+    return this.newInstance<InstanceType<ClassMapTypeCollection[K]['definition']>>(registrationId, options);
   }
 
-  public async newCollectionView<K extends keyof ClassMapTypeCollectionView>(
+  public newCollectionView<K extends keyof ClassMapTypeCollectionView>(
     registrationId: K,
     options?: ClassMapTypeCollectionView[K]['options'],
-  ): Promise<ClassMapTypeCollectionView[K] & CollectionView> {
-    return this.newInstance<keyof ClassMapTypeCollectionView, CollectionView>(registrationId, options);
+  ): Promise<InstanceType<ClassMapTypeCollectionView[K]['definition']>> {
+    return this.newInstance<InstanceType<ClassMapTypeCollectionView[K]['definition']>>(registrationId, options);
   }
 
-  private async newInstance<K extends ClassMapKey, T extends Emitter = Emitter>(
-    registrationId: K,
-    options?: unknown,
-  ): Promise<T> {
+  private async newInstance<T extends Emitter>(registrationId: ClassMapKey, options?: unknown): Promise<T> {
     const def = await this.registry.getClass(registrationId);
+    if (!def) throw new Error(`No class with id: ${registrationId}`);
 
-    if (!def) {
-      const errorMessage = `Failed to locate class with id "${registrationId}".`;
-      console.error(errorMessage);
-      throw new Error(errorMessage);
-    }
-
-    const instance = new def(options || {}, this);
-
+    const instance = new def(options || {}, this) as T;
     if (instance.isReady instanceof Promise) {
       await instance.isReady;
     }
 
-    return instance as T;
+    // const typed = instance as T;
+    // const checkIsReady: Promise<T> = typed.isReady;
+
+    return instance;
   }
 
   /**

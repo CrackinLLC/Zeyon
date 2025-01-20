@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isAttachReference = isAttachReference;
 const emitter_1 = __importDefault(require("./emitter"));
-const emitter_2 = require("./imports/emitter");
+const view_1 = require("./imports/view");
 const model_1 = __importDefault(require("./model"));
 const element_1 = require("./util/element");
 const error_1 = require("./util/error");
@@ -15,7 +15,7 @@ class View extends emitter_1.default {
     constructor(options = {}, app) {
         super({
             ...options,
-            events: emitter_2.nativeEvents,
+            events: view_1.nativeEvents,
         }, app);
         this._viewId = (0, string_1.getUniqueId)();
         this.ui = {};
@@ -57,7 +57,7 @@ class View extends emitter_1.default {
         this.renderTemplate();
         this.generateUiSelections();
         if (this.options.preventDefault) {
-            this.on('click', (event) => event.preventDefault());
+            this.on('click', (val, ev) => ev.preventDefault());
         }
         await this.onRender();
         if (this.isDestroyed)
@@ -182,7 +182,7 @@ class View extends emitter_1.default {
     renderTemplate() {
         if (this.compiledTemplate && !this.isDestroyed) {
             this.el.innerHTML = this.compiledTemplate(this.getTemplateOptions());
-            this.on('click', (ev) => {
+            this.on('click', (val, ev) => {
                 if (ev.defaultPrevented)
                     return;
                 let target = ev.target;
@@ -219,7 +219,7 @@ class View extends emitter_1.default {
         return {
             id: this.getViewId(),
             ...(this.model ? { model: this.model.getAttributes() } : {}),
-            ...(this.model ? { modelType: this.model.getType() } : {}),
+            ...(this.model ? { modelId: this.model.getRegistrationId() } : {}),
             ...(this.model?.getCollection() ? { collection: this.model.getCollection()?.getVisibleAttributes() } : {}),
             ...this.options,
             ...optionValues,
@@ -324,6 +324,9 @@ class View extends emitter_1.default {
         this.errorEl?.remove();
         this.errorEl = undefined;
         this.removeClass('is-error');
+    }
+    isNativeEvent(eventName) {
+        return !!this.el && view_1.nativeEvents.includes(eventName);
     }
     destroy() {
         if (this.isDestroyed)

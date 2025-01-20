@@ -1,12 +1,12 @@
 import type { ClassMapKey } from './generated/ClassMapType';
 import { ZeyonAppLike } from './imports/app';
-import { ClassConfigurationOptions, CustomEventHandler, EmitterOptions } from './imports/emitter';
+import { ClassConfigurationOptions, EmitterOptions, EventHandler } from './imports/emitter';
 export default abstract class Emitter {
     protected app: ZeyonAppLike;
     static registrationId: string;
     static config: ClassConfigurationOptions<Emitter>;
     options: EmitterOptions;
-    isReady: Promise<this>;
+    isReady: Promise<Emitter>;
     private resolveIsReady;
     private eventListeners;
     private validEvents;
@@ -15,19 +15,20 @@ export default abstract class Emitter {
     protected isDestroyed: boolean;
     constructor(options: EmitterOptions | undefined, app: ZeyonAppLike);
     protected markAsReady(): void;
+    protected isNativeEvent(eventName: string): boolean;
     initialize(): Promise<void>;
     private rebuildListenersObject;
-    extendValidEvents(events?: string | string[]): this;
+    extendValidEvents(events?: string | string[]): Emitter;
     getValidEvents(): string[];
-    on(event: string, handler: CustomEventHandler, subscriber?: unknown): this;
+    on(eventName: string, handler: EventHandler, subscriber?: unknown): Emitter;
     off(options?: {
         event?: string;
-        handler?: CustomEventHandler;
+        handler?: EventHandler;
         subscriber?: unknown;
-    }): this;
-    once(event: string, handler: CustomEventHandler, subscriber?: unknown): this;
-    emit(event: string, detail?: any): this;
-    debouncedEmit<P>(event: string, payload?: P | P[], shouldAggregate?: boolean): this;
+    }): Emitter;
+    once(event: string, handler: EventHandler, subscriber?: unknown): Emitter;
+    emit(eventName: string, detail?: any): Emitter;
+    debouncedEmit<P>(event: string, payload?: P | P[], shouldAggregate?: boolean): Emitter;
     private logInvalidEvent;
     private destroyEvents;
     destroy(): void;

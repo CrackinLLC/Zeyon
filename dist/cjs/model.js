@@ -135,14 +135,10 @@ class Model extends emitter_1.default {
         }
         return validatedAttributes;
     }
-    getType() {
-        return this.constructor.type;
-    }
     static getAttributeKeys() {
         return Object.keys(this.definition);
     }
 }
-Model.type = "unknown";
 Model.definition = {};
 exports.default = Model;
 function getCustomEventsFromAttributes(attributeNames) {
@@ -160,21 +156,29 @@ function coerceAttribute(value, definition) {
         return definition.optional ? undefined : definition.default;
     }
     switch (definition.type) {
-        case "String":
+        case 'string':
             return String(value);
-        case "StringArray":
+        case 'stringArray':
             return Array.isArray(value) ? value.map(String) : [];
-        case "Number":
+        case 'number':
             return Number(value);
-        case "NumberArray":
+        case 'numberArray':
             return Array.isArray(value) ? value.map(Number) : [];
-        case "Object":
-            return value;
-        case "ObjectArray":
-            return value;
-        case "Boolean":
+        case 'boolean':
             return Boolean(value);
-        case "Date":
+        case 'booleanArray':
+            return Array.isArray(value) ? value.map(Boolean) : [];
+        case 'symbol':
+            return value;
+        case 'symbolArray':
+            return value;
+        case 'object':
+            return value;
+        case 'objectArray':
+            return value;
+        case 'date':
+            return value;
+        case 'dateArray':
             return value;
         default:
             return value;

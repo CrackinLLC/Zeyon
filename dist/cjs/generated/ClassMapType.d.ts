@@ -3,20 +3,40 @@ import type ColectionView from '../collectionView';
 import type Model from '../model';
 import type RouteView from '../routeView';
 import type View from '../view';
+import { CollectionOptions } from '../imports/collection';
+import { CollectionViewOptions } from '../imports/collectionView';
+import { Attributes, ModelOptions } from '../imports/model';
+import { RouteViewOptions } from '../imports/routeView';
+import { ViewOptions } from '../imports/view';
 export interface ClassMapTypeView {
-    [key: string]: View;
+    [registrationId: string]: {
+        definition: typeof View;
+        options: ViewOptions;
+    };
 }
 export interface ClassMapTypeRouteView {
-    [key: string]: RouteView;
+    [registrationId: string]: {
+        definition: typeof RouteView;
+        options: RouteViewOptions;
+    };
 }
 export interface ClassMapTypeModel {
-    [key: string]: Model;
+    [registrationId: string]: {
+        definition: typeof Model;
+        options: ModelOptions<Attributes>;
+    };
 }
 export interface ClassMapTypeCollection {
-    [key: string]: Collection;
+    [registrationId: string]: {
+        definition: typeof Collection;
+        options: CollectionOptions;
+    };
 }
 export interface ClassMapTypeCollectionView {
-    [key: string]: ColectionView;
+    [registrationId: string]: {
+        definition: typeof ColectionView;
+        options: CollectionViewOptions<Collection, View>;
+    };
 }
 export type ClassMapKey = keyof ClassMapTypeView | keyof ClassMapTypeRouteView | keyof ClassMapTypeModel | keyof ClassMapTypeCollection | keyof ClassMapTypeCollectionView;
 //# sourceMappingURL=ClassMapType.d.ts.map

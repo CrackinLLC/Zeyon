@@ -1,6 +1,14 @@
 import type { ClassMapKey } from './generated/ClassMapType';
 import { ZeyonAppLike } from './imports/app';
-import { ClassConfigurationOptions, CustomEventHandler, EmitterOptions, nativeEvents } from './imports/emitter';
+import {
+  ClassConfigurationOptions,
+  EmitterOptions,
+  EventHandler,
+  EventHandlerApply,
+  NativeEventHandler,
+  NormalEventHandler,
+  WildcardEventHandler,
+} from './imports/emitter';
 import { debounce } from './util/debounce';
 
 const generalEvents = [
@@ -21,7 +29,7 @@ export default abstract class Emitter {
   /**
    * Promise that resolves once the instance is ready
    */
-  public isReady: Promise<this>;
+  public isReady: Promise<Emitter>;
   private resolveIsReady!: (value: this) => void;
 
   private eventListeners: { [event: string]: Listener[] } = {};
@@ -54,6 +62,12 @@ export default abstract class Emitter {
     this.resolveIsReady(this);
   }
 
+  // Overridden in View classes so that they can determine if an event is native.
+  // Most other classes do not interact with the DOM and so should default to false.
+  protected isNativeEvent(eventName: string): boolean {
+    return !!eventName && false;
+  }
+
   /**
    * Logic to run while the class is still initializing.
    * Subclasses should override this method and can perform asynchronous operations.
@@ -79,7 +93,7 @@ export default abstract class Emitter {
    * @param events - An event name or array of event names to add.
    * @returns The emitter instance.
    */
-  public extendValidEvents(events: string | string[] = []): this {
+  public extendValidEvents(events: string | string[] = []): Emitter {
     if (typeof events === 'string') events = [events];
 
     events.forEach((event) => {
@@ -108,20 +122,21 @@ export default abstract class Emitter {
    * @param subscriber - Optional context for the handler.
    * @returns The emitter instance.
    */
-  public on(event: string, handler: CustomEventHandler, subscriber: unknown = this): this {
-    if (!this.validEvents.has(event)) {
-      return this.logInvalidEvent(event, this);
+  public on(eventName: string, handler: EventHandler, subscriber: unknown = this): Emitter {
+    if (!this.validEvents.has(eventName) && eventName !== '*') {
+      return this.logInvalidEvent(eventName, this);
     }
 
-    this.eventListeners[event].push(
+    const isNative = this.isNativeEvent(eventName);
+    this.eventListeners[eventName].push(
       new Listener({
         subscriber,
-        eventName: event,
+        eventName,
         handler,
-        el: (this as any)['el'] || null,
+        el: isNative ? (this as any).el : undefined,
+        isNative,
       }),
     );
-
     return this;
   }
 
@@ -137,10 +152,10 @@ export default abstract class Emitter {
   public off(
     options: {
       event?: string;
-      handler?: CustomEventHandler;
+      handler?: EventHandler;
       subscriber?: unknown;
     } = {},
-  ): this {
+  ): Emitter {
     const { event, handler, subscriber } = options;
 
     // Special case to remove all listeners
@@ -181,17 +196,13 @@ export default abstract class Emitter {
    * @param subscriber - Optional context for the handler.
    * @returns The emitter instance.
    */
-  public once(event: string, handler: CustomEventHandler, subscriber?: unknown): this {
-    const wrappedHandler = (ev: Event | CustomEvent) => {
-      handler(ev);
+  public once(event: string, handler: EventHandler, subscriber?: unknown): Emitter {
+    const wrappedHandler = (...args: unknown[]) => {
+      (handler as EventHandlerApply).apply(subscriber, args);
       this.off({ event, handler: wrappedHandler, subscriber });
     };
 
-    // We have to pass in the wrapped handler so that we correctly remove it after it's been called once.
-    // Otherwise the handler references don't match, and the removal fails.
-    this.on(event, wrappedHandler, subscriber);
-
-    return this;
+    return this.on(event, wrappedHandler, subscriber);
   }
 
   /**
@@ -200,14 +211,18 @@ export default abstract class Emitter {
    * @param detail - Optional data to pass to event handlers.
    * @returns The emitter instance.
    */
-  public emit(event: string, detail?: any): this {
-    if (!this.validEvents.has(event)) {
-      return this.logInvalidEvent(event, this);
+  public emit(eventName: string, detail?: any): Emitter {
+    if (!this.validEvents.has(eventName) && eventName !== '*') {
+      return this.logInvalidEvent(eventName, this);
     }
 
-    // Since handlers may remove themselves (e.g., once()), we want to clone our references before triggering any events.
-    const listeners = [...this.eventListeners[event], ...this.eventListeners['*']];
-    listeners?.forEach((listener) => listener.trigger(detail, event));
+    const listeners = [...(this.eventListeners[eventName] || []), ...(this.eventListeners['*'] || [])];
+
+    for (const listener of listeners) {
+      if (!listener.getIsNative()) {
+        listener.trigger(detail, eventName);
+      }
+    }
 
     return this;
   }
@@ -219,7 +234,7 @@ export default abstract class Emitter {
    * @param shouldAggregate - Whether to aggregate multiple payloads.
    * @returns The emitter instance.
    */
-  public debouncedEmit<P>(event: string, payload?: P | P[], shouldAggregate: boolean = true): this {
+  public debouncedEmit<P>(event: string, payload?: P | P[], shouldAggregate: boolean = true): Emitter {
     if (!this.debouncedEmitters[event]) {
       this.debouncedEmitters[event] = debounce<P | P[]>(
         (aggregatedPayload, collectedPrimitives) => {
@@ -253,7 +268,7 @@ export default abstract class Emitter {
    * @param event - The invalid event name.
    * @param context - The emitter context.
    */
-  private logInvalidEvent(event: string, context: Emitter): this {
+  private logInvalidEvent(event: string, context: Emitter): Emitter {
     console.error(`The event "${event}" is not supported on this class.`, context);
     return this;
   }
@@ -262,7 +277,7 @@ export default abstract class Emitter {
    * Destroys all event listeners registered on this emitter.
    * @returns The emitter instance.
    */
-  private destroyEvents(): this {
+  private destroyEvents(): Emitter {
     Object.keys(this.eventListeners).forEach((event) => {
       this.eventListeners[event].forEach((listener) => listener.destroy());
     });
@@ -299,36 +314,46 @@ export default abstract class Emitter {
  */
 class Listener {
   public eventName: string;
-  public handler: CustomEventHandler;
+  public handler: EventHandler;
   public subscriber: unknown;
   private el?: HTMLElement;
 
-  private isNativeEvent: boolean;
   private boundHandler?: EventListener;
+
+  private isNative: boolean;
+  private isWildcard: boolean;
 
   /**
    * Creates a new Listener instance.
    * @param options - Options for the listener.
    */
-  constructor(options: { eventName: string; handler: CustomEventHandler; subscriber?: unknown; el?: HTMLElement }) {
-    const { subscriber, eventName, handler, el } = options;
+  constructor(options: {
+    eventName: string;
+    isNative: boolean;
+    handler: EventHandler;
+    subscriber?: unknown;
+    el?: HTMLElement;
+  }) {
+    const { subscriber, eventName, handler, el, isNative } = options;
     this.subscriber = subscriber;
     this.eventName = eventName;
     this.handler = handler;
     this.el = el;
-    this.isNativeEvent = !!this.el && nativeEvents.includes(eventName);
+    this.isNative = isNative;
 
-    if (this.isNativeEvent && this.el) {
+    this.isWildcard = this.eventName === '*';
+
+    if (this.isNative) {
       // Bind the handler to the subscriber context
-      this.boundHandler = (ev: Event) => {
+      this.boundHandler = (domEvent: Event) => {
         if (this.subscriber) {
-          this.handler.call(this.subscriber, ev);
+          (this.handler as NativeEventHandler).call(this.subscriber, undefined, domEvent);
         } else {
-          this.handler(ev);
+          this.handler(undefined, domEvent);
         }
       };
 
-      this.el.addEventListener(this.eventName, this.boundHandler);
+      this.el!.addEventListener(this.eventName, this.boundHandler);
     }
   }
 
@@ -338,32 +363,53 @@ class Listener {
    * @param event - The event name (used when eventName is '*').
    * @returns The Listener instance.
    */
-  public trigger(detail: any = {}, event?: string): this {
-    if (this.isNativeEvent) {
-      // For native events, dispatch the event on the element
-      if (this.el) {
-        const eventObj = new Event(this.eventName);
-        this.el.dispatchEvent(eventObj);
+  public trigger(detail: any = {}, actualEventName?: string): this {
+    if (this.isNative) {
+      const domEvent = new Event(this.eventName);
+      if (this.el) this.el.dispatchEvent(domEvent);
+
+      // Native => (data: undefined, ev: Event) => void
+      const nativeHandler = this.handler as NativeEventHandler;
+
+      if (this.subscriber) {
+        nativeHandler.call(this.subscriber, undefined, domEvent);
+      } else {
+        nativeHandler(undefined, domEvent);
+      }
+    } else if (this.isWildcard) {
+      // Wildecard => (eventName: string, data: any, ev?: CustomEvent) => void
+      const wildcardHandler = this.handler as WildcardEventHandler;
+
+      const customEvent = new CustomEvent(actualEventName ?? this.eventName, { detail });
+      if (this.subscriber) {
+        wildcardHandler.call(this.subscriber, actualEventName || '', detail, customEvent);
+      } else {
+        wildcardHandler(actualEventName || '', detail, customEvent);
       }
     } else {
-      // For custom events
-      const customEvent = new CustomEvent(this.eventName, { detail });
+      // Normal => (data: any, ev?: CustomEvent) => void
+      const normalHandler = this.handler as NormalEventHandler;
 
-      if (this.eventName === '*') {
-        this.handler(customEvent, event);
+      const customEvent = new CustomEvent(this.eventName, { detail });
+      if (this.subscriber) {
+        normalHandler.call(this.subscriber, detail, customEvent);
       } else {
-        this.handler(customEvent);
+        normalHandler(detail, customEvent);
       }
     }
 
     return this;
   }
 
+  public getIsNative(): boolean {
+    return this.isNative;
+  }
+
   /**
    * Destroys the listener, removing any attached event handlers.
    */
   public destroy(): void {
-    if (this.isNativeEvent && this.el && this.boundHandler) {
+    if (this.isNative && this.el && this.boundHandler) {
       this.el.removeEventListener(this.eventName, this.boundHandler);
     }
 
