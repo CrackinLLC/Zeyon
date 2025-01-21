@@ -50,6 +50,7 @@ export default abstract class Collection extends Emitter {
     }
 
     this.applyFilters = debounce(this.applyFilters.bind(this), { wait: 10, shouldAggregate: false });
+
     funcs.push(this.initialize());
     Promise.all(funcs).then(() => this.markAsReady());
   }
@@ -58,9 +59,12 @@ export default abstract class Collection extends Emitter {
     attributes: Partial<this['attrib']> | Partial<this['attrib']>[],
     silent: boolean = false,
   ): Promise<this> {
-    const attributesArray = Array.isArray(attributes) ? attributes : [attributes];
+    if (!Array.isArray(attributes)) {
+      attributes = [attributes];
+    }
+
     const createdModels = await Promise.all(
-      attributesArray.map((attrs) =>
+      attributes.map((attrs) =>
         this.app
           .newModel(this.getModelType(), {
             attributes: attrs,
@@ -312,9 +316,14 @@ export default abstract class Collection extends Emitter {
   }
 
   protected applyFilters() {
-    this.visibleItems = this.items.filter((item) => {
-      return Object.values(this.activeFilters).every((filterFn) => filterFn(item));
-    });
+    if (!this.activeFilters || !this.activeFilters.length) {
+      this.visibleItems = this.items;
+    } else {
+      this.visibleItems = this.items.filter((item) => {
+        return Object.values(this.activeFilters).every((filterFn) => filterFn(item));
+      });
+    }
+
     this.visibleLength = this.visibleItems.length;
   }
 

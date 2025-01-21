@@ -1,5 +1,7 @@
-export declare function debounce<T>(func: (aggregatedArgs: T, collectedPrimitives?: T[]) => void, { wait, shouldAggregate, }?: {
+type DebounceOptions = {
     wait?: number;
     shouldAggregate?: boolean;
-}): (...args: T[]) => void;
+};
+export declare function debounce<T extends (...args: any[]) => any>(func: T, options?: DebounceOptions): T;
+export {};
 //# sourceMappingURL=debounce.d.ts.map

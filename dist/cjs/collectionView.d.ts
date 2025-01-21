@@ -1,21 +1,20 @@
-import type Collection from './collection';
-import { ZeyonAppLike } from './imports/app';
-import type { CollectionViewOptions } from './imports/collectionView';
+import Collection from './collection';
+import { ClassMapTypeCollection, ClassMapTypeView } from './generated/ClassMapType';
+import type { ZeyonAppLike } from './imports/app';
+import { CollectionViewOptions } from './imports/collectionView';
 import View from './view';
-export default abstract class CollectionView<C extends Collection = Collection, CV extends View = View> extends View {
-    options: CollectionViewOptions<C, CV>;
-    defaultOptions: CollectionViewOptions<C, CV>;
-    protected collection?: C;
-    protected childView?: new (options: any, app: ZeyonAppLike) => CV;
-    protected childItems: CV[];
-    constructor(options: CollectionViewOptions<C, CV>, app: ZeyonAppLike);
-    render(): Promise<this>;
+export default abstract class CollectionView extends View {
+    options: CollectionViewOptions;
+    defaultOptions: CollectionViewOptions;
+    abstract modelViewRegistrationId: keyof ClassMapTypeView;
+    protected modelViews: View[];
+    protected collection?: Collection;
+    protected collectionRegistrationId?: keyof ClassMapTypeCollection;
+    constructor(options: CollectionViewOptions, app: ZeyonAppLike);
     protected getTemplateOptions(): Record<string, unknown>;
-    protected renderChildItems(): void;
-    loadCollection(collection?: C): Promise<void>;
-    protected destroyChildItems(ids?: string[]): void;
-    protected listenToCollection(): void;
-    protected setEmptyClass(): void;
+    loadCollection(collection?: Collection): Promise<void>;
+    protected renderContent(): Promise<void>;
+    protected destroyModelViews(ids?: string[]): void;
     destroy(silent?: boolean): void;
 }
 //# sourceMappingURL=collectionView.d.ts.map

@@ -1,10 +1,16 @@
 import type Collection from '../collection';
-import { ZeyonAppLike } from '../imports/app';
-import type View from '../view';
+import { ClassMapTypeCollection } from '../generated/ClassMapType';
 import type { ViewOptions } from './view';
 
-export interface CollectionViewOptions<C extends Collection, CV extends View> extends ViewOptions {
-  collection?: C;
-  childView?: new (options: any, app: ZeyonAppLike) => CV;
-  childViewOptions?: any;
+export interface CollectionViewOptions extends ViewOptions {
+  collection?: Collection;
+  collectionRegistrationId?: keyof ClassMapTypeCollection;
+  collectionOptions?: unknown;
+  modelViewOptions?: unknown;
 }
+
+export const collectionViewEvents = [
+  'collection:update', // When the collection is updated.
+  'collection:filter', // When the collection is filtered.
+  'collection:sort', // When the collection is sorted.
+];

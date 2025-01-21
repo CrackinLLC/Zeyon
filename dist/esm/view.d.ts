@@ -23,7 +23,7 @@ export default abstract class View extends Emitter {
     protected model?: Model;
     isRendered: Promise<this>;
     private resolveIsRendered;
-    private wasRendered;
+    protected hasBeenRendered: boolean;
     protected compiledTemplate?: HandlebarsTemplateDelegate;
     protected template?: string;
     protected templateWrapper?: string;

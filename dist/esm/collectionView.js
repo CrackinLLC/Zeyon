@@ -1,29 +1,25 @@
+import { collectionViewEvents } from './imports/collectionView';
 import { debounce } from './util/debounce';
 import View from './view';
 export default class CollectionView extends View {
     constructor(options, app) {
         super(options, app);
-        this.childItems = [];
-        this.extendValidEvents(['change']);
-        this.renderChildItems = debounce(this.renderChildItems.bind(this));
-        this.collection = this.options.collection;
-        this.childView = this.options.childView;
-    }
-    async render() {
-        await super.render();
-        try {
-            if (this.collection) {
-                await this.loadCollection(this.collection);
-            }
-            else {
-                this.renderChildItems();
-            }
+        this.modelViews = [];
+        this.renderContent = debounce(this.renderContent.bind(this), {
+            wait: 10,
+            shouldAggregate: false,
+        });
+        this.extendValidEvents(collectionViewEvents);
+        if (this.options.collection) {
+            this.loadCollection(this.options.collection);
         }
-        catch (error) {
-            console.error('Error rendering collection view:', error);
+        else if (this.options.collectionRegistrationId) {
+            this.collectionRegistrationId = this.options.collectionRegistrationId;
+            this.loadCollection();
         }
-        this.setEmptyClass();
-        return this;
+        else {
+            throw new Error('Must provide either a collection or a collectionRegistrationId');
+        }
     }
     getTemplateOptions() {
         return super.getTemplateOptions({
@@ -31,73 +27,67 @@ export default class CollectionView extends View {
             ...(this.collection ? { collectionType: this.collection.modelRegistrationId } : {}),
         });
     }
-    renderChildItems() {
-        if (this.isDestroyed || !this.collection)
-            return;
-        this.destroyChildItems();
-        this.collection.getVisibleItems().forEach((model) => {
-            if (this.childView) {
-                const childView = new this.childView({
-                    model,
-                    attachTo: this.el,
-                    ...this.options.childViewOptions,
-                }, this.app);
-                childView.render();
-                this.children[childView.getViewId()] = childView;
-                this.childItems.push(childView);
-            }
-        });
-        this.setEmptyClass();
-    }
     async loadCollection(collection) {
+        if (this.isDestroyed)
+            return;
         if (this.collection) {
             this.collection.off({ subscriber: this });
         }
+        if (!collection && this.collectionRegistrationId) {
+            collection = await this.app.newCollection(this.collectionRegistrationId, this.options.collectionOptions || {});
+        }
+        else if (!this.collectionRegistrationId && collection) {
+            this.collectionRegistrationId = collection.modelRegistrationId;
+        }
         this.collection = collection;
+        await this.collection.isReady;
+        const eventHander = (type) => {
+            if (this.hasBeenRendered)
+                this.renderContent();
+            this.emit(`collection:${type}`, this.collection);
+        };
+        this.collection.on('update', () => eventHander('update'), this);
+        this.collection.on('filter', () => eventHander('filter'), this);
+        this.collection.on('sort', () => eventHander('sort'), this);
+        await this.isRendered;
+        await this.renderContent();
+    }
+    async renderContent() {
+        if (this.isDestroyed)
+            return;
+        this.destroyModelViews();
         if (this.collection) {
             await this.collection.isReady;
-            this.listenToCollection();
-            await this.isRendered;
-            this.renderChildItems();
-        }
-    }
-    destroyChildItems(ids) {
-        if (ids && ids.length) {
-            ids.forEach((id) => {
-                this.destroyChildById(id);
+            const modelViews = await Promise.all(this.collection.getVisibleItems().map(async (model) => {
+                return this.app.newView(this.modelViewRegistrationId, {
+                    model,
+                    attachTo: this.el,
+                    ...(this.options.modelViewOptions || {}),
+                });
+            }));
+            modelViews.forEach((modelView) => {
+                modelView.render();
+                this.children[modelView.getViewId()] = modelView;
+                this.modelViews.push(modelView);
             });
+        }
+        this.toggleClass('is-empty', !this.collection || this.collection.visibleLength < 1);
+    }
+    destroyModelViews(ids) {
+        if (ids && ids.length > 0) {
+            ids.forEach((id) => this.destroyChildById(id));
+            this.modelViews = this.modelViews.filter((v) => !ids.includes(v.getViewId()));
         }
         else {
-            this.childItems.forEach((child) => {
-                this.destroyChildById(child.getViewId());
-            });
-            this.childItems = [];
+            this.modelViews.forEach((v) => this.destroyChildById(v.getViewId()));
+            this.modelViews = [];
         }
-    }
-    listenToCollection() {
-        if (!this.collection)
-            return;
-        this.collection.on('update', () => {
-            this.renderChildItems();
-            this.emit('change', this.collection), this;
-        });
-        this.collection.on('filter', () => {
-            this.renderChildItems();
-            this.emit('change', this.collection), this;
-        });
-        this.collection.on('sort', () => {
-            this.renderChildItems();
-            this.emit('change', this.collection), this;
-        });
-    }
-    setEmptyClass() {
-        this.toggleClass('is-empty', !this.collection || this.collection.visibleLength === 0);
     }
     destroy(silent = false) {
         if (this.isDestroyed)
             return;
         super.destroy(silent);
-        this.destroyChildItems();
+        this.destroyModelViews();
         if (this.collection) {
             this.collection.off({ subscriber: this });
         }

@@ -1,24 +1,13 @@
+import '../util/testClassMapType';
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Attributes } from '../../src/imports/model';
 import type { ViewOptions } from '../../src/imports/view';
 import { nativeEvents } from '../../src/imports/view';
-import Model from '../../src/model';
 import View from '../../src/view';
 import { getPrivate } from '../util/driver';
 import { TestZeyonApp } from '../util/testApp';
-
-class TestView extends View {
-  protected ui = { testKey: 'my-selector' };
-  template = `
-    <div>
-      <div data-js="my-selector" id="match"></div>
-    </div>
-  `;
-}
-
-class TestModel extends Model {
-  attrib: Attributes;
-}
+import { TestModel } from '../util/testModel';
+import { TestView } from '../util/testView';
 
 describe('View', () => {
   let app: TestZeyonApp;

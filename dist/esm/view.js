@@ -16,7 +16,7 @@ class View extends Emitter {
         this._ui = {};
         this.renderOptions = {};
         this.children = {};
-        this.wasRendered = false;
+        this.hasBeenRendered = false;
         this.isRendered = new Promise((resolve) => {
             this.resolveIsRendered = resolve;
         });
@@ -38,13 +38,13 @@ class View extends Emitter {
                 : this.template;
             this.compiledTemplate = getCompiledTemplate(templateContent);
         }
-        if (this.wasRendered) {
+        if (this.hasBeenRendered) {
             this.isRendered = new Promise((resolve) => (this.resolveIsRendered = resolve));
             this.off({ subscriber: this });
             this.el.innerHTML = '';
         }
         else {
-            this.wasRendered = true;
+            this.hasBeenRendered = true;
             this.prepareRootElement();
             this.attachRootElement();
         }

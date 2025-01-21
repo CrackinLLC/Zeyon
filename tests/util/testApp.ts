@@ -1,6 +1,4 @@
-import type Emitter from '../../src/emitter';
 import type {
-  ClassMapKey,
   ClassMapTypeCollection,
   ClassMapTypeCollectionView,
   ClassMapTypeModel,
@@ -9,8 +7,11 @@ import type {
 } from '../../src/generated/ClassMapType';
 import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from '../../src/imports/app';
 import type Router from '../../src/router';
-import type RouteView from '../../src/routeView';
-import type View from '../../src/view';
+import { TestCollection } from './testCollection';
+import { TestCollectionView } from './TestCollectionView';
+import { TestModel } from './testModel';
+import { TestRouteView } from './testRouteView';
+import { TestView } from './testView';
 
 export class TestZeyonApp implements ZeyonAppLike {
   public name = '';
@@ -48,54 +49,50 @@ export class TestZeyonApp implements ZeyonAppLike {
     registrationId: K,
     options?: ClassMapTypeView[K]['options'],
   ): Promise<InstanceType<ClassMapTypeView[K]['definition']>> {
-    const stub: Partial<View> = {
-      async render(): Promise<View> {
-        return stub as View;
-      },
-    };
+    const view = new TestView(options || {}, this);
+    // view.registrationId = registrationId;
 
-    return stub as InstanceType<ClassMapTypeView[K]['definition']>;
+    return view as InstanceType<ClassMapTypeView[K]['definition']>;
   }
 
   public async newRouteView<K extends keyof ClassMapTypeRouteView>(
     registrationId: K,
     options?: ClassMapTypeRouteView[K]['options'],
   ): Promise<InstanceType<ClassMapTypeRouteView[K]['definition']>> {
-    const stub: Partial<RouteView> = {
-      async render(): Promise<RouteView> {
-        return stub as RouteView;
-      },
-    };
+    const routeView = new TestRouteView(options || {}, this);
+    // routeView.registrationId = registrationId;
 
-    return stub as InstanceType<ClassMapTypeRouteView[K]['definition']>;
+    return routeView as InstanceType<ClassMapTypeRouteView[K]['definition']>;
   }
 
   public async newModel<K extends keyof ClassMapTypeModel>(
     registrationId: K,
     options?: ClassMapTypeModel[K]['options'],
   ): Promise<InstanceType<ClassMapTypeModel[K]['definition']>> {
-    return {} as InstanceType<ClassMapTypeModel[K]['definition']>;
+    const model = new TestModel(options || {}, this);
+    // model.registrationId = registrationId;
+
+    return model as InstanceType<ClassMapTypeModel[K]['definition']>;
   }
 
   public async newCollection<K extends keyof ClassMapTypeCollection>(
     registrationId: K,
     options?: ClassMapTypeCollection[K]['options'],
   ): Promise<InstanceType<ClassMapTypeCollection[K]['definition']>> {
-    return {} as InstanceType<ClassMapTypeCollection[K]['definition']>;
+    const collection = new TestCollection(options || {}, this);
+    // collection.registrationId = registrationId;
+
+    return collection as InstanceType<ClassMapTypeCollection[K]['definition']>;
   }
 
   public async newCollectionView<K extends keyof ClassMapTypeCollectionView>(
     registrationId: K,
     options?: ClassMapTypeCollectionView[K]['options'],
   ): Promise<InstanceType<ClassMapTypeCollectionView[K]['definition']>> {
-    return {} as InstanceType<ClassMapTypeCollectionView[K]['definition']>;
-  }
+    const collectionView = new TestCollectionView(options || {}, this);
+    // collectionView.registrationId = registrationId;
 
-  protected async newInstance<K extends ClassMapKey, T extends Emitter = Emitter>(
-    registrationId: K,
-    options?: unknown,
-  ): Promise<T> {
-    return {} as T;
+    return collectionView as InstanceType<ClassMapTypeCollectionView[K]['definition']>;
   }
 
   public toggleClass(className: string, add?: boolean): this {

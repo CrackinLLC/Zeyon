@@ -1,13 +1,13 @@
-export function debounce(func, { wait = 50, shouldAggregate = true, } = {}) {
+export function debounce(func, options) {
     let timeout;
-    let argsAccumulator = shouldAggregate ? undefined : {};
+    let argsAccumulator = options?.shouldAggregate ? [] : undefined;
     let primitiveAccumulator = [];
     return function (...args) {
-        if (!shouldAggregate) {
+        if (!options?.shouldAggregate) {
             argsAccumulator = args[args.length - 1];
         }
         else {
-            if (argsAccumulator === undefined) {
+            if (!argsAccumulator) {
                 argsAccumulator = [];
             }
             args.forEach((arg) => {
@@ -15,7 +15,7 @@ export function debounce(func, { wait = 50, shouldAggregate = true, } = {}) {
                     if (Array.isArray(arg)) {
                         argsAccumulator = [...argsAccumulator, ...arg];
                     }
-                    else if (typeof arg === "object") {
+                    else if (typeof arg === 'object') {
                         argsAccumulator.push(arg);
                     }
                     else {
@@ -26,11 +26,19 @@ export function debounce(func, { wait = 50, shouldAggregate = true, } = {}) {
             });
         }
         clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            func(argsAccumulator, primitiveAccumulator.length ? primitiveAccumulator : undefined);
-            argsAccumulator = shouldAggregate ? undefined : {};
-            primitiveAccumulator = [];
-        }, wait);
+        return new Promise((resolve, reject) => {
+            timeout = setTimeout(async () => {
+                try {
+                    const result = await func(argsAccumulator, primitiveAccumulator.length ? primitiveAccumulator : undefined);
+                    argsAccumulator = options?.shouldAggregate ? [] : undefined;
+                    primitiveAccumulator = [];
+                    resolve(result);
+                }
+                catch (error) {
+                    reject(error);
+                }
+            }, options?.wait ?? 50);
+        });
     };
 }
 //# sourceMappingURL=debounce.js.map

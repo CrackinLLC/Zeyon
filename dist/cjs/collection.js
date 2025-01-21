@@ -32,8 +32,10 @@ class Collection extends emitter_1.default {
         Promise.all(funcs).then(() => this.markAsReady());
     }
     async newModel(attributes, silent = false) {
-        const attributesArray = Array.isArray(attributes) ? attributes : [attributes];
-        const createdModels = await Promise.all(attributesArray.map((attrs) => this.app
+        if (!Array.isArray(attributes)) {
+            attributes = [attributes];
+        }
+        const createdModels = await Promise.all(attributes.map((attrs) => this.app
             .newModel(this.getModelType(), {
             attributes: attrs,
             collection: this,
@@ -234,9 +236,14 @@ class Collection extends emitter_1.default {
         ];
     }
     applyFilters() {
-        this.visibleItems = this.items.filter((item) => {
-            return Object.values(this.activeFilters).every((filterFn) => filterFn(item));
-        });
+        if (!this.activeFilters || !this.activeFilters.length) {
+            this.visibleItems = this.items;
+        }
+        else {
+            this.visibleItems = this.items.filter((item) => {
+                return Object.values(this.activeFilters).every((filterFn) => filterFn(item));
+            });
+        }
         this.visibleLength = this.visibleItems.length;
     }
     clearFilters() {

@@ -11,7 +11,7 @@ import type { ViewOptions } from '../imports/view';
 import type Model from '../model';
 import type RouteView from '../routeView';
 import type View from '../view';
-export type ClassOptions = EmitterOptions | RouterOptions | CollectionOptions | CollectionViewOptions<Collection, View> | ModelOptions<Attributes> | ViewOptions;
+export type ClassOptions = EmitterOptions | RouterOptions | CollectionOptions | CollectionViewOptions | ModelOptions<Attributes> | ViewOptions;
 export type AnyDefinition = EmitterDefinition<any> | ViewDefinition<any> | RouteViewDefinition<any> | ModelDefinition<any> | CollectionDefinition<any> | CollectionViewDefinition<any>;
 export interface ClassRegistryOptions extends EmitterOptions {
     registryClassList?: {

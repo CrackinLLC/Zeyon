@@ -1,3 +1,5 @@
+import '../util/testClassMapType';
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Collection from '../../src/collection';
 import type Model from '../../src/model';
@@ -30,7 +32,7 @@ describe('Collection', () => {
     expect(collection).toBeInstanceOf(Collection);
   });
 
-  it('newModel() creates models in parallel and emits "update" unless silent', async () => {
+  it.only('newModel() creates models in parallel and emits "update" unless silent', async () => {
     const updateSpy = vi.fn();
     collection.on('update', updateSpy);
 

@@ -1,3 +1,5 @@
+import '../util/testClassMapType';
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ClassRegistry from '../../src/classRegistry';
 import Emitter from '../../src/emitter';

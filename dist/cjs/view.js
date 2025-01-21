@@ -22,7 +22,7 @@ class View extends emitter_1.default {
         this._ui = {};
         this.renderOptions = {};
         this.children = {};
-        this.wasRendered = false;
+        this.hasBeenRendered = false;
         this.isRendered = new Promise((resolve) => {
             this.resolveIsRendered = resolve;
         });
@@ -44,13 +44,13 @@ class View extends emitter_1.default {
                 : this.template;
             this.compiledTemplate = (0, template_1.getCompiledTemplate)(templateContent);
         }
-        if (this.wasRendered) {
+        if (this.hasBeenRendered) {
             this.isRendered = new Promise((resolve) => (this.resolveIsRendered = resolve));
             this.off({ subscriber: this });
             this.el.innerHTML = '';
         }
         else {
-            this.wasRendered = true;
+            this.hasBeenRendered = true;
             this.prepareRootElement();
             this.attachRootElement();
         }

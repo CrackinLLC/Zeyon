@@ -1,3 +1,5 @@
+import '../util/testClassMapType';
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RouteConfig } from '../../src/imports/router';
 import Router from '../../src/router';

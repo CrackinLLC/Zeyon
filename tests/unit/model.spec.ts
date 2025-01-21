@@ -1,3 +1,5 @@
+import '../util/testClassMapType';
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ModelOptions } from '../../src/imports/model';
 import Model from '../../src/model';

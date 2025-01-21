@@ -1,17 +1,8 @@
-// tests/unit/emitter.spec.ts
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import Emitter from '../../src/emitter';
-import type { EmitterOptions } from '../../src/imports/emitter';
-import { TestZeyonApp } from '../util/testApp';
+import '../util/testClassMapType';
 
-class TestEmitter extends Emitter {
-  constructor(options: EmitterOptions = {}, app: TestZeyonApp) {
-    super(options, app);
-  }
-  public ready() {
-    this.markAsReady();
-  }
-}
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { TestZeyonApp } from '../util/testApp';
+import { TestEmitter } from '../util/testEmitter';
 
 describe('Emitter', () => {
   let app: TestZeyonApp;

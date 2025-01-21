@@ -16,7 +16,7 @@ export type ClassOptions =
   | EmitterOptions
   | RouterOptions
   | CollectionOptions
-  | CollectionViewOptions<Collection, View>
+  | CollectionViewOptions
   | ModelOptions<Attributes>
   | ViewOptions;
 

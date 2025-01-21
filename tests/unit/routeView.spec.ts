@@ -1,10 +1,9 @@
+import '../util/testClassMapType';
+
 import { beforeEach, describe, expect, it } from 'vitest';
 import RouteView from '../../src/routeView';
 import { TestZeyonApp } from '../util/testApp';
-
-class TestRouteView extends RouteView {
-  // Optionally override or define minimal template / methods if needed
-}
+import { TestRouteView } from '../util/testRouteView';
 
 describe('RouteView', () => {
   let app: TestZeyonApp;

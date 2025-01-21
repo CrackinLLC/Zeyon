@@ -236,7 +236,7 @@ export default abstract class Emitter {
    */
   public debouncedEmit<P>(event: string, payload?: P | P[], shouldAggregate: boolean = true): Emitter {
     if (!this.debouncedEmitters[event]) {
-      this.debouncedEmitters[event] = debounce<P | P[]>(
+      this.debouncedEmitters[event] = debounce(
         (aggregatedPayload, collectedPrimitives) => {
           // Handle cases where payload may not be provided (non-payload-specific events)
           if (aggregatedPayload && Array.isArray(aggregatedPayload) && aggregatedPayload.length > 0) {

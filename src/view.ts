@@ -26,7 +26,7 @@ export default abstract class View extends Emitter {
 
   public isRendered: Promise<this>;
   private resolveIsRendered!: (value: this) => void;
-  private wasRendered: boolean = false;
+  protected hasBeenRendered: boolean = false;
 
   protected compiledTemplate?: HandlebarsTemplateDelegate;
   protected template?: string;
@@ -77,14 +77,14 @@ export default abstract class View extends Emitter {
       this.compiledTemplate = getCompiledTemplate(templateContent);
     }
 
-    if (this.wasRendered) {
+    if (this.hasBeenRendered) {
       // Reset the view to prepare for re-rendering.
       // The root element has already been handled, in this case.
       this.isRendered = new Promise<this>((resolve) => (this.resolveIsRendered = resolve));
       this.off({ subscriber: this });
       this.el.innerHTML = '';
     } else {
-      this.wasRendered = true;
+      this.hasBeenRendered = true;
       this.prepareRootElement();
       this.attachRootElement();
     }
