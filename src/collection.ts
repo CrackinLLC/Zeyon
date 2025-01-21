@@ -7,6 +7,8 @@ import {
   CollectionFilterOptions,
   CollectionOptions,
 } from './imports/collection';
+import type Model from './model';
+import { debounce } from './util/debounce';
 
 export default abstract class Collection extends Emitter {
   declare options: CollectionOptions;
@@ -24,6 +26,7 @@ export default abstract class Collection extends Emitter {
 
   protected filterOptions: CollectionFilterOptions = {};
   protected activeFilters: Record<string, (item: this['model']) => boolean>;
+  protected sortFunction: ((a: this['model'], b: this['model']) => number) | undefined;
 
   constructor(options: CollectionOptions = {}, protected app: ZeyonAppLike) {
     super(
@@ -46,6 +49,7 @@ export default abstract class Collection extends Emitter {
       funcs.push(this.newModel(attrs));
     }
 
+    this.applyFilters = debounce(this.applyFilters.bind(this), { wait: 10, shouldAggregate: false });
     funcs.push(this.initialize());
     Promise.all(funcs).then(() => this.markAsReady());
   }
@@ -55,16 +59,25 @@ export default abstract class Collection extends Emitter {
     silent: boolean = false,
   ): Promise<this> {
     const attributesArray = Array.isArray(attributes) ? attributes : [attributes];
+    const createdModels = await Promise.all(
+      attributesArray.map((attrs) =>
+        this.app
+          .newModel(this.getModelType(), {
+            attributes: attrs,
+            collection: this,
+          })
+          .then((model) => {
+            if (model) {
+              this.add(model, true);
+            }
+            return model;
+          }),
+      ),
+    );
 
-    for (const attrs of attributesArray) {
-      const model = await this.app.newModel(this.getModelType(), {
-        attributes: attrs,
-        collection: this,
-      });
-
-      if (model) {
-        this.add(model, silent);
-      }
+    this.sort(undefined, silent);
+    if (!silent) {
+      this.emit('update', { action: 'new', models: createdModels });
     }
 
     return this;
@@ -72,15 +85,21 @@ export default abstract class Collection extends Emitter {
 
   public add(models: this['model'] | this['model'][], silent: boolean = false): this {
     const modelsArray = Array.isArray(models) ? models : [models];
+    const itemsAdded: this['model'][] = [];
 
     modelsArray.forEach((model) => {
       if (this.modelRegistrationId !== model.getRegistrationId()) {
-        console.error(`Only instances of ${this.modelRegistrationId} can be added to the collection.`);
+        console.error(
+          `Only instances of ${
+            this.modelRegistrationId
+          } can be added to the collection. Attempted to add ${model.getRegistrationId()}.`,
+        );
         return;
       }
 
       const id = model.getId();
       let existingModel: this['model'] | undefined;
+
       if (id) {
         existingModel = model.getId() ? this.findById(id) : undefined;
       }
@@ -88,21 +107,29 @@ export default abstract class Collection extends Emitter {
       if (existingModel) {
         console.warn(`Model with ID ${model.getId()} already exists in the collection.`);
       } else {
+        model
+          .setCollection(this)
+          .on('change', (data: unknown) => {
+            this.emit('model:change', { models: [model], data });
+          })
+          .on('reset', (data: unknown) => {
+            this.emit('model:reset', { models: [model], data });
+          })
+          .on('selected', (state: unknown) => {
+            this.emit('model:selected', { models: [model], state });
+          })
+          .on('destroyed', () => {
+            this.remove(model.getId(), true);
+          });
+
         this.items.push(model);
-
-        model.setCollection(this).on(
-          '*',
-          (eventName, val, event) => {
-            this.emit(eventName!, { model, data: val });
-          },
-          this,
-        );
-      }
-
-      if (!silent) {
-        this.emit('add', model);
+        itemsAdded.push(model);
       }
     });
+
+    if (!silent) {
+      this.emit('update', { action: 'add', models: itemsAdded });
+    }
 
     this.length = this.items.length;
     this.applyFilters();
@@ -127,7 +154,7 @@ export default abstract class Collection extends Emitter {
     });
 
     if (!silent) {
-      this.emit('remove', removedItems);
+      this.emit('update', { action: 'remove', models: removedItems });
     }
 
     this.length = this.items.length;
@@ -148,7 +175,16 @@ export default abstract class Collection extends Emitter {
   }
 
   public getAttributeKeys(): string[] {
-    return []; // TODO: Fix this
+    const ctor = this.modelConstructor as typeof Model;
+
+    if (ctor.definition) {
+      return Object.keys(ctor.definition);
+    } else if (this.items.length > 0) {
+      return Object.keys(this.items[0].getAttributes());
+    }
+
+    console.warn('Something went wrong... unable to determine attribute keys.');
+    return [];
   }
 
   public getVisibleItems(): this['model'][] {
@@ -180,35 +216,46 @@ export default abstract class Collection extends Emitter {
     return this.items.find((item) => item.getId() === itemId);
   }
 
-  public sort(compareFn: (a: this['model'], b: this['model']) => number): this {
-    this.items.sort(compareFn);
+  public sort(compareFn?: (a: this['model'], b: this['model']) => number, silent: boolean = false): this {
+    if (compareFn) {
+      this.sortFunction = compareFn;
+    } else if (!this.sortFunction) {
+      const def = (this.modelConstructor as typeof Model).definition;
+      const defaultKey = Object.keys(def).find((k) => def[k].isDefaultSortKey) || 'id';
+
+      this.sortFunction = (a, b) => {
+        const valA = a.getAttributes()[defaultKey];
+        const valB = b.getAttributes()[defaultKey];
+
+        return (valA ?? '') > (valB ?? '') ? 1 : -1;
+      };
+    }
+
+    this.items.sort(this.sortFunction);
     this.applyFilters();
-    this.emit('sort', this.visibleItems);
+
+    if (!silent) {
+      this.emit('sort', this.visibleItems);
+    }
 
     return this;
   }
 
-  public empty(): this {
-    this.items.forEach((item) => item.destroy());
-    this.items = [];
-    this.applyFilters();
-    this.emit('update');
+  public empty(silent: boolean = false): this {
+    this.items.forEach((item) => item.destroy(true));
 
-    return this;
-  }
-
-  public destroy(): void {
-    if (this.isDestroyed) return;
-    this.isDestroyed = true;
-
-    this.onDestroy();
-
-    this.off();
-    this.items.forEach((item) => item.destroy());
+    this.visibleItems = [];
+    this.visibleLength = 0;
     this.items = [];
     this.length = 0;
 
-    this.emit('destroyed');
+    this.applyFilters();
+
+    if (!silent) {
+      this.emit('update', { action: 'empty' });
+    }
+
+    return this;
   }
 
   public filter(filterOptions?: CollectionFilterOptions, extend: boolean = true): this {
@@ -264,13 +311,11 @@ export default abstract class Collection extends Emitter {
     ];
   }
 
-  protected applyFilters(): this {
+  protected applyFilters() {
     this.visibleItems = this.items.filter((item) => {
       return Object.values(this.activeFilters).every((filterFn) => filterFn(item));
     });
     this.visibleLength = this.visibleItems.length;
-
-    return this;
   }
 
   public clearFilters(): this {
@@ -287,5 +332,13 @@ export default abstract class Collection extends Emitter {
       return Object.keys(this.items[0].getAttributes()) as string[];
     }
     return [];
+  }
+
+  public destroy(silent: boolean = false): void {
+    if (this.isDestroyed) return;
+    super.destroy(silent);
+
+    this.off();
+    this.empty(true);
   }
 }

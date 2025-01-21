@@ -457,12 +457,11 @@ export default abstract class View extends Emitter {
   /**
    * Cleans up the view by removing event listeners, children and other references.
    */
-  public destroy(): void {
+  public destroy(silent: boolean = false): void {
     if (this.isDestroyed) return;
+    super.destroy(silent);
 
     this.destroyChildren();
-    super.destroy();
-
     this.model?.off({ subscriber: this });
     this.model = undefined;
 

@@ -243,11 +243,11 @@ export default abstract class Model extends Emitter {
   /**
    * Destroys the model, performing any necessary cleanup.
    */
-  public destroy(): void {
-    super.destroy();
+  public destroy(silent: boolean = false): void {
+    if (this.isDestroyed) return;
+    super.destroy(silent);
 
     if (this.collection) {
-      this.collection.remove(this.getId());
       this.collection.off({ subscriber: this });
     }
   }

@@ -2,10 +2,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Emitter from '../../src/emitter';
 import type { EmitterOptions } from '../../src/imports/emitter';
-import { MockZeyonApp } from '../util/mockApp';
+import { TestZeyonApp } from '../util/testApp';
 
 class TestEmitter extends Emitter {
-  constructor(options: EmitterOptions = {}, app: MockZeyonApp) {
+  constructor(options: EmitterOptions = {}, app: TestZeyonApp) {
     super(options, app);
   }
   public ready() {
@@ -14,11 +14,11 @@ class TestEmitter extends Emitter {
 }
 
 describe('Emitter', () => {
-  let app: MockZeyonApp;
+  let app: TestZeyonApp;
   let emitter: TestEmitter;
 
   beforeEach(() => {
-    app = new MockZeyonApp();
+    app = new TestZeyonApp();
     emitter = new TestEmitter({}, app);
   });
 
@@ -142,7 +142,6 @@ describe('Emitter', () => {
     emitter.destroy();
     expect(emitter['isDestroyed']).toBe(true);
 
-    // "destroyed" event is emitted => calls => [ [undefined, CustomEvent] ] typically
     expect(destroySpy).toHaveBeenCalledTimes(1);
   });
 

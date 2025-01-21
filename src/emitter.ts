@@ -12,8 +12,8 @@ import {
 import { debounce } from './util/debounce';
 
 const generalEvents = [
-  '*', // Triggered for all events, with an additional "event type" argument supplied.
-  'destroyed', // When the instance is destroyed.
+  '*', // Triggered for all events, with an additional "event name" supplied as the first argument.
+  'destroyed', // When the class instance is destroyed.
 ];
 
 /**
@@ -285,15 +285,19 @@ export default abstract class Emitter {
     return this;
   }
 
-  public destroy(): void {
+  public destroy(silent: boolean = false): void {
     if (this.isDestroyed) return;
-    this.isDestroyed = true;
 
-    this.emit('destroyed');
+    this.isDestroyed = true;
     this.onDestroy();
 
     // @ts-ignore - Cleaning up for purposes of destroying the class
     this.isReady = undefined;
+
+    if (!silent) {
+      this.emit('destroyed');
+    }
+
     this.destroyEvents();
   }
 

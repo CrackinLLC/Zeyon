@@ -138,13 +138,15 @@ class Emitter {
         });
         return this;
     }
-    destroy() {
+    destroy(silent = false) {
         if (this.isDestroyed)
             return;
         this.isDestroyed = true;
-        this.emit('destroyed');
         this.onDestroy();
         this.isReady = undefined;
+        if (!silent) {
+            this.emit('destroyed');
+        }
         this.destroyEvents();
     }
     onDestroy() { }

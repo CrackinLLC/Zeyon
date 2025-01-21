@@ -29,7 +29,7 @@ export default abstract class Model extends Emitter {
     select(selected: boolean): this;
     isSelected(): boolean;
     reset(silent?: boolean): this;
-    destroy(): void;
+    destroy(silent?: boolean): void;
     validateAttributes(attributes: Partial<this['attrib']>): Partial<this['attrib']>;
     static getAttributeKeys(): string[];
 }

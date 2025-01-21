@@ -12,7 +12,7 @@ import type Router from '../../src/router';
 import type RouteView from '../../src/routeView';
 import type View from '../../src/view';
 
-export class MockZeyonApp<CustomRouteProps = any> implements ZeyonAppLike {
+export class TestZeyonApp implements ZeyonAppLike {
   public name = '';
   public el: HTMLElement;
   public isStarted = false;

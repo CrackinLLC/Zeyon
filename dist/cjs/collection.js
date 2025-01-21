@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const emitter_1 = __importDefault(require("./emitter"));
 const collection_1 = require("./imports/collection");
+const debounce_1 = require("./util/debounce");
 class Collection extends emitter_1.default {
     constructor(options = {}, app) {
         super({
@@ -26,27 +27,35 @@ class Collection extends emitter_1.default {
             });
             funcs.push(this.newModel(attrs));
         }
+        this.applyFilters = (0, debounce_1.debounce)(this.applyFilters.bind(this), { wait: 10, shouldAggregate: false });
         funcs.push(this.initialize());
         Promise.all(funcs).then(() => this.markAsReady());
     }
     async newModel(attributes, silent = false) {
         const attributesArray = Array.isArray(attributes) ? attributes : [attributes];
-        for (const attrs of attributesArray) {
-            const model = await this.app.newModel(this.getModelType(), {
-                attributes: attrs,
-                collection: this,
-            });
+        const createdModels = await Promise.all(attributesArray.map((attrs) => this.app
+            .newModel(this.getModelType(), {
+            attributes: attrs,
+            collection: this,
+        })
+            .then((model) => {
             if (model) {
-                this.add(model, silent);
+                this.add(model, true);
             }
+            return model;
+        })));
+        this.sort(undefined, silent);
+        if (!silent) {
+            this.emit('update', { action: 'new', models: createdModels });
         }
         return this;
     }
     add(models, silent = false) {
         const modelsArray = Array.isArray(models) ? models : [models];
+        const itemsAdded = [];
         modelsArray.forEach((model) => {
             if (this.modelRegistrationId !== model.getRegistrationId()) {
-                console.error(`Only instances of ${this.modelRegistrationId} can be added to the collection.`);
+                console.error(`Only instances of ${this.modelRegistrationId} can be added to the collection. Attempted to add ${model.getRegistrationId()}.`);
                 return;
             }
             const id = model.getId();
@@ -58,15 +67,27 @@ class Collection extends emitter_1.default {
                 console.warn(`Model with ID ${model.getId()} already exists in the collection.`);
             }
             else {
+                model
+                    .setCollection(this)
+                    .on('change', (data) => {
+                    this.emit('model:change', { models: [model], data });
+                })
+                    .on('reset', (data) => {
+                    this.emit('model:reset', { models: [model], data });
+                })
+                    .on('selected', (state) => {
+                    this.emit('model:selected', { models: [model], state });
+                })
+                    .on('destroyed', () => {
+                    this.remove(model.getId(), true);
+                });
                 this.items.push(model);
-                model.setCollection(this).on('*', (eventName, val, event) => {
-                    this.emit(eventName, { model, data: val });
-                }, this);
-            }
-            if (!silent) {
-                this.emit('add', model);
+                itemsAdded.push(model);
             }
         });
+        if (!silent) {
+            this.emit('update', { action: 'add', models: itemsAdded });
+        }
         this.length = this.items.length;
         this.applyFilters();
         return this;
@@ -85,7 +106,7 @@ class Collection extends emitter_1.default {
             }
         });
         if (!silent) {
-            this.emit('remove', removedItems);
+            this.emit('update', { action: 'remove', models: removedItems });
         }
         this.length = this.items.length;
         this.applyFilters();
@@ -101,6 +122,14 @@ class Collection extends emitter_1.default {
         return this.items.map((item) => item.getAttributes());
     }
     getAttributeKeys() {
+        const ctor = this.modelConstructor;
+        if (ctor.definition) {
+            return Object.keys(ctor.definition);
+        }
+        else if (this.items.length > 0) {
+            return Object.keys(this.items[0].getAttributes());
+        }
+        console.warn('Something went wrong... unable to determine attribute keys.');
         return [];
     }
     getVisibleItems() {
@@ -126,29 +155,37 @@ class Collection extends emitter_1.default {
     findById(itemId) {
         return this.items.find((item) => item.getId() === itemId);
     }
-    sort(compareFn) {
-        this.items.sort(compareFn);
+    sort(compareFn, silent = false) {
+        if (compareFn) {
+            this.sortFunction = compareFn;
+        }
+        else if (!this.sortFunction) {
+            const def = this.modelConstructor.definition;
+            const defaultKey = Object.keys(def).find((k) => def[k].isDefaultSortKey) || 'id';
+            this.sortFunction = (a, b) => {
+                const valA = a.getAttributes()[defaultKey];
+                const valB = b.getAttributes()[defaultKey];
+                return (valA ?? '') > (valB ?? '') ? 1 : -1;
+            };
+        }
+        this.items.sort(this.sortFunction);
         this.applyFilters();
-        this.emit('sort', this.visibleItems);
+        if (!silent) {
+            this.emit('sort', this.visibleItems);
+        }
         return this;
     }
-    empty() {
-        this.items.forEach((item) => item.destroy());
-        this.items = [];
-        this.applyFilters();
-        this.emit('update');
-        return this;
-    }
-    destroy() {
-        if (this.isDestroyed)
-            return;
-        this.isDestroyed = true;
-        this.onDestroy();
-        this.off();
-        this.items.forEach((item) => item.destroy());
+    empty(silent = false) {
+        this.items.forEach((item) => item.destroy(true));
+        this.visibleItems = [];
+        this.visibleLength = 0;
         this.items = [];
         this.length = 0;
-        this.emit('destroyed');
+        this.applyFilters();
+        if (!silent) {
+            this.emit('update', { action: 'empty' });
+        }
+        return this;
     }
     filter(filterOptions, extend = true) {
         if (!extend) {
@@ -201,7 +238,6 @@ class Collection extends emitter_1.default {
             return Object.values(this.activeFilters).every((filterFn) => filterFn(item));
         });
         this.visibleLength = this.visibleItems.length;
-        return this;
     }
     clearFilters() {
         this.activeFilters = {};
@@ -215,6 +251,13 @@ class Collection extends emitter_1.default {
             return Object.keys(this.items[0].getAttributes());
         }
         return [];
+    }
+    destroy(silent = false) {
+        if (this.isDestroyed)
+            return;
+        super.destroy(silent);
+        this.off();
+        this.empty(true);
     }
 }
 exports.default = Collection;

@@ -60,7 +60,7 @@ export default abstract class View extends Emitter {
     setErrorState(msg: string, options?: ErrorStateOptions): void;
     protected removeErrorState(): void;
     protected isNativeEvent(eventName: string): boolean;
-    destroy(): void;
+    destroy(silent?: boolean): void;
     destroyChildren(): void;
 }
 export declare function isAttachReference(val: any): val is AttachReference;

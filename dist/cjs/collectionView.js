@@ -98,13 +98,15 @@ class CollectionView extends view_1.default {
     setEmptyClass() {
         this.toggleClass('is-empty', !this.collection || this.collection.visibleLength === 0);
     }
-    destroy() {
+    destroy(silent = false) {
+        if (this.isDestroyed)
+            return;
+        super.destroy(silent);
         this.destroyChildItems();
         if (this.collection) {
             this.collection.off({ subscriber: this });
         }
         delete this.collection;
-        return super.destroy();
     }
 }
 exports.default = CollectionView;

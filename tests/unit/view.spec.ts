@@ -5,7 +5,7 @@ import { nativeEvents } from '../../src/imports/view';
 import Model from '../../src/model';
 import View from '../../src/view';
 import { getPrivate } from '../util/driver';
-import { MockZeyonApp } from '../util/mockApp';
+import { TestZeyonApp } from '../util/testApp';
 
 class TestView extends View {
   protected ui = { testKey: 'my-selector' };
@@ -21,13 +21,13 @@ class TestModel extends Model {
 }
 
 describe('View', () => {
-  let app: MockZeyonApp;
+  let app: TestZeyonApp;
   let view: TestView;
   let options: ViewOptions;
   let el: HTMLElement;
 
   beforeEach(() => {
-    app = new MockZeyonApp();
+    app = new TestZeyonApp();
 
     options = {
       classNames: ['test-class'],

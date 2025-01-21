@@ -2,30 +2,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ModelOptions } from '../../src/imports/model';
 import Model from '../../src/model';
 import { getPrivate } from '../util/driver';
-import { MockZeyonApp } from '../util/mockApp';
-
-// Example sub-class for testing:
-class TestModel extends Model {
-  // We'll provide a typed "attrib" if we want type-checking:
-  declare attrib: {
-    id?: number;
-    name?: string;
-  };
-
-  // Optionally define a custom static definition:
-  static definition = {
-    id: { type: 'number', optional: true },
-    name: { type: 'string', optional: true },
-  } as const;
-}
+import { TestZeyonApp } from '../util/testApp';
+import { TestCollection } from '../util/testCollection';
+import { TestModel } from '../util/testModel';
 
 describe('Model', () => {
-  let app: MockZeyonApp;
+  let app: TestZeyonApp;
   let options: ModelOptions<{ id?: number; name?: string }>;
   let model: TestModel;
 
   beforeEach(() => {
-    app = new MockZeyonApp();
+    app = new TestZeyonApp();
 
     options = {
       // Example attributes
@@ -102,24 +89,18 @@ describe('Model', () => {
     expect(model.get('id')).toBe(999); // coerced from string to number
   });
 
-  it('destroy removes from parent collection and cleans up', () => {
-    // Mock a parent collection
-    const mockCollection = {
-      remove: vi.fn(),
-      off: vi.fn(),
-    } as any;
-
+  it('destroy removes model listeners from parent collection', () => {
+    const mockCollection = new TestCollection({}, app) as any;
     model.setCollection(mockCollection);
+
+    const offSpy = vi.spyOn(mockCollection, 'off');
     const destroySpy = vi.spyOn(model, 'destroy');
 
     model.destroy();
-    expect(destroySpy).toHaveBeenCalled();
-    expect(mockCollection.remove).toHaveBeenCalledWith(model.getId());
-    expect(mockCollection.off).toHaveBeenCalledWith({ subscriber: model });
 
-    // The isDestroyed flag from Emitter
-    const isDestroyed = getPrivate(model, 'isDestroyed');
-    expect(isDestroyed).toBe(true);
+    expect(offSpy).toHaveBeenCalledWith({ subscriber: model });
+    expect(destroySpy).toHaveBeenCalled();
+    expect(getPrivate(model, 'isDestroyed')).toBe(true);
   });
 
   it('select marks the model as selected', () => {

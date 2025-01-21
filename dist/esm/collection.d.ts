@@ -16,6 +16,7 @@ export default abstract class Collection extends Emitter {
     visibleLength: number;
     protected filterOptions: CollectionFilterOptions;
     protected activeFilters: Record<string, (item: this['model']) => boolean>;
+    protected sortFunction: ((a: this['model'], b: this['model']) => number) | undefined;
     constructor(options: CollectionOptions | undefined, app: ZeyonAppLike);
     newModel(attributes: Partial<this['attrib']> | Partial<this['attrib']>[], silent?: boolean): Promise<this>;
     add(models: this['model'] | this['model'][], silent?: boolean): this;
@@ -30,14 +31,14 @@ export default abstract class Collection extends Emitter {
     getIds(): number[];
     getSelectedIds(): number[];
     findById(itemId: number): this['model'] | undefined;
-    sort(compareFn: (a: this['model'], b: this['model']) => number): this;
-    empty(): this;
-    destroy(): void;
+    sort(compareFn?: (a: this['model'], b: this['model']) => number, silent?: boolean): this;
+    empty(silent?: boolean): this;
     filter(filterOptions?: CollectionFilterOptions, extend?: boolean): this;
     getFilterFunction(key: string, value: any): ((item: this['model']) => boolean) | undefined;
     getFilterOptions(): CollectionFilterDefinition[];
-    protected applyFilters(): this;
+    protected applyFilters(): void;
     clearFilters(): this;
     protected getTextSearchAttributes(): string[];
+    destroy(silent?: boolean): void;
 }
 //# sourceMappingURL=collection.d.ts.map

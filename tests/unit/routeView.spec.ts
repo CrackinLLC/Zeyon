@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import RouteView from '../../src/routeView';
-import { MockZeyonApp } from '../util/mockApp';
+import { TestZeyonApp } from '../util/testApp';
 
 class TestRouteView extends RouteView {
   // Optionally override or define minimal template / methods if needed
 }
 
 describe('RouteView', () => {
-  let app: MockZeyonApp;
+  let app: TestZeyonApp;
   let routeView: TestRouteView;
 
   beforeEach(() => {
-    app = new MockZeyonApp();
+    app = new TestZeyonApp();
     routeView = new TestRouteView({}, app);
   });
 

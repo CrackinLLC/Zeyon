@@ -108,10 +108,11 @@ class Model extends Emitter {
         this.markUnsavedChanges();
         return this;
     }
-    destroy() {
-        super.destroy();
+    destroy(silent = false) {
+        if (this.isDestroyed)
+            return;
+        super.destroy(silent);
         if (this.collection) {
-            this.collection.remove(this.getId());
             this.collection.off({ subscriber: this });
         }
     }

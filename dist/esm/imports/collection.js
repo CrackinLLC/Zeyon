@@ -2,7 +2,8 @@ export const collectionEvents = [
     'update',
     'sort',
     'filter',
-    'fetch',
-    'save',
+    'model:change',
+    'model:reset',
+    'model:selected',
 ];
 //# sourceMappingURL=collection.js.map

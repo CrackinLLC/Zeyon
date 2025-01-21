@@ -10,3 +10,5 @@ export interface DriverElement {
 }
 
 export const getPrivate = (c: unknown, key: string) => (c as any)[key];
+
+export const milliseconds = (ms: number) => new Promise((r) => setTimeout(r, ms));

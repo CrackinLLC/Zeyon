@@ -3,7 +3,7 @@ import ClassRegistry from '../../src/classRegistry';
 import Emitter from '../../src/emitter';
 import type { ClassMapKey } from '../../src/generated/ClassMapType';
 import type { AnyDefinition, ClassRegistryOptions } from '../../src/imports/classRegistry';
-import { MockZeyonApp } from '../util/mockApp';
+import { TestZeyonApp } from '../util/testApp';
 
 class DummyClassA extends Emitter {
   static registrationId = 'dummy-a';
@@ -21,7 +21,7 @@ describe('ClassRegistry', () => {
 
   beforeEach(() => {
     const mockOptions: ClassRegistryOptions = { events: [] };
-    const mockApp = new MockZeyonApp();
+    const mockApp = new TestZeyonApp();
     registry = new ClassRegistry(mockOptions, mockApp);
   });
 

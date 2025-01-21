@@ -1,1 +1,1 @@
-{"version":3,"file":"collection.js","sourceRoot":"","sources":["../../../src/imports/collection.ts"],"names":[],"mappings":"AAkBA,MAAM,CAAC,MAAM,gBAAgB,GAAG;IAC9B,QAAQ;IACR,MAAM;IACN,QAAQ;IACR,OAAO;IACP,MAAM;CACP,CAAC"}
+{"version":3,"file":"collection.js","sourceRoot":"","sources":["../../../src/imports/collection.ts"],"names":[],"mappings":"AAkBA,MAAM,CAAC,MAAM,gBAAgB,GAAG;IAC9B,QAAQ;IACR,MAAM;IACN,QAAQ;IAER,cAAc;IACd,aAAa;IACb,gBAAgB;CAKjB,CAAC"}

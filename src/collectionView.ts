@@ -164,13 +164,14 @@ export default abstract class CollectionView<C extends Collection = Collection, 
   /**
    * Destroys the collection view, removing event listeners and child views.
    */
-  destroy() {
+  destroy(silent: boolean = false): void {
+    if (this.isDestroyed) return;
+    super.destroy(silent);
+
     this.destroyChildItems();
     if (this.collection) {
       this.collection.off({ subscriber: this });
     }
     delete this.collection;
-
-    return super.destroy();
   }
 }

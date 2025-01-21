@@ -322,11 +322,11 @@ class View extends Emitter {
     isNativeEvent(eventName) {
         return !!this.el && nativeEvents.includes(eventName);
     }
-    destroy() {
+    destroy(silent = false) {
         if (this.isDestroyed)
             return;
+        super.destroy(silent);
         this.destroyChildren();
-        super.destroy();
         this.model?.off({ subscriber: this });
         this.model = undefined;
         this.el?.remove();

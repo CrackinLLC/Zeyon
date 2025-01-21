@@ -16,6 +16,6 @@ export default abstract class CollectionView<C extends Collection = Collection, 
     protected destroyChildItems(ids?: string[]): void;
     protected listenToCollection(): void;
     protected setEmptyClass(): void;
-    destroy(): void;
+    destroy(silent?: boolean): void;
 }
 //# sourceMappingURL=collectionView.d.ts.map

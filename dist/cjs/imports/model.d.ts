@@ -12,6 +12,7 @@ export type AttributeType = 'string' | 'stringArray' | 'number' | 'numberArray' 
 export interface AttributeDefinition {
     type: AttributeType;
     default?: unknown;
+    isDefaultSortKey?: boolean;
     optional?: boolean;
     allowed?: unknown[];
     validate?: (val: unknown) => boolean;

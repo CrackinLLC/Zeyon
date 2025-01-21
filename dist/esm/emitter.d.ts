@@ -31,7 +31,7 @@ export default abstract class Emitter {
     debouncedEmit<P>(event: string, payload?: P | P[], shouldAggregate?: boolean): Emitter;
     private logInvalidEvent;
     private destroyEvents;
-    destroy(): void;
+    destroy(silent?: boolean): void;
     protected onDestroy(): void;
     getStaticMember(key: keyof typeof Emitter): unknown;
     getRegistrationId(): ClassMapKey;

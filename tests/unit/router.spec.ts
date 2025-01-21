@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { RouteConfig } from '../../src/imports/router';
 import Router from '../../src/router';
-import { MockZeyonApp } from '../util/mockApp';
+import { TestZeyonApp } from '../util/testApp';
 
 describe('Router', () => {
-  let app: MockZeyonApp;
+  let app: TestZeyonApp;
   let router: Router;
 
   const sampleRoutes: RouteConfig[] = [
@@ -32,7 +32,7 @@ describe('Router', () => {
 
   beforeEach(() => {
     // Provide a mock app reference
-    app = new MockZeyonApp({
+    app = new TestZeyonApp({
       el: document.createElement('div'),
       routes: sampleRoutes,
     });
