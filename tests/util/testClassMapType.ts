@@ -10,7 +10,7 @@ import { Attributes, ModelOptions } from '../../src/imports/model';
 import { RouteViewOptions } from '../../src/imports/routeView';
 import { ViewOptions } from '../../src/imports/view';
 
-declare module '../../src/generated/ClassMapType' {
+declare module '../../src/_index.d' {
   interface ClassMapTypeModel {
     'test-model': { definition: typeof TestModel; options: ModelOptions<Attributes> };
   }

@@ -14,14 +14,12 @@ import Model from './model';
 import RouteView from './routeView';
 import View from './view';
 
-// interface RegisterViewOptions {
-//   options?: any; // An options interface defined by the developer, to use for type safety when instantiating an instance
+interface RegisterViewProps {
+  template?: string;
+  templateWrapper?: string; // Document the specific use-case here better...
+}
 
-//   template?: string;
-//   templateWrapper?: string; // Document the specific use-case here better...
-// }
-
-// interface RegisterRouteViewOptions extends RegisterViewOptions {}
+// interface RegisterRouteViewOptions extends RegisterViewProps {}
 
 interface RegisterModelOptions {
   attributes: Record<string, AttributeDefinition>;
@@ -36,7 +34,7 @@ interface RegisterModelOptions {
 //   collectionId: string;
 // }
 
-function registerClass(registrationId: string) {
+function registerClass(registrationId: string, props: {} = {}) {
   return function <T extends { new (...args: any[]): {} }>(constructor: T) {
     if ((constructor as any).prototype.hasOwnProperty('constructor')) {
       console.warn(
@@ -46,6 +44,10 @@ function registerClass(registrationId: string) {
 
     // Store the registrationId on the constructor
     (constructor as any).registrationId = registrationId;
+    Object.entries(props).forEach(([name, value]) => {
+      (constructor as any)[name] = value;
+    });
+
     return constructor;
   };
 }
@@ -74,14 +76,9 @@ export default {
     }
   */
 
-  registerView(registrationId: string) {
-    //, options?: RegisterViewOptions) {
+  registerView(registrationId: string, props?: RegisterViewProps) {
     return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-      const decoratedClass = registerClass(registrationId)(constructor);
-
-      // TODO: Implement options handling
-
-      return decoratedClass;
+      return registerClass(registrationId, props)(constructor);
     };
   },
 

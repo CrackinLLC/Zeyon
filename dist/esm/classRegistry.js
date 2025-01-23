@@ -1,4 +1,3 @@
-import { classMapData } from './generated/classMapData';
 import Emitter from './emitter';
 class ClassRegistry extends Emitter {
     constructor(options = {}, app) {
@@ -7,6 +6,7 @@ class ClassRegistry extends Emitter {
             events: [...(options.events || []), 'registered', 'overwritten'],
         }, app);
         this.classMap = new Map();
+        const classMapData = {};
         this.registerClasses(Object.values(classMapData));
     }
     registerClass(c) {

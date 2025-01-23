@@ -11,6 +11,10 @@ import Emitter from './emitter';
 import Model from './model';
 import RouteView from './routeView';
 import View from './view';
+interface RegisterViewProps {
+    template?: string;
+    templateWrapper?: string;
+}
 interface RegisterModelOptions {
     attributes: Record<string, AttributeDefinition>;
 }
@@ -23,7 +27,7 @@ export type { ViewOptions } from './imports/view';
 export { Collection, CollectionView, Emitter, Model, RouteConfig, Router, RouteView, View, ZeyonApp, ZeyonAppOptions };
 declare const _default: {
     create: (options: any) => ZeyonApp;
-    registerView(registrationId: string): <T extends {
+    registerView(registrationId: string, props?: RegisterViewProps): <T extends {
         new (...args: any[]): {};
     }>(constructor: T) => T;
     registerRouteView(registrationId: string): <T extends {

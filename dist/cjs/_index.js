@@ -22,21 +22,23 @@ const routeView_1 = __importDefault(require("./routeView"));
 exports.RouteView = routeView_1.default;
 const view_1 = __importDefault(require("./view"));
 exports.View = view_1.default;
-function registerClass(registrationId) {
+function registerClass(registrationId, props = {}) {
     return function (constructor) {
         if (constructor.prototype.hasOwnProperty('constructor')) {
             console.warn(`Class ${registrationId} defines its own constructor. This is discouraged. Instead, define an 'initialize' method that is run when instantiating.`);
         }
         constructor.registrationId = registrationId;
+        Object.entries(props).forEach(([name, value]) => {
+            constructor[name] = value;
+        });
         return constructor;
     };
 }
 exports.default = {
     create: (options) => new app_1.default(options),
-    registerView(registrationId) {
+    registerView(registrationId, props) {
         return function (constructor) {
-            const decoratedClass = registerClass(registrationId)(constructor);
-            return decoratedClass;
+            return registerClass(registrationId, props)(constructor);
         };
     },
     registerRouteView(registrationId) {

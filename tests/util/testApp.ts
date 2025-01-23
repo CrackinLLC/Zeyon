@@ -4,7 +4,7 @@ import type {
   ClassMapTypeModel,
   ClassMapTypeRouteView,
   ClassMapTypeView,
-} from '../../src/generated/ClassMapType';
+} from '../../src/_index.d';
 import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from '../../src/imports/app';
 import type Router from '../../src/router';
 import { TestCollection } from './testCollection';

@@ -1,14 +1,16 @@
-import type Collection from '../collection';
-import type ColectionView from '../collectionView';
-import type Model from '../model';
-import type RouteView from '../routeView';
-import type View from '../view';
+import type Collection from './collection';
+import type ColectionView from './collectionView';
+import type Model from './model';
+import type RouteView from './routeView';
+import type View from './view';
 
-import { CollectionOptions } from '../imports/collection';
-import { CollectionViewOptions } from '../imports/collectionView';
-import { Attributes, ModelOptions } from '../imports/model';
-import { RouteViewOptions } from '../imports/routeView';
-import { ViewOptions } from '../imports/view';
+import { CollectionOptions } from './imports/collection';
+import { CollectionViewOptions } from './imports/collectionView';
+import { Attributes, ModelOptions } from './imports/model';
+import { RouteViewOptions } from './imports/routeView';
+import { ViewOptions } from './imports/view';
+
+declare module '*.hbs';
 
 export interface ClassMapTypeModel {
   [registrationId: string]: { definition: typeof Model; options: ModelOptions<Attributes> };

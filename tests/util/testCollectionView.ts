@@ -1,5 +1,5 @@
+import { ClassMapTypeView } from '../../src/_index.d';
 import CollectionView from '../../src/collectionView';
-import { ClassMapTypeView } from '../../src/generated/ClassMapType';
 
 export class TestCollectionView extends CollectionView {
   static registrationId = 'test-collection-view';

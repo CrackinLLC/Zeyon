@@ -1,4 +1,4 @@
-import type { ClassMapKey } from './generated/ClassMapType';
+import type { ClassMapKey } from './_types';
 import { ZeyonAppLike } from './imports/app';
 import { ClassConfigurationOptions, EmitterOptions, EventHandler } from './imports/emitter';
 export default abstract class Emitter {

@@ -1,4 +1,4 @@
-import type { ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from './generated/ClassMapType';
+import type { ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from './_types';
 import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from './imports/app';
 export default class ZeyonApp implements ZeyonAppLike {
     options: ZeyonAppOptions;

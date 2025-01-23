@@ -1,5 +1,3 @@
-import ClassRegistry from './classRegistry';
-import type Emitter from './emitter';
 import type {
   ClassMapKey,
   ClassMapTypeCollection,
@@ -7,7 +5,9 @@ import type {
   ClassMapTypeModel,
   ClassMapTypeRouteView,
   ClassMapTypeView,
-} from './generated/ClassMapType';
+} from './_types';
+import ClassRegistry from './classRegistry';
+import type Emitter from './emitter';
 import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from './imports/app';
 import Router from './router';
 import { loaderTemplate } from './util/loader';

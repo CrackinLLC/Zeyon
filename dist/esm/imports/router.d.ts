@@ -1,4 +1,4 @@
-import type { ClassMapTypeRouteView } from '../generated/ClassMapType';
+import type { ClassMapTypeRouteView } from '../_types';
 export interface RouterOptions {
     routes: RouteConfig[];
     urlPrefix?: string;

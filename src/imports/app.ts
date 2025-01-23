@@ -5,7 +5,7 @@ import type {
   ClassMapTypeModel,
   ClassMapTypeRouteView,
   ClassMapTypeView,
-} from '../generated/ClassMapType';
+} from '../_types';
 import type { RouteConfig } from './router';
 import type { ViewOptions } from './view';
 

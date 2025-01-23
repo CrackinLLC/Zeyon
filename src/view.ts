@@ -1,5 +1,5 @@
+import type { ClassMapTypeView } from './_types';
 import Emitter from './emitter';
-import type { ClassMapTypeView } from './generated/ClassMapType';
 import { ZeyonAppLike } from './imports/app';
 import { AttachReference, nativeEvents, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';

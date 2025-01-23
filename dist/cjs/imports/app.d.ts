@@ -1,4 +1,4 @@
-import type { ClassMapKey, ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from '../generated/ClassMapType';
+import type { ClassMapKey, ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from '../_types';
 import type { RouteConfig } from './router';
 import type { ViewOptions } from './view';
 export interface ZeyonAppOptions {

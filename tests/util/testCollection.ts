@@ -1,5 +1,5 @@
+import { ClassMapTypeModel } from '../../src/_index.d';
 import Collection from '../../src/collection';
-import { ClassMapTypeModel } from '../../src/generated/ClassMapType';
 
 export class TestCollection extends Collection {
   static registrationId = 'test-collection';

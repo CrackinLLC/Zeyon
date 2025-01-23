@@ -4,7 +4,7 @@
   "description": "A TypeScript framework focused on modularity and strong data management, with advanced handling of models and collections for building scalable, data-driven single-page applications.",
   "main": "dist/cjs/_index.js",
   "module": "dist/esm/_index.js",
-  "types": "dist/esm/_index.d.ts",
+  "types": "dist/esm/_types.d.ts",
   "exports": {
     ".": {
       "import": "./dist/esm/_index.js",
@@ -26,7 +26,7 @@
     "test": "npm run test:unit:nowatch && npm run test:integration"
   },
   "bin": {
-    "zeyon": "./dist/generateMaps.js"
+    "zeyon": "./dist/cjs/_cli_commands.js"
   },
   "repository": {
     "type": "git",
