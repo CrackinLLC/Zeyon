@@ -1,5 +1,6 @@
-import '../util/polyfill';
-import '../util/template';
+import './_maps';
+import './util/polyfill';
+import './util/template';
 
 import ZeyonApp from './app';
 import type { ZeyonAppOptions } from './imports/app';
@@ -14,22 +15,27 @@ import Model from './model';
 import RouteView from './routeView';
 import View from './view';
 
-interface RegisterViewProps {
+interface BaseProps {
+  // In case we have any global props that apply to all classes...
+}
+
+interface RegisterViewProps extends BaseProps {
+  isComponent?: boolean;
   template?: string;
   templateWrapper?: string; // Document the specific use-case here better...
 }
 
-// interface RegisterRouteViewOptions extends RegisterViewProps {}
+interface RegisterRouteViewOptions extends RegisterViewProps {}
 
 interface RegisterModelOptions {
   attributes: Record<string, AttributeDefinition>;
 }
 
-// interface RegisterCollectionOptions {
+// interface RegisterCollectionOptions extends BaseProps {
 //   modelId: string;
 // }
 
-// interface RegisterCollectionViewOptions {
+// interface RegisterCollectionViewOptions extends BaseProps {
 //   childViewId: string;
 //   collectionId: string;
 // }
@@ -60,6 +66,10 @@ export type { RouteViewOptions } from './imports/routeView';
 export type { ViewOptions } from './imports/view';
 export { Collection, CollectionView, Emitter, Model, RouteConfig, Router, RouteView, View, ZeyonApp, ZeyonAppOptions };
 
+export { ZeyonWebpack } from './build/webpack';
+
+// TODO: Export additional build assistants from here
+
 export default {
   create: (options: any) => new ZeyonApp(options),
 
@@ -82,14 +92,9 @@ export default {
     };
   },
 
-  registerRouteView(registrationId: string) {
-    //, options?: RegisterRouteViewOptions) {
+  registerRouteView(registrationId: string, props?: RegisterRouteViewOptions) {
     return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-      const decoratedClass = registerClass(registrationId)(constructor);
-
-      // TODO: Implement options handling
-
-      return decoratedClass;
+      return registerClass(registrationId, props)(constructor);
     };
   },
 

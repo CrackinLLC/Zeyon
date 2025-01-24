@@ -5,7 +5,7 @@ import type {
   ClassMapTypeModel,
   ClassMapTypeRouteView,
   ClassMapTypeView,
-} from './_types';
+} from './_maps';
 import ClassRegistry from './classRegistry';
 import type Emitter from './emitter';
 import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from './imports/app';
@@ -48,7 +48,7 @@ export default class ZeyonApp implements ZeyonAppLike {
   private router: Router;
 
   /**
-   * A map of class definitions for dynamic instantiation.
+   * A map of classRef keyed by registrationId, for dynamic instantiation.
    */
   private registry: ClassRegistry;
 
@@ -134,36 +134,36 @@ export default class ZeyonApp implements ZeyonAppLike {
   public async newView<K extends keyof ClassMapTypeView>(
     registrationId: K,
     options?: ClassMapTypeView[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeView[K]['definition']>> {
-    return this.newInstance<InstanceType<ClassMapTypeView[K]['definition']>>(registrationId, options);
+  ): Promise<InstanceType<ClassMapTypeView[K]['classRef']>> {
+    return this.newInstance<InstanceType<ClassMapTypeView[K]['classRef']>>(registrationId, options);
   }
 
   public newRouteView<K extends keyof ClassMapTypeRouteView>(
     registrationId: K,
     options?: ClassMapTypeRouteView[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeRouteView[K]['definition']>> {
-    return this.newInstance<InstanceType<ClassMapTypeRouteView[K]['definition']>>(registrationId, options);
+  ): Promise<InstanceType<ClassMapTypeRouteView[K]['classRef']>> {
+    return this.newInstance<InstanceType<ClassMapTypeRouteView[K]['classRef']>>(registrationId, options);
   }
 
   public newModel<K extends keyof ClassMapTypeModel>(
     registrationId: K,
     options?: ClassMapTypeModel[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeModel[K]['definition']>> {
-    return this.newInstance<InstanceType<ClassMapTypeModel[K]['definition']>>(registrationId, options);
+  ): Promise<InstanceType<ClassMapTypeModel[K]['classRef']>> {
+    return this.newInstance<InstanceType<ClassMapTypeModel[K]['classRef']>>(registrationId, options);
   }
 
   public newCollection<K extends keyof ClassMapTypeCollection>(
     registrationId: K,
     options?: ClassMapTypeCollection[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeCollection[K]['definition']>> {
-    return this.newInstance<InstanceType<ClassMapTypeCollection[K]['definition']>>(registrationId, options);
+  ): Promise<InstanceType<ClassMapTypeCollection[K]['classRef']>> {
+    return this.newInstance<InstanceType<ClassMapTypeCollection[K]['classRef']>>(registrationId, options);
   }
 
   public newCollectionView<K extends keyof ClassMapTypeCollectionView>(
     registrationId: K,
     options?: ClassMapTypeCollectionView[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeCollectionView[K]['definition']>> {
-    return this.newInstance<InstanceType<ClassMapTypeCollectionView[K]['definition']>>(registrationId, options);
+  ): Promise<InstanceType<ClassMapTypeCollectionView[K]['classRef']>> {
+    return this.newInstance<InstanceType<ClassMapTypeCollectionView[K]['classRef']>>(registrationId, options);
   }
 
   private async newInstance<T extends Emitter>(registrationId: ClassMapKey, options?: unknown): Promise<T> {

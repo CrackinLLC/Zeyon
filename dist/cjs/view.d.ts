@@ -1,4 +1,4 @@
-import type { ClassMapTypeView } from './_types';
+import type { ClassMapTypeView } from './_maps';
 import Emitter from './emitter';
 import { ZeyonAppLike } from './imports/app';
 import { AttachReference, RenderOptions, ViewOptions } from './imports/view';
@@ -47,7 +47,7 @@ export default abstract class View extends Emitter {
     protected generateUiSelections(selectorAttribute?: string): void;
     protected renderTemplate(): void;
     protected getTemplateOptions(optionValues?: Record<string, unknown>): Record<string, unknown>;
-    newChild<K extends keyof ClassMapTypeView>(registrationId: K, viewOptions: ClassMapTypeView[K]['options']): Promise<InstanceType<ClassMapTypeView[K]['definition']>>;
+    newChild<K extends keyof ClassMapTypeView>(registrationId: K, viewOptions: ClassMapTypeView[K]['options']): Promise<InstanceType<ClassMapTypeView[K]['classRef']>>;
     getChildById<T extends View>(id: string): T | undefined;
     getChildByModelId<T extends View>(id: number): T | undefined;
     protected destroyChildById(id: string): void;

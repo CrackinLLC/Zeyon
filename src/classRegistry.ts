@@ -1,6 +1,8 @@
-import type { ClassMapKey } from './_types';
+import type { ClassMapKey } from './_maps';
 import { ZeyonAppLike } from './imports/app';
 import { AnyDefinition, ClassRegistryOptions } from './imports/classRegistry';
+
+import { classMapData } from './_externals';
 
 import Emitter from './emitter';
 
@@ -17,9 +19,6 @@ export default class ClassRegistry extends Emitter {
       },
       app,
     );
-
-    // TODO: Needs to be imported from our generated file in the user's app root/.Zeyon
-    const classMapData = {};
 
     // TODO: Currently registers all classes, but needs to be conditional for dynamic module loading
     this.registerClasses(Object.values(classMapData));

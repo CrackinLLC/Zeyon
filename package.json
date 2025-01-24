@@ -4,7 +4,7 @@
   "description": "A TypeScript framework focused on modularity and strong data management, with advanced handling of models and collections for building scalable, data-driven single-page applications.",
   "main": "dist/cjs/_index.js",
   "module": "dist/esm/_index.js",
-  "types": "dist/esm/_types.d.ts",
+  "types": "dist/esm/_index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/esm/_index.js",
@@ -46,6 +46,7 @@
   },
   "homepage": "https://github.com/CrackinLLC/Zeyon#readme",
   "dependencies": {
+    "@types/handlebars": "^4.0.40",
     "handlebars": "^4.7.8"
   },
   "devDependencies": {

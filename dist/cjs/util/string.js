@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUniqueId = exports.toSpaceCase = exports.toPascalCase = exports.toCamelCase = exports.toSnakeCase = exports.toHyphenCase = exports.convertObjectKeys = exports.toUpperCaseFirst = void 0;
+exports.getRandomAlphaNumeric = getRandomAlphaNumeric;
 const toUpperCaseFirst = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 exports.toUpperCaseFirst = toUpperCaseFirst;
 const convertObjectKeys = (object, casing) => {
@@ -150,6 +151,17 @@ const getUniqueId = () => {
     return result;
 };
 exports.getUniqueId = getUniqueId;
+function getRandomAlphaNumeric({ len = 8, toUpper = false }) {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < len; i++) {
+        result += chars[Math.floor(Math.random() * chars.length)];
+    }
+    if (toUpper) {
+        return result.toUpperCase();
+    }
+    return result;
+}
 const determineCase = (str) => {
     if (/^[A-Z][a-zA-Z0-9]*$/.test(str)) {
         return 2;

@@ -1,4 +1,4 @@
-import { ClassMapTypeCollection } from '../_types';
+import { ClassMapTypeCollection } from '../_maps';
 import type Collection from '../collection';
 import type { ViewOptions } from './view';
 

@@ -1,4 +1,4 @@
-import { ClassMapTypeCollection, ClassMapTypeView } from './_types';
+import { ClassMapTypeCollection, ClassMapTypeView } from './_maps';
 import Collection from './collection';
 import type { ZeyonAppLike } from './imports/app';
 import { CollectionViewOptions } from './imports/collectionView';

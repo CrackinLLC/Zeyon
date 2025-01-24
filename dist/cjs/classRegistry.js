@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const _externals_1 = require("./_externals");
 const emitter_1 = __importDefault(require("./emitter"));
 class ClassRegistry extends emitter_1.default {
     constructor(options = {}, app) {
@@ -11,8 +12,7 @@ class ClassRegistry extends emitter_1.default {
             events: [...(options.events || []), 'registered', 'overwritten'],
         }, app);
         this.classMap = new Map();
-        const classMapData = {};
-        this.registerClasses(Object.values(classMapData));
+        this.registerClasses(Object.values(_externals_1.classMapData));
     }
     registerClass(c) {
         const id = c.registrationId;

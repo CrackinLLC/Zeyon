@@ -1,4 +1,4 @@
-import type { ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from './_types';
+import type { ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from './_maps';
 import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from './imports/app';
 export default class ZeyonApp implements ZeyonAppLike {
     options: ZeyonAppOptions;
@@ -15,11 +15,11 @@ export default class ZeyonApp implements ZeyonAppLike {
     renderGlobalView(layouts: GlobalViewConfig | GlobalViewConfig[]): this;
     start(): Promise<this>;
     navigate(urlFragment: string, openNewTab?: boolean): this;
-    newView<K extends keyof ClassMapTypeView>(registrationId: K, options?: ClassMapTypeView[K]['options']): Promise<InstanceType<ClassMapTypeView[K]['definition']>>;
-    newRouteView<K extends keyof ClassMapTypeRouteView>(registrationId: K, options?: ClassMapTypeRouteView[K]['options']): Promise<InstanceType<ClassMapTypeRouteView[K]['definition']>>;
-    newModel<K extends keyof ClassMapTypeModel>(registrationId: K, options?: ClassMapTypeModel[K]['options']): Promise<InstanceType<ClassMapTypeModel[K]['definition']>>;
-    newCollection<K extends keyof ClassMapTypeCollection>(registrationId: K, options?: ClassMapTypeCollection[K]['options']): Promise<InstanceType<ClassMapTypeCollection[K]['definition']>>;
-    newCollectionView<K extends keyof ClassMapTypeCollectionView>(registrationId: K, options?: ClassMapTypeCollectionView[K]['options']): Promise<InstanceType<ClassMapTypeCollectionView[K]['definition']>>;
+    newView<K extends keyof ClassMapTypeView>(registrationId: K, options?: ClassMapTypeView[K]['options']): Promise<InstanceType<ClassMapTypeView[K]['classRef']>>;
+    newRouteView<K extends keyof ClassMapTypeRouteView>(registrationId: K, options?: ClassMapTypeRouteView[K]['options']): Promise<InstanceType<ClassMapTypeRouteView[K]['classRef']>>;
+    newModel<K extends keyof ClassMapTypeModel>(registrationId: K, options?: ClassMapTypeModel[K]['options']): Promise<InstanceType<ClassMapTypeModel[K]['classRef']>>;
+    newCollection<K extends keyof ClassMapTypeCollection>(registrationId: K, options?: ClassMapTypeCollection[K]['options']): Promise<InstanceType<ClassMapTypeCollection[K]['classRef']>>;
+    newCollectionView<K extends keyof ClassMapTypeCollectionView>(registrationId: K, options?: ClassMapTypeCollectionView[K]['options']): Promise<InstanceType<ClassMapTypeCollectionView[K]['classRef']>>;
     private newInstance;
     toggleClass(className: string, add?: boolean): this;
     setLoadingState(show?: boolean): boolean;

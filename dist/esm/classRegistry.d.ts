@@ -1,4 +1,4 @@
-import type { ClassMapKey } from './_types';
+import type { ClassMapKey } from './_maps';
 import { ZeyonAppLike } from './imports/app';
 import { AnyDefinition, ClassRegistryOptions } from './imports/classRegistry';
 import Emitter from './emitter';

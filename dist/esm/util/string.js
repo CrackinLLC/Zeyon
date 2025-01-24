@@ -139,6 +139,17 @@ export const getUniqueId = () => {
     }
     return result;
 };
+export function getRandomAlphaNumeric({ len = 8, toUpper = false }) {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < len; i++) {
+        result += chars[Math.floor(Math.random() * chars.length)];
+    }
+    if (toUpper) {
+        return result.toUpperCase();
+    }
+    return result;
+}
 const determineCase = (str) => {
     if (/^[A-Z][a-zA-Z0-9]*$/.test(str)) {
         return 2;

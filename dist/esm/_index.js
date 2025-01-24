@@ -1,5 +1,6 @@
-import '../util/polyfill';
-import '../util/template';
+import './_maps';
+import './util/polyfill';
+import './util/template';
 import ZeyonApp from './app';
 import Router from './router';
 import Collection from './collection';
@@ -21,6 +22,7 @@ function registerClass(registrationId, props = {}) {
     };
 }
 export { Collection, CollectionView, Emitter, Model, Router, RouteView, View, ZeyonApp };
+export { ZeyonWebpack } from './build/webpack';
 export default {
     create: (options) => new ZeyonApp(options),
     registerView(registrationId, props) {
@@ -28,10 +30,9 @@ export default {
             return registerClass(registrationId, props)(constructor);
         };
     },
-    registerRouteView(registrationId) {
+    registerRouteView(registrationId, props) {
         return function (constructor) {
-            const decoratedClass = registerClass(registrationId)(constructor);
-            return decoratedClass;
+            return registerClass(registrationId, props)(constructor);
         };
     },
     registerModel(registrationId, options) {

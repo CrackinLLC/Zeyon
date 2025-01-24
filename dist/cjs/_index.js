@@ -3,9 +3,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ZeyonApp = exports.View = exports.RouteView = exports.Router = exports.Model = exports.Emitter = exports.CollectionView = exports.Collection = void 0;
-require("../util/polyfill");
-require("../util/template");
+exports.ZeyonWebpack = exports.ZeyonApp = exports.View = exports.RouteView = exports.Router = exports.Model = exports.Emitter = exports.CollectionView = exports.Collection = void 0;
+require("./_maps");
+require("./util/polyfill");
+require("./util/template");
 const app_1 = __importDefault(require("./app"));
 exports.ZeyonApp = app_1.default;
 const router_1 = __importDefault(require("./router"));
@@ -34,6 +35,8 @@ function registerClass(registrationId, props = {}) {
         return constructor;
     };
 }
+var webpack_1 = require("./build/webpack");
+Object.defineProperty(exports, "ZeyonWebpack", { enumerable: true, get: function () { return webpack_1.ZeyonWebpack; } });
 exports.default = {
     create: (options) => new app_1.default(options),
     registerView(registrationId, props) {
@@ -41,10 +44,9 @@ exports.default = {
             return registerClass(registrationId, props)(constructor);
         };
     },
-    registerRouteView(registrationId) {
+    registerRouteView(registrationId, props) {
         return function (constructor) {
-            const decoratedClass = registerClass(registrationId)(constructor);
-            return decoratedClass;
+            return registerClass(registrationId, props)(constructor);
         };
     },
     registerModel(registrationId, options) {

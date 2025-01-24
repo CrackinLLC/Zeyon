@@ -1,4 +1,4 @@
-import type { ClassMapTypeView } from './_types';
+import type { ClassMapTypeView } from './_maps';
 import Emitter from './emitter';
 import { ZeyonAppLike } from './imports/app';
 import { AttachReference, nativeEvents, RenderOptions, ViewOptions } from './imports/view';
@@ -310,7 +310,7 @@ export default abstract class View extends Emitter {
   public async newChild<K extends keyof ClassMapTypeView>(
     registrationId: K,
     viewOptions: ClassMapTypeView[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeView[K]['definition']>> {
+  ): Promise<InstanceType<ClassMapTypeView[K]['classRef']>> {
     if (this.isDestroyed) {
       return Promise.reject(new Error('Component is destroyed'));
     }

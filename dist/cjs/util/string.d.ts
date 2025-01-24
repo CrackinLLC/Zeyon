@@ -14,4 +14,8 @@ export declare const toCamelCase: (str: string) => string;
 export declare const toPascalCase: (str: string) => string;
 export declare const toSpaceCase: (str: string) => string;
 export declare const getUniqueId: () => string;
+export declare function getRandomAlphaNumeric({ len, toUpper }: {
+    len: number;
+    toUpper: boolean;
+}): string;
 //# sourceMappingURL=string.d.ts.map
