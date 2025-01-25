@@ -1,4 +1,4 @@
-import { RouteViewOptions } from './imports/routeView';
+import type { RouteViewOptions } from './imports/routeView';
 import View from './view';
 export default abstract class RouteView extends View {
     options: RouteViewOptions;

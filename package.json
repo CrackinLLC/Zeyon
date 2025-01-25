@@ -9,6 +9,14 @@
     ".": {
       "import": "./dist/esm/_index.js",
       "require": "./dist/cjs/_index.js"
+    },
+    "./build": {
+      "import": "./dist/esm/build/_index.js",
+      "require": "./dist/cjs/build/_index.js"
+    },
+    "./create": {
+      "import": "./dist/esm/create/_index.js",
+      "require": "./dist/cjs/create/_index.js"
     }
   },
   "files": [

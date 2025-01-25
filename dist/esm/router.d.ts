@@ -1,5 +1,5 @@
 import Emitter from './emitter';
-import { ZeyonAppLike } from './imports/app';
+import type { ZeyonAppLike } from './imports/app';
 import type { RouteConfig, RouterOptions, SiteMapRouteConfig } from './imports/router';
 import type RouteView from './routeView';
 export default class Router extends Emitter {

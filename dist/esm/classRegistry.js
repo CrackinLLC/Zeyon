@@ -1,40 +1,40 @@
-import { classMapData } from './_externals';
+import { classMapData } from 'zeyonRootAlias/classMapData';
 import Emitter from './emitter';
 class ClassRegistry extends Emitter {
     constructor(options = {}, app) {
         super({
             ...options,
-            events: [...(options.events || []), 'registered', 'overwritten'],
+            events: [...(options.events || []), 'registered'],
         }, app);
         this.classMap = new Map();
-        this.registerClasses(Object.values(classMapData));
+        for (const entry of Object.values(classMapData)) {
+            this.registerClass(entry.classRef);
+        }
     }
     registerClass(c) {
         const id = c.registrationId;
-        const isOverwrite = this.classMap.has(id);
-        this.classMap.set(id, c);
-        if (isOverwrite) {
-            this.emit('overwritten', { id });
-            console.warn(`Class identifier "${id}" was overwritten.`);
-        }
-        else {
+        if (typeof c === 'function' && c.registrationId && c.prototype instanceof Emitter) {
+            if (this.classMap.has(id)) {
+                console.warn(`Class identifier "${id}" was overwritten in the registry.`);
+            }
+            this.classMap.set(id, c);
             this.emit('registered', { id });
         }
-    }
-    registerClasses(classes) {
-        classes.forEach((c) => {
-            if (typeof c === 'function' && c.registrationId && c.prototype instanceof Emitter) {
-                this.registerClass(c);
-            }
-        });
+        else {
+            console.warn(`Skipping unknown entry in classMapData. It may not have registrationId or is not an Emitter-based class.`);
+        }
     }
     async getClass(id) {
-        const entry = this.classMap.get(String(id));
+        let entry = this.classMap.get(String(id));
         if (!entry) {
+            entry = await this.fetchClass(id);
         }
         return entry;
     }
-    isClassRegistered(identifier) {
+    async fetchClass(id) {
+        return undefined;
+    }
+    hasClass(identifier) {
         return this.classMap.has(identifier);
     }
 }

@@ -39,7 +39,4 @@ export interface ClassMapTypeCollectionView {
     };
 }
 export type ClassMapKey = keyof ClassMapTypeView | keyof ClassMapTypeRouteView | keyof ClassMapTypeModel | keyof ClassMapTypeCollection | keyof ClassMapTypeCollectionView;
-declare module '*.hbs' {
-    const content: string;
-}
 //# sourceMappingURL=_maps.d.ts.map

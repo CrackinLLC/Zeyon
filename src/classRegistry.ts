@@ -1,10 +1,8 @@
+import { classMapData } from 'zeyonRootAlias/classMapData';
 import type { ClassMapKey } from './_maps';
-import { ZeyonAppLike } from './imports/app';
-import { AnyDefinition, ClassRegistryOptions } from './imports/classRegistry';
-
-import { classMapData } from './_externals';
-
 import Emitter from './emitter';
+import type { ZeyonAppLike } from './imports/app';
+import type { AnyDefinition, ClassMapEntry, ClassRegistryOptions } from './imports/classRegistry';
 
 export default class ClassRegistry extends Emitter {
   static override registrationId: string = 'zeyon-registry';
@@ -15,57 +13,63 @@ export default class ClassRegistry extends Emitter {
     super(
       {
         ...options,
-        events: [...(options.events || []), 'registered', 'overwritten'],
+        events: [...(options.events || []), 'registered'],
       },
       app,
     );
 
-    // TODO: Currently registers all classes, but needs to be conditional for dynamic module loading
-    this.registerClasses(Object.values(classMapData));
-  }
+    // Eagerly register all classes discovered in classMapData
+    for (const entry of Object.values(classMapData)) {
+      // TODO: Entries might include classRef, but also may include fetch meta. Need to differenciate the two here?
 
-  /**
-   * Registers a class definition with the registry.
-   * @param c - The class definition to register.
-   */
-  public registerClass(c: AnyDefinition): void {
-    const id = c.registrationId;
-    const isOverwrite = this.classMap.has(id);
-
-    this.classMap.set(id, c);
-    if (isOverwrite) {
-      // TODO: Rather than overwriting by default, require a boolean to force the overwrite, otherwise throw an error
-      this.emit('overwritten', { id });
-      console.warn(`Class identifier "${id}" was overwritten.`);
-    } else {
-      this.emit('registered', { id });
+      this.registerClass((entry as ClassMapEntry).classRef);
     }
   }
 
-  public registerClasses(classes: AnyDefinition[]) {
-    classes.forEach((c: AnyDefinition | unknown) => {
-      if (typeof c === 'function' && (c as any).registrationId && c.prototype instanceof Emitter) {
-        // c looks like a valid Definition
-        this.registerClass(c as AnyDefinition);
+  /**
+   * Registers a single class entry with the registry.
+   * @param c - The constructor function to register (must have a static registrationId).
+   */
+  public registerClass(c: AnyDefinition): void {
+    const id = c.registrationId;
+
+    if (typeof c === 'function' && c.registrationId && c.prototype instanceof Emitter) {
+      if (this.classMap.has(id)) {
+        console.warn(`Class identifier "${id}" was overwritten in the registry.`);
       }
-    });
+
+      this.classMap.set(id, c);
+      this.emit('registered', { id });
+    } else {
+      console.warn(
+        `Skipping unknown entry in classMapData. It may not have registrationId or is not an Emitter-based class.`,
+      );
+    }
   }
 
   /**
    * Retrieves a class definition from the registry.
-   * @param identifier - The class identifier.
-   * @returns The class definition or undefined if not found.
+   * @param id - The class identifier (registrationId).
+   * @returns The constructor or undefined if not found.
    */
   public async getClass(id: ClassMapKey): Promise<AnyDefinition | undefined> {
-    const entry = this.classMap.get(String(id)) as AnyDefinition | undefined;
+    let entry = this.classMap.get(String(id));
 
     if (!entry) {
-      // TODO: If class is not loaded and we have API access, fetch class here
-      //
-      // TODO: If failed to fetch, notify user that class could not be retrieved
+      entry = await this.fetchClass(id);
     }
 
     return entry;
+  }
+
+  private async fetchClass(id: ClassMapKey): Promise<AnyDefinition | undefined> {
+    // TODO: Use existing ClassMapEntry (import from registry imports) to determine how to fetch classRef
+
+    // TODO: Pass fetched definition into registerClass method and await event
+
+    // TODO: Return definition
+
+    return undefined;
   }
 
   /**
@@ -73,7 +77,7 @@ export default class ClassRegistry extends Emitter {
    * @param identifier - The class identifier.
    * @returns True if the class is registered, false otherwise.
    */
-  public isClassRegistered(identifier: string): boolean {
+  public hasClass(identifier: string): boolean {
     return this.classMap.has(identifier);
   }
 }

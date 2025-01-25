@@ -1,6 +1,6 @@
 import type { ClassMapKey } from './_maps';
-import { ZeyonAppLike } from './imports/app';
-import {
+import type { ZeyonAppLike } from './imports/app';
+import type {
   ClassConfigurationOptions,
   EmitterOptions,
   EventHandler,

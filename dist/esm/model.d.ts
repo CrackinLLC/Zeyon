@@ -1,6 +1,6 @@
 import type Collection from './collection';
 import Emitter from './emitter';
-import { ZeyonAppLike } from './imports/app';
+import type { ZeyonAppLike } from './imports/app';
 import { AttributeDefinition, Attributes, ModelOptions } from './imports/model';
 export default abstract class Model extends Emitter {
     protected app: ZeyonAppLike;

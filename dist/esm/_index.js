@@ -1,8 +1,3 @@
-import './_maps';
-import './util/polyfill';
-import './util/template';
-import ZeyonApp from './app';
-import Router from './router';
 import Collection from './collection';
 import CollectionView from './collectionView';
 import Emitter from './emitter';
@@ -21,10 +16,25 @@ function registerClass(registrationId, props = {}) {
         return constructor;
     };
 }
-export { Collection, CollectionView, Emitter, Model, Router, RouteView, View, ZeyonApp };
-export { ZeyonWebpack } from './build/webpack';
 export default {
-    create: (options) => new ZeyonApp(options),
+    registerEmitter(registrationId, props) { },
+    registerModel(registrationId, props) {
+        return function (constructor) {
+            const decoratedClass = registerClass(registrationId)(constructor);
+            if (props?.attributes) {
+                decoratedClass.definition = {
+                    ...decoratedClass.definition,
+                    ...props.attributes,
+                };
+            }
+            return decoratedClass;
+        };
+    },
+    registerCollection(registrationId, props) {
+        return function (constructor) {
+            return registerClass(registrationId, props)(constructor);
+        };
+    },
     registerView(registrationId, props) {
         return function (constructor) {
             return registerClass(registrationId, props)(constructor);
@@ -35,39 +45,16 @@ export default {
             return registerClass(registrationId, props)(constructor);
         };
     },
-    registerModel(registrationId, options) {
+    registerCollectionView(registrationId, props) {
         return function (constructor) {
-            const decoratedClass = registerClass(registrationId)(constructor);
-            if (options?.attributes) {
-                decoratedClass.definition = {
-                    ...decoratedClass.definition,
-                    ...options.attributes,
-                };
-            }
-            return decoratedClass;
+            return registerClass(registrationId, props)(constructor);
         };
     },
-    registerCollection(registrationId) {
-        return function (constructor) {
-            const decoratedClass = registerClass(registrationId)(constructor);
-            return decoratedClass;
-        };
-    },
-    registerCollectionView(registrationId) {
-        return function (constructor) {
-            const decoratedClass = registerClass(registrationId)(constructor);
-            return decoratedClass;
-        };
-    },
-    defineRoutes(routes) {
-        return routes;
-    },
-    Collection,
-    CollectionView,
     Emitter,
     Model,
-    RouteView,
-    Router,
+    Collection,
     View,
+    RouteView,
+    CollectionView,
 };
 //# sourceMappingURL=_index.js.map

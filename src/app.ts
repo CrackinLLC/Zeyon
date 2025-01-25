@@ -175,9 +175,6 @@ export default class ZeyonApp implements ZeyonAppLike {
       await instance.isReady;
     }
 
-    // const typed = instance as T;
-    // const checkIsReady: Promise<T> = typed.isReady;
-
     return instance;
   }
 

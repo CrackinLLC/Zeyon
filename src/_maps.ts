@@ -36,8 +36,3 @@ export type ClassMapKey =
   | keyof ClassMapTypeModel
   | keyof ClassMapTypeCollection
   | keyof ClassMapTypeCollectionView;
-
-declare module '*.hbs' {
-  const content: string;
-  // export default content;
-}

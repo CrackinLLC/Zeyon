@@ -1,9 +1,18 @@
 const path = require('path');
-const { ZeyonWebpack } = require('zeyon');
+const { ZeyonWebpack } = require('zeyon/build');
+const CircularDependencyPlugin = require('circular-dependency-plugin');
 
 module.exports = ZeyonWebpack({
   mode: 'development',
   entry: './src/main.ts',
+
+  plugins: [
+    new CircularDependencyPlugin({
+      failOnError: true,
+      // onDetected: ...
+    }),
+  ],
+
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
@@ -18,10 +27,6 @@ module.exports = ZeyonWebpack({
         test: /\.ts$/,
         use: 'ts-loader',
         exclude: /node_modules/,
-      },
-      {
-        test: /\.hbs$/,
-        use: 'raw-loader', // or handlebar-specific loader?
       },
     ],
   },

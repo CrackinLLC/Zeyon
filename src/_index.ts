@@ -1,12 +1,4 @@
-import './_maps';
-import './util/polyfill';
-import './util/template';
-
-import ZeyonApp from './app';
-import type { ZeyonAppOptions } from './imports/app';
 import { AttributeDefinition } from './imports/model';
-import type { RouteConfig } from './imports/router';
-import Router from './router';
 
 import Collection from './collection';
 import CollectionView from './collectionView';
@@ -15,30 +7,37 @@ import Model from './model';
 import RouteView from './routeView';
 import View from './view';
 
-interface BaseProps {
-  // In case we have any global props that apply to all classes...
+export type { CollectionOptions } from './imports/collection';
+export type { CollectionViewOptions } from './imports/collectionView';
+export type { EmitterOptions } from './imports/emitter';
+export type { ModelOptions } from './imports/model';
+export type { RouteViewOptions } from './imports/routeView';
+export type { ViewOptions } from './imports/view';
+
+interface RegisterEmitterProps {
+  // Any global props that apply to all classes...
 }
 
-interface RegisterViewProps extends BaseProps {
+interface RegisterModelProps extends RegisterEmitterProps {
+  attributes: Record<string, AttributeDefinition>;
+}
+
+interface RegisterCollectionProps extends RegisterEmitterProps {
+  modelId: string;
+}
+
+interface RegisterViewProps extends RegisterEmitterProps {
   isComponent?: boolean;
   template?: string;
   templateWrapper?: string; // Document the specific use-case here better...
 }
 
-interface RegisterRouteViewOptions extends RegisterViewProps {}
+interface RegisterRouteViewProps extends RegisterViewProps {}
 
-interface RegisterModelOptions {
-  attributes: Record<string, AttributeDefinition>;
+interface RegisterCollectionViewProps extends RegisterRouteViewProps {
+  childViewId: string;
+  collectionId: string;
 }
-
-// interface RegisterCollectionOptions extends BaseProps {
-//   modelId: string;
-// }
-
-// interface RegisterCollectionViewOptions extends BaseProps {
-//   childViewId: string;
-//   collectionId: string;
-// }
 
 function registerClass(registrationId: string, props: {} = {}) {
   return function <T extends { new (...args: any[]): {} }>(constructor: T) {
@@ -58,21 +57,7 @@ function registerClass(registrationId: string, props: {} = {}) {
   };
 }
 
-export type { CollectionOptions } from './imports/collection';
-export type { CollectionViewOptions } from './imports/collectionView';
-export type { EmitterOptions } from './imports/emitter';
-export type { ModelOptions } from './imports/model';
-export type { RouteViewOptions } from './imports/routeView';
-export type { ViewOptions } from './imports/view';
-export { Collection, CollectionView, Emitter, Model, RouteConfig, Router, RouteView, View, ZeyonApp, ZeyonAppOptions };
-
-export { ZeyonWebpack } from './build/webpack';
-
-// TODO: Export additional build assistants from here
-
 export default {
-  create: (options: any) => new ZeyonApp(options),
-
   /**
    * Usage:
    
@@ -86,26 +71,16 @@ export default {
     }
   */
 
-  registerView(registrationId: string, props?: RegisterViewProps) {
-    return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-      return registerClass(registrationId, props)(constructor);
-    };
-  },
+  registerEmitter(registrationId: string, props?: RegisterEmitterProps) {},
 
-  registerRouteView(registrationId: string, props?: RegisterRouteViewOptions) {
-    return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-      return registerClass(registrationId, props)(constructor);
-    };
-  },
-
-  registerModel(registrationId: string, options?: RegisterModelOptions) {
+  registerModel(registrationId: string, props?: RegisterModelProps) {
     return function <T extends { new (...args: any[]): {} }>(constructor: T) {
       const decoratedClass = registerClass(registrationId)(constructor);
 
-      if (options?.attributes) {
+      if (props?.attributes) {
         (decoratedClass as any).definition = {
           ...(decoratedClass as any).definition,
-          ...options.attributes,
+          ...props.attributes,
         };
       }
 
@@ -113,44 +88,34 @@ export default {
     };
   },
 
-  registerCollection(registrationId: string) {
-    //, options?: RegisterCollectionOptions) {
+  registerCollection(registrationId: string, props?: RegisterCollectionProps) {
     return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-      const decoratedClass = registerClass(registrationId)(constructor);
-
-      // TODO: Implement options handling
-
-      return decoratedClass;
+      return registerClass(registrationId, props)(constructor);
     };
   },
 
-  registerCollectionView(registrationId: string) {
-    //, options?: RegisterCollectionViewOptions) {
+  registerView(registrationId: string, props?: RegisterViewProps) {
     return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-      const decoratedClass = registerClass(registrationId)(constructor);
-
-      // TODO: Implement options handling
-
-      return decoratedClass;
+      return registerClass(registrationId, props)(constructor);
     };
   },
 
-  /**
-   * Used to ensure custom route properties conform to the interface supplied by the developer
-   * @param routes
-   * @returns
-   */
-  defineRoutes<CustomRouteProps extends {} = {}>(
-    routes: RouteConfig<CustomRouteProps>[],
-  ): RouteConfig<CustomRouteProps>[] {
-    return routes;
+  registerRouteView(registrationId: string, props?: RegisterRouteViewProps) {
+    return function <T extends { new (...args: any[]): {} }>(constructor: T) {
+      return registerClass(registrationId, props)(constructor);
+    };
   },
 
-  Collection,
-  CollectionView,
+  registerCollectionView(registrationId: string, props?: RegisterCollectionViewProps) {
+    return function <T extends { new (...args: any[]): {} }>(constructor: T) {
+      return registerClass(registrationId, props)(constructor);
+    };
+  },
+
   Emitter,
   Model,
-  RouteView,
-  Router,
+  Collection,
   View,
+  RouteView,
+  CollectionView,
 };

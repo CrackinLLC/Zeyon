@@ -1,4 +1,4 @@
-import Zeyon from 'zeyon';
+import Zeyon from 'zeyon/create';
 
 // Define route props
 interface CustomRouteProps {

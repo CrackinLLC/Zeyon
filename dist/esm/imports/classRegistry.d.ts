@@ -1,7 +1,7 @@
 import type Collection from '../collection';
 import type CollectionView from '../collectionView';
 import type Emitter from '../emitter';
-import { ZeyonAppLike } from '../imports/app';
+import type { ZeyonAppLike } from '../imports/app';
 import type { CollectionOptions } from '../imports/collection';
 import type { CollectionViewOptions } from '../imports/collectionView';
 import type { EmitterOptions } from '../imports/emitter';
@@ -48,5 +48,12 @@ export interface CollectionDefinition<I extends Collection> {
 export interface CollectionViewDefinition<I extends CollectionView> {
     new (options: I['options'], app: ZeyonAppLike): I;
     registrationId: string;
+}
+export interface ClassMapEntry {
+    classRef: AnyDefinition;
+    type: string;
+}
+export interface ClassMapData {
+    [registrationId: string]: ClassMapEntry;
 }
 //# sourceMappingURL=classRegistry.d.ts.map

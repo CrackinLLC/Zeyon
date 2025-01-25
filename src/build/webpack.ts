@@ -1,5 +1,5 @@
 import path from 'path';
-import { findProjectRoot, ZEYON_ROOT_ALIAS } from '../util/build';
+import { findProjectRoot, ZEYON_ROOT_ALIAS } from './_util';
 
 /**
  * ZeyonWebpack modifies a given Webpack config
@@ -14,12 +14,25 @@ const returnAlias = () => {
 };
 
 function ZeyonWebpack(userConfig: any): any {
+  // Define an alias to access assets in .Zeyon directory
   let preExistingAlias = userConfig.resolve?.alias || {};
 
   const alias = {
     ...preExistingAlias,
     ...returnAlias(),
   };
+
+  // Include rule for hbs imports to treat as asset/source (requires webpack 5.0+)
+  let rules = userConfig.module?.rules || [];
+
+  // Insert the 'asset/source' rule for .hbs
+  rules = rules.filter((rule: { test: RegExp }) => {
+    return !rule.test.toString().includes('.hbs');
+  });
+  rules.push({
+    test: /\.hbs$/,
+    type: 'asset/source',
+  });
 
   // TODO: Determine if we need additional custom changes, specifically around dynamic bundle splitting
 
@@ -28,6 +41,10 @@ function ZeyonWebpack(userConfig: any): any {
     resolve: {
       ...(userConfig.resolve || {}),
       alias,
+    },
+    module: {
+      ...(userConfig.module || {}),
+      rules,
     },
   };
 }

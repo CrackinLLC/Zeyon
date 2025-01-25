@@ -1,62 +1,58 @@
-import './_maps';
-import './util/polyfill';
-import './util/template';
-import ZeyonApp from './app';
-import type { ZeyonAppOptions } from './imports/app';
 import { AttributeDefinition } from './imports/model';
-import type { RouteConfig } from './imports/router';
-import Router from './router';
 import Collection from './collection';
 import CollectionView from './collectionView';
 import Emitter from './emitter';
 import Model from './model';
 import RouteView from './routeView';
 import View from './view';
-interface BaseProps {
-}
-interface RegisterViewProps extends BaseProps {
-    isComponent?: boolean;
-    template?: string;
-    templateWrapper?: string;
-}
-interface RegisterRouteViewOptions extends RegisterViewProps {
-}
-interface RegisterModelOptions {
-    attributes: Record<string, AttributeDefinition>;
-}
 export type { CollectionOptions } from './imports/collection';
 export type { CollectionViewOptions } from './imports/collectionView';
 export type { EmitterOptions } from './imports/emitter';
 export type { ModelOptions } from './imports/model';
 export type { RouteViewOptions } from './imports/routeView';
 export type { ViewOptions } from './imports/view';
-export { Collection, CollectionView, Emitter, Model, RouteConfig, Router, RouteView, View, ZeyonApp, ZeyonAppOptions };
-export { ZeyonWebpack } from './build/webpack';
+interface RegisterEmitterProps {
+}
+interface RegisterModelProps extends RegisterEmitterProps {
+    attributes: Record<string, AttributeDefinition>;
+}
+interface RegisterCollectionProps extends RegisterEmitterProps {
+    modelId: string;
+}
+interface RegisterViewProps extends RegisterEmitterProps {
+    isComponent?: boolean;
+    template?: string;
+    templateWrapper?: string;
+}
+interface RegisterRouteViewProps extends RegisterViewProps {
+}
+interface RegisterCollectionViewProps extends RegisterRouteViewProps {
+    childViewId: string;
+    collectionId: string;
+}
 declare const _default: {
-    create: (options: any) => ZeyonApp;
+    registerEmitter(registrationId: string, props?: RegisterEmitterProps): void;
+    registerModel(registrationId: string, props?: RegisterModelProps): <T extends {
+        new (...args: any[]): {};
+    }>(constructor: T) => T;
+    registerCollection(registrationId: string, props?: RegisterCollectionProps): <T extends {
+        new (...args: any[]): {};
+    }>(constructor: T) => T;
     registerView(registrationId: string, props?: RegisterViewProps): <T extends {
         new (...args: any[]): {};
     }>(constructor: T) => T;
-    registerRouteView(registrationId: string, props?: RegisterRouteViewOptions): <T extends {
+    registerRouteView(registrationId: string, props?: RegisterRouteViewProps): <T extends {
         new (...args: any[]): {};
     }>(constructor: T) => T;
-    registerModel(registrationId: string, options?: RegisterModelOptions): <T extends {
+    registerCollectionView(registrationId: string, props?: RegisterCollectionViewProps): <T extends {
         new (...args: any[]): {};
     }>(constructor: T) => T;
-    registerCollection(registrationId: string): <T extends {
-        new (...args: any[]): {};
-    }>(constructor: T) => T;
-    registerCollectionView(registrationId: string): <T extends {
-        new (...args: any[]): {};
-    }>(constructor: T) => T;
-    defineRoutes<CustomRouteProps extends {} = {}>(routes: RouteConfig<CustomRouteProps>[]): RouteConfig<CustomRouteProps>[];
-    Collection: typeof Collection;
-    CollectionView: typeof CollectionView;
     Emitter: typeof Emitter;
     Model: typeof Model;
-    RouteView: typeof RouteView;
-    Router: typeof Router;
+    Collection: typeof Collection;
     View: typeof View;
+    RouteView: typeof RouteView;
+    CollectionView: typeof CollectionView;
 };
 export default _default;
 //# sourceMappingURL=_index.d.ts.map
