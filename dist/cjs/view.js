@@ -31,6 +31,8 @@ class View extends emitter_1.default {
         if (this.options.id) {
             this.setViewId(this.options.id);
         }
+        this.template = this.getStaticMember('template');
+        this.templateWrapper = this.getStaticMember('templateWrapper');
         const asyncFuncs = [this.setModel(), this.initialize()];
         Promise.all(asyncFuncs).then(() => this.markAsReady());
     }
@@ -354,6 +356,7 @@ class View extends emitter_1.default {
     }
 }
 View.tagName = 'div';
+View.isComponent = false;
 exports.default = View;
 function isAttachReference(val) {
     return (val &&

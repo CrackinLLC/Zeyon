@@ -166,14 +166,15 @@ export const getUniqueId = () => {
   return result;
 };
 
-export function getRandomAlphaNumeric({ len = 8, toUpper = false }: { len: number; toUpper: boolean }) {
+export function getRandomAlphaNumeric({ len, toUpper }: { len?: number; toUpper?: boolean } = {}) {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
-  for (let i = 0; i < len; i++) {
+
+  for (let i = 0; i < (len || 8); i++) {
     result += chars[Math.floor(Math.random() * chars.length)];
   }
 
-  if (toUpper) {
+  if (!!toUpper) {
     return result.toUpperCase();
   }
 

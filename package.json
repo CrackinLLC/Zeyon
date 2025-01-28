@@ -34,7 +34,7 @@
     "test": "npm run test:unit:nowatch && npm run test:integration"
   },
   "bin": {
-    "zeyon": "./dist/cjs/_cli_commands.js"
+    "zeyon": "./dist/cjs/actions/_index.js"
   },
   "repository": {
     "type": "git",
@@ -54,8 +54,9 @@
   },
   "homepage": "https://github.com/CrackinLLC/Zeyon#readme",
   "dependencies": {
-    "@types/handlebars": "^4.0.40",
-    "handlebars": "^4.7.8"
+    "handlebars": "^4.7.8",
+    "ts-morph": "^25.0.0",
+    "typescript": "^5.0.0"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",
@@ -64,7 +65,6 @@
     "http-server": "^14.1.1",
     "jsdom": "^25.0.1",
     "start-server-and-test": "^2.0.9",
-    "typescript": "^5.0.0",
     "vitest": "^2.1.8"
   }
 }

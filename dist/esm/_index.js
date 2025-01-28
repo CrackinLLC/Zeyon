@@ -4,50 +4,41 @@ import Emitter from './emitter';
 import Model from './model';
 import RouteView from './routeView';
 import View from './view';
-function registerClass(registrationId, props = {}) {
-    return function (constructor) {
-        if (constructor.prototype.hasOwnProperty('constructor')) {
-            console.warn(`Class ${registrationId} defines its own constructor. This is discouraged. Instead, define an 'initialize' method that is run when instantiating.`);
-        }
-        constructor.registrationId = registrationId;
-        Object.entries(props).forEach(([name, value]) => {
-            constructor[name] = value;
-        });
-        return constructor;
-    };
-}
 export default {
-    registerEmitter(registrationId, props) { },
+    registerEmitter(registrationId, props) {
+        return function (constructor) {
+            console.log('Emitter decorated with:', registrationId, props);
+            return constructor;
+        };
+    },
     registerModel(registrationId, props) {
         return function (constructor) {
-            const decoratedClass = registerClass(registrationId)(constructor);
-            if (props?.attributes) {
-                decoratedClass.definition = {
-                    ...decoratedClass.definition,
-                    ...props.attributes,
-                };
-            }
-            return decoratedClass;
+            console.log('Model decorated with:', registrationId, props);
+            return constructor;
         };
     },
     registerCollection(registrationId, props) {
         return function (constructor) {
-            return registerClass(registrationId, props)(constructor);
+            console.log('Collection decorated with:', registrationId, props);
+            return constructor;
         };
     },
     registerView(registrationId, props) {
         return function (constructor) {
-            return registerClass(registrationId, props)(constructor);
+            console.log('View decorated with:', registrationId, props);
+            return constructor;
         };
     },
     registerRouteView(registrationId, props) {
         return function (constructor) {
-            return registerClass(registrationId, props)(constructor);
+            console.log('RouteView decorated with:', registrationId, props);
+            return constructor;
         };
     },
     registerCollectionView(registrationId, props) {
         return function (constructor) {
-            return registerClass(registrationId, props)(constructor);
+            console.log('CollectionView decorated with:', registrationId, props);
+            return constructor;
         };
     },
     Emitter,

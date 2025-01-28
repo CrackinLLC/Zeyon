@@ -25,6 +25,8 @@ class View extends Emitter {
         if (this.options.id) {
             this.setViewId(this.options.id);
         }
+        this.template = this.getStaticMember('template');
+        this.templateWrapper = this.getStaticMember('templateWrapper');
         const asyncFuncs = [this.setModel(), this.initialize()];
         Promise.all(asyncFuncs).then(() => this.markAsReady());
     }
@@ -348,6 +350,7 @@ class View extends Emitter {
     }
 }
 View.tagName = 'div';
+View.isComponent = false;
 export default View;
 export function isAttachReference(val) {
     return (val &&

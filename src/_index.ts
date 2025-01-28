@@ -1,3 +1,4 @@
+import type { ClassMapTypeCollection, ClassMapTypeModel, ClassMapTypeView } from './_maps';
 import { AttributeDefinition } from './imports/model';
 
 import Collection from './collection';
@@ -7,15 +8,16 @@ import Model from './model';
 import RouteView from './routeView';
 import View from './view';
 
-export type { CollectionOptions } from './imports/collection';
-export type { CollectionViewOptions } from './imports/collectionView';
-export type { EmitterOptions } from './imports/emitter';
-export type { ModelOptions } from './imports/model';
-export type { RouteViewOptions } from './imports/routeView';
-export type { ViewOptions } from './imports/view';
+import type { CollectionOptions } from './imports/collection';
+import type { CollectionViewOptions } from './imports/collectionView';
+import type { EmitterOptions } from './imports/emitter';
+import type { Attributes, ModelOptions } from './imports/model';
+import type { RouteViewOptions } from './imports/routeView';
+import type { ViewOptions } from './imports/view';
+export { CollectionOptions, CollectionViewOptions, EmitterOptions, ModelOptions, RouteViewOptions, ViewOptions };
 
 interface RegisterEmitterProps {
-  // Any global props that apply to all classes...
+  // Any global props that apply to all classes?
 }
 
 interface RegisterModelProps extends RegisterEmitterProps {
@@ -23,38 +25,21 @@ interface RegisterModelProps extends RegisterEmitterProps {
 }
 
 interface RegisterCollectionProps extends RegisterEmitterProps {
-  modelId: string;
+  modelRegistrationId: keyof ClassMapTypeModel;
 }
 
 interface RegisterViewProps extends RegisterEmitterProps {
+  tagName?: string;
   isComponent?: boolean;
   template?: string;
-  templateWrapper?: string; // Document the specific use-case here better...
+  templateWrapper?: string;
 }
 
 interface RegisterRouteViewProps extends RegisterViewProps {}
 
 interface RegisterCollectionViewProps extends RegisterRouteViewProps {
-  childViewId: string;
-  collectionId: string;
-}
-
-function registerClass(registrationId: string, props: {} = {}) {
-  return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-    if ((constructor as any).prototype.hasOwnProperty('constructor')) {
-      console.warn(
-        `Class ${registrationId} defines its own constructor. This is discouraged. Instead, define an 'initialize' method that is run when instantiating.`,
-      );
-    }
-
-    // Store the registrationId on the constructor
-    (constructor as any).registrationId = registrationId;
-    Object.entries(props).forEach(([name, value]) => {
-      (constructor as any)[name] = value;
-    });
-
-    return constructor;
-  };
+  modelViewRegistrationId: keyof ClassMapTypeView;
+  collectionRegistrationId: keyof ClassMapTypeCollection;
 }
 
 export default {
@@ -63,52 +48,65 @@ export default {
    
     import Zeyon from 'zeyon';
 
-    @Zeyon.registerClass('my-class', {// options })
+    @Zeyon.registerClass('my-class', {// props })
     export class MyClass extends Zeyon.BaseClass {
-      initialize(options: any) {
+      initialize() {
         // Do stuff...
       }
     }
   */
 
-  registerEmitter(registrationId: string, props?: RegisterEmitterProps) {},
-
-  registerModel(registrationId: string, props?: RegisterModelProps) {
+  registerEmitter<O extends EmitterOptions = EmitterOptions>(registrationId: string, props?: RegisterEmitterProps) {
     return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-      const decoratedClass = registerClass(registrationId)(constructor);
-
-      if (props?.attributes) {
-        (decoratedClass as any).definition = {
-          ...(decoratedClass as any).definition,
-          ...props.attributes,
-        };
-      }
-
-      return decoratedClass;
+      console.log('Emitter decorated with:', registrationId, props);
+      return constructor;
     };
   },
 
-  registerCollection(registrationId: string, props?: RegisterCollectionProps) {
+  registerModel<O extends ModelOptions<Attributes> = ModelOptions<Attributes>>(
+    registrationId: string,
+    props?: RegisterModelProps,
+  ) {
     return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-      return registerClass(registrationId, props)(constructor);
+      console.log('Model decorated with:', registrationId, props);
+      return constructor;
     };
   },
 
-  registerView(registrationId: string, props?: RegisterViewProps) {
+  registerCollection<O extends CollectionOptions = CollectionOptions>(
+    registrationId: string,
+    props?: RegisterCollectionProps,
+  ) {
     return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-      return registerClass(registrationId, props)(constructor);
+      console.log('Collection decorated with:', registrationId, props);
+      return constructor;
     };
   },
 
-  registerRouteView(registrationId: string, props?: RegisterRouteViewProps) {
+  registerView<O extends ViewOptions = ViewOptions>(registrationId: string, props?: RegisterViewProps) {
     return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-      return registerClass(registrationId, props)(constructor);
+      console.log('View decorated with:', registrationId, props);
+      return constructor;
     };
   },
 
-  registerCollectionView(registrationId: string, props?: RegisterCollectionViewProps) {
+  registerRouteView<O extends RouteViewOptions = RouteViewOptions>(
+    registrationId: string,
+    props?: RegisterRouteViewProps,
+  ) {
     return function <T extends { new (...args: any[]): {} }>(constructor: T) {
-      return registerClass(registrationId, props)(constructor);
+      console.log('RouteView decorated with:', registrationId, props);
+      return constructor;
+    };
+  },
+
+  registerCollectionView<O extends CollectionViewOptions = CollectionViewOptions>(
+    registrationId: string,
+    props?: RegisterCollectionViewProps,
+  ) {
+    return function <T extends { new (...args: any[]): {} }>(constructor: T) {
+      console.log('CollectionView decorated with:', registrationId, props);
+      return constructor;
     };
   },
 

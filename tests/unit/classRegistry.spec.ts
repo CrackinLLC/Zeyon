@@ -1,9 +1,9 @@
 import '../util/testClassMapType';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ClassMapKey } from '../../src/_maps';
 import ClassRegistry from '../../src/classRegistry';
 import Emitter from '../../src/emitter';
-import type { ClassMapKey } from '../../src/generated/ClassMapType';
 import type { AnyDefinition, ClassRegistryOptions } from '../../src/imports/classRegistry';
 import { TestZeyonApp } from '../util/testApp';
 
@@ -32,7 +32,7 @@ describe('ClassRegistry', () => {
   });
 
   it('starts empty', async () => {
-    expect(registry.isClassRegistered('dummy-a')).toBe(false);
+    expect(registry.hasClass('dummy-a')).toBe(false);
     const def = await registry.getClass('dummy-a' as ClassMapKey);
     expect(def).toBeUndefined();
   });
@@ -40,7 +40,7 @@ describe('ClassRegistry', () => {
   it('registerClass adds a definition and emits registered', async () => {
     const spyEmit = vi.spyOn(registry, 'emit');
     registry.registerClass(DummyClassA);
-    expect(registry.isClassRegistered('dummy-a')).toBe(true);
+    expect(registry.hasClass('dummy-a')).toBe(true);
     expect(spyEmit).toHaveBeenCalledWith('registered', { id: 'dummy-a' });
     const fetched = await registry.getClass('dummy-a' as ClassMapKey);
     expect(fetched).toBe(DummyClassA);
@@ -48,7 +48,7 @@ describe('ClassRegistry', () => {
 
   it('overwrites existing definition and emits overwritten', () => {
     registry.registerClass(DummyClassA);
-    expect(registry.isClassRegistered('dummy-a')).toBe(true);
+    expect(registry.hasClass('dummy-a')).toBe(true);
     const spyEmit = vi.spyOn(registry, 'emit');
     const OverwritingClass: AnyDefinition = class OverwritingClass extends Emitter {
       static registrationId = 'dummy-a';
@@ -60,12 +60,12 @@ describe('ClassRegistry', () => {
   it('registerClasses skips invalid entries', async () => {
     const spyRegisterClass = vi.spyOn(registry, 'registerClass');
     const definitionsArray = [DummyClassB, DummyClassC, InvalidClass, { random: 'object' }];
-    // @ts-ignore
-    registry.registerClasses(definitionsArray);
+
+    definitionsArray.forEach((def) => registry.registerClass(def as AnyDefinition));
     expect(spyRegisterClass).toHaveBeenCalledTimes(2);
-    expect(registry.isClassRegistered('dummy-b')).toBe(true);
-    expect(registry.isClassRegistered('dummy-c')).toBe(true);
-    expect(registry.isClassRegistered('invalid-class')).toBe(false);
+    expect(registry.hasClass('dummy-b')).toBe(true);
+    expect(registry.hasClass('dummy-c')).toBe(true);
+    expect(registry.hasClass('invalid-class')).toBe(false);
   });
 
   it('getClass returns undefined if not found', async () => {

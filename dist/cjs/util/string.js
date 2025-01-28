@@ -151,13 +151,13 @@ const getUniqueId = () => {
     return result;
 };
 exports.getUniqueId = getUniqueId;
-function getRandomAlphaNumeric({ len = 8, toUpper = false }) {
+function getRandomAlphaNumeric({ len, toUpper } = {}) {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
-    for (let i = 0; i < len; i++) {
+    for (let i = 0; i < (len || 8); i++) {
         result += chars[Math.floor(Math.random() * chars.length)];
     }
-    if (toUpper) {
+    if (!!toUpper) {
         return result.toUpperCase();
     }
     return result;

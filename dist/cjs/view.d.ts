@@ -10,6 +10,8 @@ export default abstract class View extends Emitter {
     defaultOptions: ViewOptions;
     static tagName: string;
     static isComponent: boolean;
+    static template?: string;
+    static templateWrapper?: string;
     private _viewId;
     protected el: RootElement;
     protected ui: {

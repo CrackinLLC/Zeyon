@@ -5,10 +5,11 @@ interface CustomRouteProps {
   displayName?: string;
 }
 
-const myApp = Zeyon.create({
+// @ts-ignore - testing
+window['APP'] = await Zeyon.create({
   el: document.getElementById('ZeyonApp')!,
   name: 'MyTestApplication',
-  urlPrefix: 'prefix-test',
+  // urlPrefix: 'prefix-test',
   routes: Zeyon.defineRoutes<CustomRouteProps>([
     {
       registrationId: 'route-home',

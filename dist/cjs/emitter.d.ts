@@ -3,6 +3,7 @@ import type { ZeyonAppLike } from './imports/app';
 import type { ClassConfigurationOptions, EmitterOptions, EventHandler } from './imports/emitter';
 export default abstract class Emitter {
     protected app: ZeyonAppLike;
+    static [key: string]: unknown;
     static registrationId: string;
     static config: ClassConfigurationOptions<Emitter>;
     options: EmitterOptions;
@@ -33,7 +34,7 @@ export default abstract class Emitter {
     private destroyEvents;
     destroy(silent?: boolean): void;
     protected onDestroy(): void;
-    getStaticMember(key: keyof typeof Emitter): unknown;
+    getStaticMember<T extends unknown>(key: string): T;
     getRegistrationId(): ClassMapKey;
 }
 //# sourceMappingURL=emitter.d.ts.map

@@ -23,13 +23,13 @@ describe('RouteView', () => {
     expect(TestRouteView.isRoute).toBe(true);
   });
 
-  it('non-overridden beforeNavigate always returns true', async () => {
+  it('non-overridden onBeforeNavigate always returns true', async () => {
     // Test with a non-empty path
-    let result = await routeView.beforeNavigate('/example');
+    let result = await routeView.onBeforeNavigate('/example');
     expect(result).toBe(true);
 
     // Test with empty path
-    result = await routeView.beforeNavigate('');
+    result = await routeView.onBeforeNavigate('');
     expect(result).toBe(true);
   });
 });

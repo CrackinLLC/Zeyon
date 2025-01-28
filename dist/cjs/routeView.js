@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const view_1 = __importDefault(require("./view"));
 class RouteView extends view_1.default {
-    async beforeNavigate(nextPath) {
+    async onBeforeNavigate(nextPath) {
         return !!nextPath || true;
     }
 }

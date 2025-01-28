@@ -119,8 +119,8 @@ class Router extends emitter_1.default {
     async navigate({ path = this.app.window.location.pathname, preserveQuery = false, force = false, }) {
         path = this.standardizeUrl(path);
         let canProceed = true;
-        if (this.currentRoute?.beforeNavigate) {
-            canProceed = await this.currentRoute.beforeNavigate(path);
+        if (this.currentRoute?.onBeforeNavigate) {
+            canProceed = await this.currentRoute.onBeforeNavigate(path);
         }
         if (!canProceed)
             return;

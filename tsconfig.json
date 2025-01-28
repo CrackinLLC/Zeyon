@@ -22,9 +22,12 @@
 
     "noImplicitReturns": true,
     "noImplicitAny": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
 
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/_declarations.d.ts"],
-  "exclude": ["node_modules", "**/*.test.ts", "tests"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "exclude": ["node_modules", "**/*.test.ts", "tests", "**/*_OLD.ts"]
 }

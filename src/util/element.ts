@@ -14,7 +14,7 @@ export function convertToRootElement(el: HTMLElement, context: View): RootElemen
   newEl.view = context;
 
   newEl.destroy = function destroy() {
-    // @ts-ignore: Inentionally removing properties for clean up, but normally this is not allowed
+    // @ts-ignore - Cleaning up for purposes of destroying the class
     delete newEl.view;
 
     newEl.innerHTML = '';

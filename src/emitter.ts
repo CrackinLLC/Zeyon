@@ -16,11 +16,16 @@ const generalEvents = [
   'destroyed', // When the class instance is destroyed.
 ];
 
+import test from './test.hbs';
+console.log(test);
+
 /**
  * The base class providing event handling capabilities.
  * Classes extending Emitter can emit and listen to events.
  */
 export default abstract class Emitter {
+  static [key: string]: unknown;
+
   static registrationId: string = '';
   static config: ClassConfigurationOptions<Emitter> = {};
 
@@ -303,8 +308,8 @@ export default abstract class Emitter {
 
   protected onDestroy() {}
 
-  public getStaticMember(key: keyof typeof Emitter): unknown {
-    return (this.constructor as typeof Emitter)[key];
+  public getStaticMember<T extends unknown>(key: string): T {
+    return (this.constructor as typeof Emitter)[key] as T;
   }
 
   public getRegistrationId(): ClassMapKey {

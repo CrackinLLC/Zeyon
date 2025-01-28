@@ -1,7 +1,8 @@
 import Zeyon from 'zeyon';
-import template from '../templates/header.hbs';
 
-@Zeyon.registerView('component-header', { template })
+const name = 'My component name';
+
+@Zeyon.registerView('component-header', { template: `<div>Testing template literal with substitution: ${name} ` })
 export class HeaderView extends Zeyon.View {
   static isComponent = true;
 

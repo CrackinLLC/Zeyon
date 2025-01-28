@@ -13,7 +13,9 @@ export default abstract class View extends Emitter {
   declare defaultOptions: ViewOptions;
 
   static tagName = 'div';
-  static isComponent: boolean;
+  static isComponent: boolean = false;
+  static template?: string;
+  static templateWrapper?: string;
 
   private _viewId: string = getUniqueId();
   protected el: RootElement;
@@ -55,6 +57,9 @@ export default abstract class View extends Emitter {
     if (this.options.id) {
       this.setViewId(this.options.id);
     }
+
+    this.template = this.getStaticMember('template');
+    this.templateWrapper = this.getStaticMember('templateWrapper');
 
     // Define our model and call the local initialize method before declaring the view ready.
     const asyncFuncs = [this.setModel(), this.initialize()];
@@ -467,19 +472,19 @@ export default abstract class View extends Emitter {
 
     // Nullify properties
     this.el?.remove();
-    // @ts-ignore - Cleaning up for purposes of destroying the view
+    // @ts-ignore - Cleaning up for purposes of destroying the class
     this.el = null;
     this.ui = {};
     this._ui = {};
     this.errorEl?.remove();
     this.errorEl = undefined;
-    // @ts-ignore - Cleaning up for purposes of destroying the view
+    // @ts-ignore - Cleaning up for purposes of destroying the class
     this.isRendered = undefined;
-    // @ts-ignore - Cleaning up for purposes of destroying the view
+    // @ts-ignore - Cleaning up for purposes of destroying the class
     this.options = {};
     this.compiledTemplate = undefined;
     this.template = undefined;
-    // @ts-ignore - Cleaning up for purposes of destroying the view
+    // @ts-ignore - Cleaning up for purposes of destroying the class
     this.templateWrapper = undefined;
 
     super.emit('destroyed');

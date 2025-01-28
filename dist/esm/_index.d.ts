@@ -1,3 +1,4 @@
+import type { ClassMapTypeCollection, ClassMapTypeModel, ClassMapTypeView } from './_maps';
 import { AttributeDefinition } from './imports/model';
 import Collection from './collection';
 import CollectionView from './collectionView';
@@ -5,21 +6,23 @@ import Emitter from './emitter';
 import Model from './model';
 import RouteView from './routeView';
 import View from './view';
-export type { CollectionOptions } from './imports/collection';
-export type { CollectionViewOptions } from './imports/collectionView';
-export type { EmitterOptions } from './imports/emitter';
-export type { ModelOptions } from './imports/model';
-export type { RouteViewOptions } from './imports/routeView';
-export type { ViewOptions } from './imports/view';
+import type { CollectionOptions } from './imports/collection';
+import type { CollectionViewOptions } from './imports/collectionView';
+import type { EmitterOptions } from './imports/emitter';
+import type { Attributes, ModelOptions } from './imports/model';
+import type { RouteViewOptions } from './imports/routeView';
+import type { ViewOptions } from './imports/view';
+export { CollectionOptions, CollectionViewOptions, EmitterOptions, ModelOptions, RouteViewOptions, ViewOptions };
 interface RegisterEmitterProps {
 }
 interface RegisterModelProps extends RegisterEmitterProps {
     attributes: Record<string, AttributeDefinition>;
 }
 interface RegisterCollectionProps extends RegisterEmitterProps {
-    modelId: string;
+    modelRegistrationId: keyof ClassMapTypeModel;
 }
 interface RegisterViewProps extends RegisterEmitterProps {
+    tagName?: string;
     isComponent?: boolean;
     template?: string;
     templateWrapper?: string;
@@ -27,24 +30,26 @@ interface RegisterViewProps extends RegisterEmitterProps {
 interface RegisterRouteViewProps extends RegisterViewProps {
 }
 interface RegisterCollectionViewProps extends RegisterRouteViewProps {
-    childViewId: string;
-    collectionId: string;
+    modelViewRegistrationId: keyof ClassMapTypeView;
+    collectionRegistrationId: keyof ClassMapTypeCollection;
 }
 declare const _default: {
-    registerEmitter(registrationId: string, props?: RegisterEmitterProps): void;
-    registerModel(registrationId: string, props?: RegisterModelProps): <T extends {
+    registerEmitter<O extends EmitterOptions = EmitterOptions>(registrationId: string, props?: RegisterEmitterProps): <T extends {
         new (...args: any[]): {};
     }>(constructor: T) => T;
-    registerCollection(registrationId: string, props?: RegisterCollectionProps): <T extends {
+    registerModel<O extends ModelOptions<Attributes> = ModelOptions<Attributes>>(registrationId: string, props?: RegisterModelProps): <T extends {
         new (...args: any[]): {};
     }>(constructor: T) => T;
-    registerView(registrationId: string, props?: RegisterViewProps): <T extends {
+    registerCollection<O extends CollectionOptions = CollectionOptions>(registrationId: string, props?: RegisterCollectionProps): <T extends {
         new (...args: any[]): {};
     }>(constructor: T) => T;
-    registerRouteView(registrationId: string, props?: RegisterRouteViewProps): <T extends {
+    registerView<O extends ViewOptions = ViewOptions>(registrationId: string, props?: RegisterViewProps): <T extends {
         new (...args: any[]): {};
     }>(constructor: T) => T;
-    registerCollectionView(registrationId: string, props?: RegisterCollectionViewProps): <T extends {
+    registerRouteView<O extends RouteViewOptions = RouteViewOptions>(registrationId: string, props?: RegisterRouteViewProps): <T extends {
+        new (...args: any[]): {};
+    }>(constructor: T) => T;
+    registerCollectionView<O extends CollectionViewOptions = CollectionViewOptions>(registrationId: string, props?: RegisterCollectionViewProps): <T extends {
         new (...args: any[]): {};
     }>(constructor: T) => T;
     Emitter: typeof Emitter;

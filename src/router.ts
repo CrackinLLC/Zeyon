@@ -205,8 +205,8 @@ export default class Router extends Emitter {
 
     // Hook to allow a view to prevent navigation if needed
     let canProceed = true;
-    if (this.currentRoute?.beforeNavigate) {
-      canProceed = await this.currentRoute.beforeNavigate(path);
+    if (this.currentRoute?.onBeforeNavigate) {
+      canProceed = await this.currentRoute.onBeforeNavigate(path);
     }
     if (!canProceed) return;
 

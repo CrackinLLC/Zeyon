@@ -1,6 +1,6 @@
 import View from './view';
 class RouteView extends View {
-    async beforeNavigate(nextPath) {
+    async onBeforeNavigate(nextPath) {
         return !!nextPath || true;
     }
 }
