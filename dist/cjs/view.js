@@ -96,7 +96,7 @@ class View extends emitter_1.default {
             attachToElement = attachTo[0];
         }
         else if (typeof attachTo === 'string') {
-            attachToElement = this.el.querySelector(attachTo) || null;
+            attachToElement = document.body.querySelector(attachTo) || null;
         }
         else if (isAttachReference(attachTo)) {
             attachToElement = attachTo.view.getUiByIdSingle(attachTo.id);

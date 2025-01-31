@@ -10,7 +10,10 @@ require("../util/template");
 const app_1 = __importDefault(require("../app"));
 exports.ZeyonApp = app_1.default;
 exports.default = {
-    create: (options) => new app_1.default(options),
+    create: (options) => {
+        options.el.innerHTML = '';
+        return new app_1.default(options);
+    },
     defineRoutes(routes) {
         return routes;
     },

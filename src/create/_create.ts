@@ -9,7 +9,10 @@ import type { RouteConfig } from '../imports/router';
 export { ZeyonApp, ZeyonAppOptions };
 
 export default {
-  create: (options: any) => new ZeyonApp(options),
+  create: (options: any) => {
+    options.el.innerHTML = '';
+    return new ZeyonApp(options);
+  },
 
   /**
    * Used to ensure custom route properties conform to the interface supplied by the developer
