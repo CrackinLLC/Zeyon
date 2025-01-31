@@ -30,7 +30,6 @@ export interface ZeyonAppLike {
   isReady: Promise<this>;
   window: Window;
 
-  renderGlobalView(layouts: GlobalViewConfig): this;
   start(): Promise<this>;
   navigate(urlFragment: string, openNewTab?: boolean): this;
 
@@ -38,6 +37,11 @@ export interface ZeyonAppLike {
     registrationId: K,
     options?: ClassMapTypeView[K]['options'],
   ): Promise<InstanceType<ClassMapTypeView[K]['classRef']>>;
+
+  renderNewView<K extends keyof ClassMapTypeView>(
+    registrationId: K,
+    options?: ClassMapTypeView[K]['options'],
+  ): Promise<this>;
 
   newRouteView<K extends keyof ClassMapTypeRouteView>(
     registrationId: K,

@@ -42,8 +42,7 @@ const app = await Zeyon.create({
     },
   ]),
 })
-  .renderGlobalView({
-    registrationId: 'component-header',
-    selector: '#Header',
+  .renderNewView('component-header', {
+    attachTo: '#Header',
   })
-  .start();
+  .then((app) => app.start());

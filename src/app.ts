@@ -8,7 +8,7 @@ import type {
 } from './_maps';
 import ClassRegistry from './classRegistry';
 import type Emitter from './emitter';
-import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from './imports/app';
+import type { ZeyonAppLike, ZeyonAppOptions } from './imports/app';
 import Router from './router';
 import { loaderTemplate } from './util/loader';
 
@@ -77,22 +77,6 @@ export default class ZeyonApp implements ZeyonAppLike {
     this.registry = new ClassRegistry({}, this);
   }
 
-  public renderGlobalView(layout: GlobalViewConfig) {
-    const { selector, registrationId, options } = layout;
-    const element = document.querySelector(selector);
-
-    if (element) {
-      this.newView(registrationId, {
-        ...(options || {}),
-        attachTo: element as HTMLElement,
-      }).then((view) => view?.render());
-    } else {
-      console.warn(`Element not found for selector: ${selector}`);
-    }
-
-    return this;
-  }
-
   /**
    * Starts the router which loads the first route into the DOM
    * @returns The application instance.
@@ -131,6 +115,15 @@ export default class ZeyonApp implements ZeyonAppLike {
     options?: ClassMapTypeView[K]['options'],
   ): Promise<InstanceType<ClassMapTypeView[K]['classRef']>> {
     return this.newInstance<InstanceType<ClassMapTypeView[K]['classRef']>>(registrationId, options);
+  }
+
+  // Similar to newView, but returns the renders the view and returns the application, rather than the unrendered view instance
+  public async renderNewView<K extends keyof ClassMapTypeView>(
+    registrationId: K,
+    options?: ClassMapTypeView[K]['options'],
+  ): Promise<this> {
+    await this.newView(registrationId, options).then((view) => view.render());
+    return this;
   }
 
   public newRouteView<K extends keyof ClassMapTypeRouteView>(

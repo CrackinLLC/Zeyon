@@ -22,20 +22,6 @@ class ZeyonApp {
         this.router = new router_1.default({ urlPrefix, routes }, this);
         this.registry = new classRegistry_1.default({}, this);
     }
-    renderGlobalView(layout) {
-        const { selector, registrationId, options } = layout;
-        const element = document.querySelector(selector);
-        if (element) {
-            this.newView(registrationId, {
-                ...(options || {}),
-                attachTo: element,
-            }).then((view) => view?.render());
-        }
-        else {
-            console.warn(`Element not found for selector: ${selector}`);
-        }
-        return this;
-    }
     async start() {
         if (!this.isStarted) {
             this.isStarted = true;
@@ -57,6 +43,10 @@ class ZeyonApp {
     }
     async newView(registrationId, options) {
         return this.newInstance(registrationId, options);
+    }
+    async renderNewView(registrationId, options) {
+        await this.newView(registrationId, options).then((view) => view.render());
+        return this;
     }
     newRouteView(registrationId, options) {
         return this.newInstance(registrationId, options);
