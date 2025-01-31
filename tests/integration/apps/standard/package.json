@@ -2,7 +2,7 @@
   "name": "zeyon-standard-integration-test",
   "private": true,
   "scripts": {
-    "build": "webpack --config webpack.config.js",
+    "build": "npx zeyon sync && webpack --config webpack.config.js",
     "serve": "serve ."
   },
   "dependencies": {
