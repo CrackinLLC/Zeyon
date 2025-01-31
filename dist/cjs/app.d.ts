@@ -1,5 +1,6 @@
 import type { ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from './_maps';
 import type { ZeyonAppLike, ZeyonAppOptions } from './imports/app';
+import type View from './view';
 export default class ZeyonApp implements ZeyonAppLike {
     options: ZeyonAppOptions;
     name: string;
@@ -11,6 +12,7 @@ export default class ZeyonApp implements ZeyonAppLike {
     private router;
     private registry;
     private loadingState;
+    private stylesLoaded;
     constructor(options: ZeyonAppOptions);
     start(): Promise<this>;
     navigate(urlFragment: string, openNewTab?: boolean): this;
@@ -23,5 +25,6 @@ export default class ZeyonApp implements ZeyonAppLike {
     private newInstance;
     toggleClass(className: string, add?: boolean): this;
     setLoadingState(show?: boolean): boolean;
+    loadViewStyles(view: View): this;
 }
 //# sourceMappingURL=app.d.ts.map

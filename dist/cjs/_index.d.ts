@@ -26,6 +26,10 @@ interface RegisterViewProps extends RegisterEmitterProps {
     isComponent?: boolean;
     template?: string;
     templateWrapper?: string;
+    ui?: {
+        [key: string]: string;
+    };
+    styles?: string;
 }
 interface RegisterRouteViewProps extends RegisterViewProps {
 }

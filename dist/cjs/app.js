@@ -12,6 +12,7 @@ class ZeyonApp {
         this.name = '';
         this.isStarted = false;
         this.loadingState = null;
+        this.stylesLoaded = new Set();
         const { name, el, urlPrefix, routes } = options;
         this.isReady = new Promise((resolve) => {
             this.resolveIsReady = resolve;
@@ -87,6 +88,18 @@ class ZeyonApp {
             this.loadingState = null;
         }
         return show;
+    }
+    loadViewStyles(view) {
+        const id = view.getStaticMember('registrationId');
+        const styles = view.getStaticMember('styles');
+        if (styles && id && !this.stylesLoaded.has(id)) {
+            const styleEl = document.createElement('style');
+            styleEl.dataset.id = id;
+            styleEl.innerHTML = styles;
+            document.head.appendChild(styleEl);
+            this.stylesLoaded.add(id);
+        }
+        return this;
     }
 }
 exports.default = ZeyonApp;

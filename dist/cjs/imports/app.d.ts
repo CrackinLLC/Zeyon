@@ -1,4 +1,5 @@
 import type { ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from '../_maps';
+import type View from '../view';
 import type { RouteConfig } from './router';
 import type { ViewOptions } from './view';
 export interface ZeyonAppOptions {
@@ -29,5 +30,6 @@ export interface ZeyonAppLike {
     newCollectionView<K extends keyof ClassMapTypeCollectionView>(registrationId: K, options?: ClassMapTypeCollectionView[K]['options']): Promise<InstanceType<ClassMapTypeCollectionView[K]['classRef']>>;
     toggleClass(className: string, add?: boolean): this;
     setLoadingState(show?: boolean): boolean;
+    loadViewStyles(view: View): this;
 }
 //# sourceMappingURL=app.d.ts.map

@@ -5,6 +5,7 @@ import type {
   ClassMapTypeRouteView,
   ClassMapTypeView,
 } from '../_maps';
+import type View from '../view';
 import type { RouteConfig } from './router';
 import type { ViewOptions } from './view';
 
@@ -65,4 +66,5 @@ export interface ZeyonAppLike {
 
   toggleClass(className: string, add?: boolean): this;
   setLoadingState(show?: boolean): boolean;
+  loadViewStyles(view: View): this;
 }

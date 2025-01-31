@@ -30,9 +30,11 @@ interface RegisterCollectionProps extends RegisterEmitterProps {
 
 interface RegisterViewProps extends RegisterEmitterProps {
   tagName?: string;
-  isComponent?: boolean;
+  isComponent?: boolean; // Default: false
   template?: string;
   templateWrapper?: string;
+  ui?: { [key: string]: string };
+  styles?: string;
 }
 
 interface RegisterRouteViewProps extends RegisterViewProps {}

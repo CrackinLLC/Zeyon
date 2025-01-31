@@ -18,7 +18,6 @@ class View extends emitter_1.default {
             events: view_1.nativeEvents,
         }, app);
         this._viewId = (0, string_1.getUniqueId)();
-        this.ui = {};
         this._ui = {};
         this.renderOptions = {};
         this.children = {};
@@ -31,8 +30,6 @@ class View extends emitter_1.default {
         if (this.options.id) {
             this.setViewId(this.options.id);
         }
-        this.template = this.getStaticMember('template');
-        this.templateWrapper = this.getStaticMember('templateWrapper');
         const asyncFuncs = [this.setModel(), this.initialize()];
         Promise.all(asyncFuncs).then(() => this.markAsReady());
     }
@@ -40,10 +37,10 @@ class View extends emitter_1.default {
         if (this.isDestroyed)
             return Promise.reject(new Error('Component is destroyed'));
         await this.isReady;
-        if (!this.compiledTemplate && this.template) {
-            const templateContent = this.templateWrapper
-                ? this.templateWrapper.replace('{{content}}', this.template)
-                : this.template;
+        const template = this.getStaticMember('template');
+        const templateWrapper = this.getStaticMember('templateWrapper');
+        if (!this.compiledTemplate && template) {
+            const templateContent = templateWrapper ? templateWrapper.replace('{{content}}', template) : template;
             this.compiledTemplate = (0, template_1.getCompiledTemplate)(templateContent);
         }
         if (this.hasBeenRendered) {
@@ -58,6 +55,7 @@ class View extends emitter_1.default {
         }
         this.renderTemplate();
         this.generateUiSelections();
+        this.app.loadViewStyles(this);
         if (this.options.preventDefault) {
             this.on('click', (val, ev) => ev.preventDefault());
         }
@@ -170,9 +168,10 @@ class View extends emitter_1.default {
         return undefined;
     }
     generateUiSelections(selectorAttribute = 'js') {
+        const ui = this.getStaticMember('ui');
         this._ui = {};
-        if (this.ui) {
-            for (const [id, selector] of Object.entries(this.ui)) {
+        if (ui) {
+            for (const [id, selector] of Object.entries(ui)) {
                 const selection = this.el.querySelectorAll(`[data-${selectorAttribute}="${selector}"]`);
                 if (selection.length > 0) {
                     this._ui[id] = selection;
@@ -338,15 +337,12 @@ class View extends emitter_1.default {
         this.model = undefined;
         this.el?.remove();
         this.el = null;
-        this.ui = {};
         this._ui = {};
         this.errorEl?.remove();
         this.errorEl = undefined;
         this.isRendered = undefined;
         this.options = {};
         this.compiledTemplate = undefined;
-        this.template = undefined;
-        this.templateWrapper = undefined;
         super.emit('destroyed');
     }
     destroyChildren() {
@@ -356,6 +352,7 @@ class View extends emitter_1.default {
 }
 View.tagName = 'div';
 View.isComponent = false;
+View.ui = {};
 exports.default = View;
 function isAttachReference(val) {
     return (val &&

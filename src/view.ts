@@ -16,10 +16,11 @@ export default abstract class View extends Emitter {
   static isComponent: boolean = false;
   static template?: string;
   static templateWrapper?: string;
+  static ui: { [key: string]: string } = {};
+  static style: string | undefined;
 
   private _viewId: string = getUniqueId();
   protected el: RootElement;
-  protected ui: { [key: string]: string } = {};
   private _ui: { [key: string]: NodeListOf<HTMLElement> } = {};
   protected renderOptions: RenderOptions = {};
 
@@ -31,8 +32,6 @@ export default abstract class View extends Emitter {
   protected hasBeenRendered: boolean = false;
 
   protected compiledTemplate?: HandlebarsTemplateDelegate;
-  protected template?: string;
-  protected templateWrapper?: string;
   protected errorEl?: HTMLElement;
 
   constructor(options: ViewOptions = {}, app: ZeyonAppLike) {
@@ -58,9 +57,6 @@ export default abstract class View extends Emitter {
       this.setViewId(this.options.id);
     }
 
-    this.template = this.getStaticMember('template');
-    this.templateWrapper = this.getStaticMember('templateWrapper');
-
     // Define our model and call the local initialize method before declaring the view ready.
     const asyncFuncs = [this.setModel(), this.initialize()];
     Promise.all(asyncFuncs).then(() => this.markAsReady());
@@ -75,10 +71,11 @@ export default abstract class View extends Emitter {
 
     await this.isReady;
 
-    if (!this.compiledTemplate && this.template) {
-      const templateContent = this.templateWrapper
-        ? this.templateWrapper.replace('{{content}}', this.template)
-        : this.template;
+    const template: string = this.getStaticMember('template');
+    const templateWrapper: string = this.getStaticMember('templateWrapper');
+
+    if (!this.compiledTemplate && template) {
+      const templateContent = templateWrapper ? templateWrapper.replace('{{content}}', template) : template;
       this.compiledTemplate = getCompiledTemplate(templateContent);
     }
 
@@ -96,6 +93,7 @@ export default abstract class View extends Emitter {
 
     this.renderTemplate();
     this.generateUiSelections();
+    this.app.loadViewStyles(this);
 
     if (this.options.preventDefault) {
       this.on('click', (val: undefined, ev: Event) => ev.preventDefault());
@@ -247,10 +245,13 @@ export default abstract class View extends Emitter {
    * @param {string} selectorAttribute - The data attribute to use for selecting UI elements.
    */
   protected generateUiSelections(selectorAttribute: string = 'js') {
+    const ui: { [key: string]: string } = this.getStaticMember('ui');
     this._ui = {};
 
-    if (this.ui) {
-      for (const [id, selector] of Object.entries(this.ui)) {
+    // TODO: In order to retain our key but make our selection process unopinionated, we might want to store a static selector pattern from our decorator.
+
+    if (ui) {
+      for (const [id, selector] of Object.entries(ui)) {
         const selection = this.el.querySelectorAll(`[data-${selectorAttribute}="${selector}"]`);
         if (selection.length > 0) {
           this._ui[id] = selection as NodeListOf<HTMLElement>;
@@ -473,7 +474,6 @@ export default abstract class View extends Emitter {
     this.el?.remove();
     // @ts-ignore - Cleaning up for purposes of destroying the class
     this.el = null;
-    this.ui = {};
     this._ui = {};
     this.errorEl?.remove();
     this.errorEl = undefined;
@@ -482,9 +482,6 @@ export default abstract class View extends Emitter {
     // @ts-ignore - Cleaning up for purposes of destroying the class
     this.options = {};
     this.compiledTemplate = undefined;
-    this.template = undefined;
-    // @ts-ignore - Cleaning up for purposes of destroying the class
-    this.templateWrapper = undefined;
 
     super.emit('destroyed');
   }

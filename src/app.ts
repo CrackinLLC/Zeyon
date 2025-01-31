@@ -11,6 +11,7 @@ import type Emitter from './emitter';
 import type { ZeyonAppLike, ZeyonAppOptions } from './imports/app';
 import Router from './router';
 import { loaderTemplate } from './util/loader';
+import type View from './view';
 
 /**
  * The central hub of the application, managing interactions between components.
@@ -56,6 +57,8 @@ export default class ZeyonApp implements ZeyonAppLike {
    * A stored loading state element for global loading state.
    */
   private loadingState: HTMLElement | null = null;
+
+  private stylesLoaded = new Set<string>();
 
   /**
    * Initializes a new instance of the ZeyonApp.
@@ -196,5 +199,22 @@ export default class ZeyonApp implements ZeyonAppLike {
     }
 
     return show;
+  }
+
+  public loadViewStyles(view: View): this {
+    const id: string = view.getStaticMember('registrationId');
+    const styles: string = view.getStaticMember('styles');
+
+    // TODO: Incorporate automatic style scoping at this point?
+
+    if (styles && id && !this.stylesLoaded.has(id)) {
+      const styleEl = document.createElement('style');
+      styleEl.dataset.id = id;
+      styleEl.innerHTML = styles;
+      document.head.appendChild(styleEl);
+      this.stylesLoaded.add(id);
+    }
+
+    return this;
   }
 }

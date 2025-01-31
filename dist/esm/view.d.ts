@@ -12,11 +12,12 @@ export default abstract class View extends Emitter {
     static isComponent: boolean;
     static template?: string;
     static templateWrapper?: string;
-    private _viewId;
-    protected el: RootElement;
-    protected ui: {
+    static ui: {
         [key: string]: string;
     };
+    static style: string | undefined;
+    private _viewId;
+    protected el: RootElement;
     private _ui;
     protected renderOptions: RenderOptions;
     protected children: {
@@ -27,8 +28,6 @@ export default abstract class View extends Emitter {
     private resolveIsRendered;
     protected hasBeenRendered: boolean;
     protected compiledTemplate?: HandlebarsTemplateDelegate;
-    protected template?: string;
-    protected templateWrapper?: string;
     protected errorEl?: HTMLElement;
     constructor(options: ViewOptions | undefined, app: ZeyonAppLike);
     render(): Promise<this>;
