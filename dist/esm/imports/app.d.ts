@@ -1,4 +1,4 @@
-import type { ClassMapKey, ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from '../_maps';
+import type { ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeModel, ClassMapTypeRouteView, ClassMapTypeView } from '../_maps';
 import type { RouteConfig } from './router';
 import type { ViewOptions } from './view';
 export interface ZeyonAppOptions {
@@ -8,7 +8,7 @@ export interface ZeyonAppOptions {
     urlPrefix?: string;
 }
 export interface GlobalViewConfig {
-    registrationId: ClassMapKey;
+    registrationId: keyof ClassMapTypeView;
     selector: string;
     options?: ViewOptions;
 }
@@ -19,7 +19,7 @@ export interface ZeyonAppLike {
     isStarted: boolean;
     isReady: Promise<this>;
     window: Window;
-    renderGlobalView(layouts: GlobalViewConfig | GlobalViewConfig[]): this;
+    renderGlobalView(layouts: GlobalViewConfig): this;
     start(): Promise<this>;
     navigate(urlFragment: string, openNewTab?: boolean): this;
     newView<K extends keyof ClassMapTypeView>(registrationId: K, options?: ClassMapTypeView[K]['options']): Promise<InstanceType<ClassMapTypeView[K]['classRef']>>;

@@ -140,6 +140,12 @@ function applyTransformToClass(transformDetails: Partial<TransformDetails>[], pr
       initializer: `'${registrationId}'`,
     });
 
+    cls.addProperty({
+      isStatic: true,
+      name: 'originalName',
+      initializer: `'${cls.getName()}'`,
+    });
+
     if (propsArg) {
       const propsObject = propsArg.asKind(SyntaxKind.ObjectLiteralExpression);
       if (propsObject) {

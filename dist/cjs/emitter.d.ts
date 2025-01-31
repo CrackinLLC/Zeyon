@@ -5,6 +5,7 @@ export default abstract class Emitter {
     protected app: ZeyonAppLike;
     static [key: string]: unknown;
     static registrationId: string;
+    static originalName: string;
     static config: ClassConfigurationOptions<Emitter>;
     options: EmitterOptions;
     isReady: Promise<Emitter>;

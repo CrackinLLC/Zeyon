@@ -121,8 +121,7 @@ export default abstract class View extends Emitter {
    * Applies classnames and attributes to the root element based on the current options object.
    */
   protected prepareRootElement() {
-    let name = (this.constructor as any).name;
-    name = name.charAt(0) === '_' ? name.slice(1) : name;
+    const name: string = this.getStaticMember('originalName');
     let attributesToSet = this.options.attributes || {};
 
     if ((this.constructor as any).isRoute) {

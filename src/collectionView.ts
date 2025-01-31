@@ -103,7 +103,7 @@ export default abstract class CollectionView extends View {
 
       const modelViews = await Promise.all(
         this.collection.getVisibleItems().map(async (model) => {
-          return this.app.newView(this.modelViewRegistrationId!, {
+          return this.app.newView(this.modelViewRegistrationId, {
             model,
             attachTo: this.el,
             ...(this.options.modelViewOptions || {}),

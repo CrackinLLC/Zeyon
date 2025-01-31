@@ -77,23 +77,18 @@ export default class ZeyonApp implements ZeyonAppLike {
     this.registry = new ClassRegistry({}, this);
   }
 
-  public renderGlobalView(layouts: GlobalViewConfig | GlobalViewConfig[]) {
-    if (!Array.isArray(layouts)) {
-      layouts = [layouts];
+  public renderGlobalView(layout: GlobalViewConfig) {
+    const { selector, registrationId, options } = layout;
+    const element = document.querySelector(selector);
+
+    if (element) {
+      this.newView(registrationId, {
+        ...(options || {}),
+        attachTo: element as HTMLElement,
+      }).then((view) => view?.render());
+    } else {
+      console.warn(`Element not found for selector: ${selector}`);
     }
-
-    layouts.forEach(({ selector, registrationId, options }) => {
-      const element = document.querySelector(selector);
-
-      if (element) {
-        this.newView(registrationId, {
-          ...(options || {}),
-          attachTo: element as HTMLElement,
-        }).then((view) => view?.render());
-      } else {
-        console.warn(`Element not found for selector: ${selector}`);
-      }
-    });
 
     return this;
   }

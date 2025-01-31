@@ -22,22 +22,18 @@ class ZeyonApp {
         this.router = new router_1.default({ urlPrefix, routes }, this);
         this.registry = new classRegistry_1.default({}, this);
     }
-    renderGlobalView(layouts) {
-        if (!Array.isArray(layouts)) {
-            layouts = [layouts];
+    renderGlobalView(layout) {
+        const { selector, registrationId, options } = layout;
+        const element = document.querySelector(selector);
+        if (element) {
+            this.newView(registrationId, {
+                ...(options || {}),
+                attachTo: element,
+            }).then((view) => view?.render());
         }
-        layouts.forEach(({ selector, registrationId, options }) => {
-            const element = document.querySelector(selector);
-            if (element) {
-                this.newView(registrationId, {
-                    ...(options || {}),
-                    attachTo: element,
-                }).then((view) => view?.render());
-            }
-            else {
-                console.warn(`Element not found for selector: ${selector}`);
-            }
-        });
+        else {
+            console.warn(`Element not found for selector: ${selector}`);
+        }
         return this;
     }
     async start() {

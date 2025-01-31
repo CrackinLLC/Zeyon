@@ -158,6 +158,7 @@ class Emitter {
     }
 }
 Emitter.registrationId = '';
+Emitter.originalName = '';
 Emitter.config = {};
 export default Emitter;
 class Listener {

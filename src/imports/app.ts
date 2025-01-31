@@ -1,5 +1,4 @@
 import type {
-  ClassMapKey,
   ClassMapTypeCollection,
   ClassMapTypeCollectionView,
   ClassMapTypeModel,
@@ -17,7 +16,7 @@ export interface ZeyonAppOptions {
 }
 
 export interface GlobalViewConfig {
-  registrationId: ClassMapKey;
+  registrationId: keyof ClassMapTypeView;
   selector: string;
   options?: ViewOptions;
 }
@@ -31,7 +30,7 @@ export interface ZeyonAppLike {
   isReady: Promise<this>;
   window: Window;
 
-  renderGlobalView(layouts: GlobalViewConfig | GlobalViewConfig[]): this;
+  renderGlobalView(layouts: GlobalViewConfig): this;
   start(): Promise<this>;
   navigate(urlFragment: string, openNewTab?: boolean): this;
 

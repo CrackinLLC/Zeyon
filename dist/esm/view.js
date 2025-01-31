@@ -63,8 +63,7 @@ class View extends Emitter {
     }
     async onRender() { }
     prepareRootElement() {
-        let name = this.constructor.name;
-        name = name.charAt(0) === '_' ? name.slice(1) : name;
+        const name = this.getStaticMember('originalName');
         let attributesToSet = this.options.attributes || {};
         if (this.constructor.isRoute) {
             this.addClass('ui-route');

@@ -12,7 +12,7 @@ export default class ZeyonApp implements ZeyonAppLike {
     private registry;
     private loadingState;
     constructor(options: ZeyonAppOptions);
-    renderGlobalView(layouts: GlobalViewConfig | GlobalViewConfig[]): this;
+    renderGlobalView(layout: GlobalViewConfig): this;
     start(): Promise<this>;
     navigate(urlFragment: string, openNewTab?: boolean): this;
     newView<K extends keyof ClassMapTypeView>(registrationId: K, options?: ClassMapTypeView[K]['options']): Promise<InstanceType<ClassMapTypeView[K]['classRef']>>;

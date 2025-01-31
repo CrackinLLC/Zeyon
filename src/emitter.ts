@@ -24,6 +24,7 @@ export default abstract class Emitter {
   static [key: string]: unknown;
 
   static registrationId: string = '';
+  static originalName: string = ''; // Store the unmodified class names for reference, since we hash them during sync
   static config: ClassConfigurationOptions<Emitter> = {};
 
   public options: EmitterOptions = {};

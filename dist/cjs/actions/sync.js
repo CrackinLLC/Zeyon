@@ -90,6 +90,11 @@ function applyTransformToClass(transformDetails, projectRoot) {
             name: 'registrationId',
             initializer: `'${registrationId}'`,
         });
+        cls.addProperty({
+            isStatic: true,
+            name: 'originalName',
+            initializer: `'${cls.getName()}'`,
+        });
         if (propsArg) {
             const propsObject = propsArg.asKind(ts_morph_1.SyntaxKind.ObjectLiteralExpression);
             if (propsObject) {
