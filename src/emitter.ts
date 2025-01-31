@@ -16,9 +16,6 @@ const generalEvents = [
   'destroyed', // When the class instance is destroyed.
 ];
 
-import test from './test.hbs';
-console.log(test);
-
 /**
  * The base class providing event handling capabilities.
  * Classes extending Emitter can emit and listen to events.

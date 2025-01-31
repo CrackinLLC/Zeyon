@@ -1,15 +1,10 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const debounce_1 = require("./util/debounce");
 const generalEvents = [
     '*',
     'destroyed',
 ];
-const test_hbs_1 = __importDefault(require("./test.hbs"));
-console.log(test_hbs_1.default);
 class Emitter {
     constructor(options = {}, app) {
         this.app = app;

@@ -3,8 +3,6 @@ const generalEvents = [
     '*',
     'destroyed',
 ];
-import test from './test.hbs';
-console.log(test);
 class Emitter {
     constructor(options = {}, app) {
         this.app = app;

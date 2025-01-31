@@ -1,6 +1,7 @@
 import Zeyon from 'zeyon';
 import notFoundTemplate from '../templates/notFound.hbs';
 
+// @Zeyon.registerRouteView<{test: string} extends RouteViewOptions>('route-notfound', {
 @Zeyon.registerRouteView('route-notfound', {
   template: notFoundTemplate,
 })

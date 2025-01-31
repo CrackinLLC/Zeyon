@@ -1,7 +1,16 @@
 import fs from 'fs';
 import path from 'path';
-import { ClassDeclaration, Project, SourceFile } from 'ts-morph';
+import { ClassDeclaration, Project, SourceFile, SyntaxKind } from 'ts-morph';
 import { getRandomAlphaNumeric } from '../util/string';
+
+interface TransformDetails {
+  file: SourceFile;
+  hash: string;
+  cls: ClassDeclaration;
+  category: string;
+  registrationId: string;
+  filePath: string;
+}
 
 /**
  * Maps a decorator name to the category of class it belongs to
@@ -23,19 +32,12 @@ function filterSourceFiles(project: Project): SourceFile[] {
   const files: SourceFile[] = [];
 
   project.getSourceFiles().forEach((file: SourceFile) => {
-    if (!file.isDeclarationFile()) {
-      let pushed = false;
-      for (const cls of file.getClasses()) {
-        for (const decorator of cls.getDecorators()) {
-          if (DECORATOR_TO_CLASS_CATEGORY.hasOwnProperty(decorator.getName())) {
-            // TODO: Merge filter and clone steps together here
-            files.push(file);
-            pushed = true;
-          }
-          if (pushed) break;
-        }
-        if (pushed) break;
-      }
+    if (
+      !file.isDeclarationFile() &&
+      !file.getFilePath().includes('.Zeyon') &&
+      file.getClasses().some((cls) => cls.getDecorators().some((d) => DECORATOR_TO_CLASS_CATEGORY[d.getName()]))
+    ) {
+      files.push(file);
     }
   });
 
@@ -48,100 +50,187 @@ function filterSourceFiles(project: Project): SourceFile[] {
  * @param projectRoot
  * @returns
  */
-function writeClonesAndGetClasses(files: SourceFile[], projectRoot: string): ClassDeclaration[] {
-  const classes: ClassDeclaration[] = [];
+function writeClonesAndGetClassRefs(files: SourceFile[], projectRoot: string): Partial<TransformDetails>[] {
+  const transformDetails: Partial<TransformDetails>[] = [];
 
-  files.forEach((file) => {
-    const filePath = file.getFilePath();
-    const zeyonRoot = path.join(projectRoot, '.Zeyon');
-    const newName = `${getRandomAlphaNumeric({ toUpper: true })}-${file.getBaseName()}`;
-    const newFile = file.copy(path.join(zeyonRoot, newName));
-
-    for (const imp of newFile.getImportDeclarations()) {
-      imp.setModuleSpecifier(calculateNewImportPath(filePath, zeyonRoot, imp.getModuleSpecifierValue()));
+  function calculateNewImportPath(originalFilePath: string, clonedFilePath: string, importPath: string): string {
+    // Handle non-relative imports
+    if (!importPath.startsWith('.')) {
+      return importPath;
     }
 
-    newFile.getClasses().forEach((cls) => {
-      for (const dec of cls.getDecorators()) {
-        if (DECORATOR_TO_CLASS_CATEGORY.hasOwnProperty(dec.getName())) {
-          classes.push(cls);
-          break;
-        }
-      }
+    // Resolve absolute paths
+    const originalDir = path.dirname(originalFilePath);
+    const absoluteImportPath = path.resolve(originalDir, importPath);
+    const clonedDir = path.dirname(clonedFilePath);
+
+    // Calculate relative path from generated file location
+    let newRelativePath = path.relative(clonedDir, absoluteImportPath).replace(/\\/g, '/');
+
+    // Ensure proper relative notation
+    if (!newRelativePath.startsWith('.')) {
+      newRelativePath = `./${newRelativePath}`;
+    }
+
+    // Fix parent directory traversal
+    return newRelativePath;
+  }
+
+  // Wipe old gen contents if it exists
+  const zeyonDir = path.join(projectRoot, '.Zeyon');
+  const genDir = path.join(zeyonDir, 'gen');
+  if (fs.existsSync(genDir)) {
+    fs.rmSync(genDir, { recursive: true, force: true });
+  }
+  fs.mkdirSync(genDir, { recursive: true });
+
+  // Begin writing clones to gen directory
+  files.forEach((file) => {
+    const filePath = file.getFilePath();
+    const hash = getRandomAlphaNumeric({ toUpper: true });
+    const parsed = path.parse(file.getBaseName());
+    const newName = `${parsed.name}_${hash}${parsed.ext}`;
+    const clonedFilePath = path.join(genDir, newName);
+
+    const newFile = file.copy(clonedFilePath);
+
+    newFile.getImportDeclarations().forEach((imp) => {
+      const updatedImportPath = calculateNewImportPath(filePath, clonedFilePath, imp.getModuleSpecifierValue());
+      imp.setModuleSpecifier(updatedImportPath);
     });
 
-    newFile.saveSync();
+    // We don't want typescript testing our generated files (invalid module declarations)
+    newFile.insertStatements(0, '// @ts-nocheck');
+
+    newFile.getClasses().forEach((cls) => {
+      const dec = cls.getDecorators().find((d) => DECORATOR_TO_CLASS_CATEGORY.hasOwnProperty(d.getName()));
+      const filePath = path.relative(zeyonDir, clonedFilePath).replace(/\.ts$/g, '').replace(/\\/g, '/');
+      if (dec) {
+        transformDetails.push({
+          file: newFile,
+          cls,
+          hash,
+          filePath,
+        });
+      }
+    });
   });
 
-  return classes;
+  return transformDetails;
 }
 
-function calculateNewImportPath(originalFilePath: string, clonedFilePath: string, importPath: string): string {
-  // Non-relative imports remain unchanged
-  if (!importPath.startsWith('.')) {
-    return importPath;
-  }
+function applyTransformToClass(transformDetails: Partial<TransformDetails>[], projectRoot: string): TransformDetails[] {
+  const fullTransformDetails: TransformDetails[] = [];
 
-  // Resolve the absolute path of the original import
-  const originalDir = path.dirname(originalFilePath);
-  const absoluteImportPath = path.resolve(originalDir, importPath);
+  transformDetails.forEach(({ file, cls, hash, filePath }) => {
+    if (!file || !cls || !hash || !filePath) return;
 
-  // Compute new relative path from cloned file to the imported module
-  const clonedDir = path.dirname(clonedFilePath);
-  let newRelativePath = path.relative(clonedDir, absoluteImportPath).replace(/\\/g, '/');
+    const decorator = cls.getDecorators().find((d) => DECORATOR_TO_CLASS_CATEGORY.hasOwnProperty(d.getName()))!;
 
-  if (!newRelativePath.startsWith('.')) {
-    newRelativePath = './' + newRelativePath;
-  }
+    // Extract registration ID and props
+    const [registrationIdArg, propsArg] = decorator.getArguments();
+    const registrationId = registrationIdArg.getText().replace(/'/g, '');
+    const category = DECORATOR_TO_CLASS_CATEGORY[decorator.getName()];
+    const callExpr = decorator.getCallExpression();
+    const typeArgs = callExpr?.getTypeArguments() || [];
 
-  return newRelativePath;
+    cls.addProperty({
+      isStatic: true,
+      name: 'registrationId',
+      initializer: `'${registrationId}'`,
+    });
+
+    if (propsArg) {
+      const propsObject = propsArg.asKind(SyntaxKind.ObjectLiteralExpression);
+      if (propsObject) {
+        propsObject.getProperties().forEach((prop) => {
+          if (prop.isKind(SyntaxKind.PropertyAssignment)) {
+            const name = prop.getName();
+            const initializer = prop.getInitializer()?.getText() || 'undefined';
+
+            cls.addProperty({
+              isStatic: true,
+              name,
+              initializer,
+            });
+          }
+        });
+      }
+    }
+
+    if (typeArgs.length > 0) {
+      const optionsTypeText = typeArgs[0].getText();
+
+      cls.addProperty({
+        name: 'options',
+        hasDeclareKeyword: true,
+        type: optionsTypeText,
+      });
+    }
+
+    // Rename class
+    cls.rename(`${cls.getName()}_${hash}`);
+
+    // Remove the original decorator
+    decorator.remove();
+
+    file.saveSync();
+
+    fullTransformDetails.push({
+      file,
+      cls,
+      hash,
+      category,
+      registrationId,
+      filePath,
+    });
+  });
+
+  return fullTransformDetails;
 }
 
-interface MutationDetails {
-  hash: string;
-  className: string;
-  category: string;
-  registrationId: string;
-  path: string;
-}
+function writeClassMapDataFile(details: TransformDetails[], projectRoot: string): void {
+  const imports = details.map((d) => `import { ${d.cls.getName()} } from './${d.filePath}';`).join('\n');
 
-function mutateClassesAndRecordDetails(classes: ClassDeclaration[], projectRoot: string): MutationDetails[] {
-  // TODO: Use this to rename argument keys to different class property keys
-  // const propRenameMap: { [category: string]: { [key: string]: string } } = {
-  //   Emitter: {},
-  //   Model: {
-  //     attributes: 'definition',
-  //   },
-  //   Collection: {},
-  //   View: {},
-  //   RouteView: {},
-  //   CollectionView: {},
-  // };
+  const classMapEntries = details
+    .map(
+      (d) => `
+    '${d.registrationId}': {
+      classRef: ${d.cls.getName()},
+      type: '${d.category}'
+    }`,
+    )
+    .join(',');
 
-  const mutationDetails: MutationDetails[] = [];
+  const content = `
+    ${imports}
 
-  classes.forEach((cls: ClassDeclaration) => {
-    const details: Partial<MutationDetails> = {
-      hash: getRandomAlphaNumeric({ len: 14, toUpper: true }),
+    export const classMapData = {
+      ${classMapEntries}
     };
+  `;
 
-    // TODO: Pull our options interface and argument nodes from the decorator
-    // TODO: Apply pulled nodes to our class
-    // TODO: Wipe decorator reference
-    // TODO: Compile details of the change and push to mutationDetails to facilitate map creation
-
-    mutationDetails.push(details as MutationDetails);
-  });
-
-  return mutationDetails;
+  fs.writeFileSync(path.join(projectRoot, '.Zeyon/classMapData.ts'), content);
 }
 
-function writeClassMapDataFile(details: MutationDetails[], projectRoot: string): void {
-  // TODO: Use the details array to write our classMapData file
-}
+function writeZeyonTypesFile(details: TransformDetails[], projectRoot: string): void {
+  const typeDeclarations = details.reduce((acc, d) => {
+    const typeInterface = `ClassMapType${d.category}`;
+    return `${acc}
+    interface ${typeInterface} {
+      '${d.registrationId}': {
+        classRef: typeof import('./${d.filePath}').${d.cls.getName()};
+        options: unknown;
+      };
+    }`;
+  }, '');
 
-function writeZeyonTypesFile(details: MutationDetails[], projectRoot: string): void {
-  // TODO: Use the details array to write our ZeyonTypes file
+  const content = `
+    declare module 'zeyon/src/_maps' {
+    ${typeDeclarations}
+  }`;
+
+  fs.writeFileSync(path.join(projectRoot, '.Zeyon/ZeyonTypes.d.ts'), content);
 }
 
 export default async function () {
@@ -162,7 +251,7 @@ export default async function () {
     config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
   }
 
-  // TODO: Introduce any valid properties into our config that would affect file generation
+  // TODO: Introduce any `valid` properties into our config that would affect file generation
   if (config) {
     // Read config if it exists (Currently unused)
   }
@@ -179,11 +268,9 @@ export default async function () {
   }
 
   const files = filterSourceFiles(new Project({ tsConfigFilePath }));
+  const partialTransformDetails = writeClonesAndGetClassRefs(files, projectRoot);
+  const transformDetails = applyTransformToClass(partialTransformDetails, projectRoot);
 
-  // TODO: Can we nuke our clones before writing new ones? Maybe use a subdirectory and empty it?
-  const classes = writeClonesAndGetClasses(files, projectRoot);
-  const details = mutateClassesAndRecordDetails(classes, projectRoot);
-
-  writeClassMapDataFile(details, projectRoot);
-  writeZeyonTypesFile(details, projectRoot);
+  writeClassMapDataFile(transformDetails, projectRoot);
+  writeZeyonTypesFile(transformDetails, projectRoot);
 }

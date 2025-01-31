@@ -11,12 +11,12 @@
       "require": "./dist/cjs/_index.js"
     },
     "./build": {
-      "import": "./dist/esm/build/_index.js",
-      "require": "./dist/cjs/build/_index.js"
+      "import": "./dist/esm/build/_build.js",
+      "require": "./dist/cjs/build/_build.js"
     },
-    "./create": {
-      "import": "./dist/esm/create/_index.js",
-      "require": "./dist/cjs/create/_index.js"
+    "./app": {
+      "import": "./dist/esm/create/_create.js",
+      "require": "./dist/cjs/create/_create.js"
     }
   },
   "files": [
@@ -34,7 +34,7 @@
     "test": "npm run test:unit:nowatch && npm run test:integration"
   },
   "bin": {
-    "zeyon": "./dist/cjs/actions/_index.js"
+    "zeyon": "./dist/cjs/actions/_actions.js"
   },
   "repository": {
     "type": "git",
