@@ -64,4 +64,5 @@ declare const _default: {
     CollectionView: typeof CollectionView;
 };
 export default _default;
+export type { AnyEventHandler, ClassConfigurationOptions, EventHandlerApply, NativeEventHandler, NormalEventHandler, WildcardEventHandler, } from './imports/emitter';
 //# sourceMappingURL=_index.d.ts.map

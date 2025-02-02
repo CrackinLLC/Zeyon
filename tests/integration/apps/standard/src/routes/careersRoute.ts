@@ -1,4 +1,5 @@
 import Zeyon, { RouteViewOptions } from 'zeyon';
+import styles from '../styles/careers.scss';
 import careersTemplate from '../templates/careers.hbs';
 
 interface CareersRouteOptions extends RouteViewOptions {
@@ -7,6 +8,7 @@ interface CareersRouteOptions extends RouteViewOptions {
 
 @Zeyon.registerRouteView<CareersRouteOptions>('route-careers', {
   template: careersTemplate,
+  styles,
 })
 class CareersRoute extends Zeyon.RouteView {
   protected async onRender() {

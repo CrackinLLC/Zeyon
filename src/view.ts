@@ -1,6 +1,7 @@
 import type { ClassMapTypeView } from './_maps';
 import Emitter from './emitter';
 import type { ZeyonAppLike } from './imports/app';
+import { NativeEventArg } from './imports/emitter';
 import { AttachReference, nativeEvents, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
 import { convertToRootElement, RootElement } from './util/element';
@@ -96,7 +97,7 @@ export default abstract class View extends Emitter {
     this.app.loadViewStyles(this);
 
     if (this.options.preventDefault) {
-      this.on('click', (val: undefined, ev: Event) => ev.preventDefault());
+      this.on('click', (args: NativeEventArg) => args.ev.preventDefault());
     }
 
     await this.onRender();
@@ -264,7 +265,9 @@ export default abstract class View extends Emitter {
     if (this.compiledTemplate && !this.isDestroyed) {
       this.el.innerHTML = this.compiledTemplate(this.getTemplateOptions());
 
-      this.on('click', (val: undefined, ev: Event) => {
+      this.on('click', (args: NativeEventArg) => {
+        const { ev } = args;
+
         if (ev.defaultPrevented) return;
 
         let target = ev.target as HTMLElement | null;

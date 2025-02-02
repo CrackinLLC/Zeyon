@@ -119,3 +119,12 @@ export default {
   RouteView,
   CollectionView,
 };
+
+export type {
+  AnyEventHandler,
+  ClassConfigurationOptions,
+  EventHandlerApply,
+  NativeEventHandler,
+  NormalEventHandler,
+  WildcardEventHandler,
+} from './imports/emitter';

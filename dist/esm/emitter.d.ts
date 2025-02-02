@@ -1,6 +1,6 @@
 import type { ClassMapKey } from './_maps';
 import type { ZeyonAppLike } from './imports/app';
-import type { ClassConfigurationOptions, EmitterOptions, EventHandler } from './imports/emitter';
+import type { AnyEventHandler, ClassConfigurationOptions, EmitterOptions } from './imports/emitter';
 export default abstract class Emitter {
     protected app: ZeyonAppLike;
     static [key: string]: unknown;
@@ -22,13 +22,13 @@ export default abstract class Emitter {
     private rebuildListenersObject;
     extendValidEvents(events?: string | string[]): Emitter;
     getValidEvents(): string[];
-    on(eventName: string, handler: EventHandler, subscriber?: unknown): Emitter;
+    on(eventName: string, handler: AnyEventHandler, subscriber?: unknown): Emitter;
     off(options?: {
         event?: string;
-        handler?: EventHandler;
+        handler?: AnyEventHandler;
         subscriber?: unknown;
     }): Emitter;
-    once(event: string, handler: EventHandler, subscriber?: unknown): Emitter;
+    once(event: string, handler: AnyEventHandler, subscriber?: unknown): Emitter;
     emit(eventName: string, detail?: any): Emitter;
     debouncedEmit<P>(event: string, payload?: P | P[], shouldAggregate?: boolean): Emitter;
     private logInvalidEvent;

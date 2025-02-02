@@ -194,6 +194,7 @@ function applyTransformsToClasses(clones: Clone[]): TransformDetails[] {
   const transformDetails: TransformDetails[] = [];
 
   clones.forEach(({ file, cls, hash, filePath }) => {
+    // TODO: This is currently sequential, consider refactoring to work in parallel
     // Extract registration ID and props from decorator
     const decorator = cls.getDecorators().find((d) => DECORATOR_TO_CLASS_CATEGORY.hasOwnProperty(d.getName()))!;
     const callExpr = decorator.getCallExpression();
@@ -225,9 +226,17 @@ function applyTransformsToClasses(clones: Clone[]): TransformDetails[] {
               name,
               initializer,
             });
+          } else if (prop.isKind(SyntaxKind.ShorthandPropertyAssignment)) {
+            const name = prop.getName();
+
+            cls.addProperty({
+              isStatic: true,
+              name,
+              initializer: name,
+            });
           }
         });
-      propsArg?.forget();
+      propsArg.forget();
     }
 
     callExpr?.forget();
@@ -255,11 +264,11 @@ function applyTransformsToClasses(clones: Clone[]): TransformDetails[] {
       ensureReferenceIsExported(file, optionsTypeName, 'interface');
     }
 
+    ensureReferenceIsExported(file, clsNewName, 'class');
+
     // Remove / forget the decorator and args
     decorator.remove();
     decorator.forget();
-
-    ensureReferenceIsExported(file, clsNewName, 'class');
 
     // Re-print file with comments removed and extra blank lines merged
     const printer = ts.createPrinter({ removeComments: true });

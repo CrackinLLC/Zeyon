@@ -1,22 +1,41 @@
 import type Emitter from '../emitter';
 
-export type NormalEventHandler =
-  | ((data: any, ev?: CustomEvent) => void)
-  | ((this: any, data: any, ev?: CustomEvent) => void);
-export type WildcardEventHandler =
-  | ((eventName: string, data: any, ev?: CustomEvent) => void)
-  | ((this: any, eventName: string, data: any, ev?: CustomEvent) => void);
-export type NativeEventHandler =
-  | ((data: undefined, ev: Event) => void)
-  | ((this: any, data: undefined, ev: Event) => void);
-export type EventHandlerApply = (this: any, ...args: unknown[]) => void;
-export type EventHandler = NormalEventHandler | WildcardEventHandler | NativeEventHandler;
-
 export interface EmitterOptions {
   events?: string[];
 }
 
+// Class Config
 export interface ClassConfigurationOptions<C extends Emitter> {
   defaultOptions?: C['options'];
   events?: string[];
 }
+
+// Event Handler Arguments
+export interface BaseEventArg {
+  emitter: unknown;
+}
+
+export interface NormalEventArg extends BaseEventArg {
+  data: any;
+  ev?: CustomEvent;
+}
+
+export interface WildcardEventArg extends NormalEventArg {
+  eventName: string;
+}
+
+export interface NativeEventArg extends BaseEventArg {
+  ev: Event;
+}
+
+export type AnyEventArg = NormalEventArg | WildcardEventArg | NativeEventArg;
+
+// Event Handler Functions
+export type NormalEventHandler = (arg: NormalEventArg) => void;
+export type WildcardEventHandler = (arg: WildcardEventArg) => void;
+export type NativeEventHandler = (arg: NativeEventArg) => void;
+export type AnyEventHandler = NormalEventHandler | WildcardEventHandler | NativeEventHandler;
+
+// For use in .apply or .bind logic
+export type EventHandlerApply = (this: unknown, ...arg: unknown[]) => void;
+export type EventHandlerBind = (thisArg: unknown) => (arg: AnyEventArg) => void;

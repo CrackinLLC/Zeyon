@@ -1,10 +1,11 @@
 import type { ClassMapKey } from './_maps';
 import type { ZeyonAppLike } from './imports/app';
 import type {
+  AnyEventHandler,
   ClassConfigurationOptions,
   EmitterOptions,
-  EventHandler,
   EventHandlerApply,
+  NativeEventArg,
   NativeEventHandler,
   NormalEventHandler,
   WildcardEventHandler,
@@ -125,7 +126,7 @@ export default abstract class Emitter {
    * @param subscriber - Optional context for the handler.
    * @returns The emitter instance.
    */
-  public on(eventName: string, handler: EventHandler, subscriber: unknown = this): Emitter {
+  public on(eventName: string, handler: AnyEventHandler, subscriber: unknown = this): Emitter {
     if (!this.validEvents.has(eventName) && eventName !== '*') {
       return this.logInvalidEvent(eventName, this);
     }
@@ -155,7 +156,7 @@ export default abstract class Emitter {
   public off(
     options: {
       event?: string;
-      handler?: EventHandler;
+      handler?: AnyEventHandler;
       subscriber?: unknown;
     } = {},
   ): Emitter {
@@ -199,7 +200,7 @@ export default abstract class Emitter {
    * @param subscriber - Optional context for the handler.
    * @returns The emitter instance.
    */
-  public once(event: string, handler: EventHandler, subscriber?: unknown): Emitter {
+  public once(event: string, handler: AnyEventHandler, subscriber?: unknown): Emitter {
     const wrappedHandler = (...args: unknown[]) => {
       (handler as EventHandlerApply).apply(subscriber, args);
       this.off({ event, handler: wrappedHandler, subscriber });
@@ -321,10 +322,9 @@ export default abstract class Emitter {
  */
 class Listener {
   public eventName: string;
-  public handler: EventHandler;
+  public handler: AnyEventHandler;
   public subscriber: unknown;
   private el?: HTMLElement;
-
   private boundHandler?: EventListener;
 
   private isNative: boolean;
@@ -337,7 +337,7 @@ class Listener {
   constructor(options: {
     eventName: string;
     isNative: boolean;
-    handler: EventHandler;
+    handler: AnyEventHandler;
     subscriber?: unknown;
     el?: HTMLElement;
   }) {
@@ -350,16 +350,23 @@ class Listener {
 
     this.isWildcard = this.eventName === '*';
 
+    // If native, attach a bound DOM event listener
     if (this.isNative) {
-      // Bind the handler to the subscriber context
       this.boundHandler = (domEvent: Event) => {
+        const nativeArg: NativeEventArg = {
+          emitter: this.subscriber ?? null,
+          ev: domEvent,
+        };
+
+        const nativeHandler = this.handler as NativeEventHandler;
         if (this.subscriber) {
-          (this.handler as NativeEventHandler).call(this.subscriber, undefined, domEvent);
+          nativeHandler.call(this.subscriber, nativeArg);
         } else {
-          this.handler(undefined, domEvent);
+          nativeHandler(nativeArg);
         }
       };
 
+      // Bind it
       this.el!.addEventListener(this.eventName, this.boundHandler);
     }
   }
@@ -367,42 +374,35 @@ class Listener {
   /**
    * Triggers the event handler with the provided detail.
    * @param detail - Data to pass to the handler.
-   * @param event - The event name (used when eventName is '*').
-   * @returns The Listener instance.
+   * @param actualEventName - The event name (if wildcard).
    */
   public trigger(detail: any = {}, actualEventName?: string): this {
     if (this.isNative) {
       const domEvent = new Event(this.eventName);
-      if (this.el) this.el.dispatchEvent(domEvent);
-
-      // Native => (data: undefined, ev: Event) => void
-      const nativeHandler = this.handler as NativeEventHandler;
-
-      if (this.subscriber) {
-        nativeHandler.call(this.subscriber, undefined, domEvent);
-      } else {
-        nativeHandler(undefined, domEvent);
-      }
+      this.el?.dispatchEvent(domEvent);
     } else if (this.isWildcard) {
-      // Wildecard => (eventName: string, data: any, ev?: CustomEvent) => void
       const wildcardHandler = this.handler as WildcardEventHandler;
-
       const customEvent = new CustomEvent(actualEventName ?? this.eventName, { detail });
-      if (this.subscriber) {
-        wildcardHandler.call(this.subscriber, actualEventName || '', detail, customEvent);
-      } else {
-        wildcardHandler(actualEventName || '', detail, customEvent);
-      }
-    } else {
-      // Normal => (data: any, ev?: CustomEvent) => void
-      const normalHandler = this.handler as NormalEventHandler;
 
+      const wildcardArg = {
+        emitter: this.subscriber ?? null,
+        eventName: actualEventName || this.eventName,
+        data: detail,
+        ev: customEvent,
+      };
+
+      wildcardHandler.call(this.subscriber, wildcardArg);
+    } else {
+      const normalHandler = this.handler as NormalEventHandler;
       const customEvent = new CustomEvent(this.eventName, { detail });
-      if (this.subscriber) {
-        normalHandler.call(this.subscriber, detail, customEvent);
-      } else {
-        normalHandler(detail, customEvent);
-      }
+
+      const normalArg = {
+        emitter: this.subscriber ?? null,
+        data: detail,
+        ev: customEvent,
+      };
+
+      normalHandler.call(this.subscriber, normalArg);
     }
 
     return this;

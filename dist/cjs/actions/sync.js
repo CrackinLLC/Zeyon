@@ -155,8 +155,16 @@ function applyTransformsToClasses(clones) {
                         initializer,
                     });
                 }
+                else if (prop.isKind(ts_morph_1.SyntaxKind.ShorthandPropertyAssignment)) {
+                    const name = prop.getName();
+                    cls.addProperty({
+                        isStatic: true,
+                        name,
+                        initializer: name,
+                    });
+                }
             });
-            propsArg?.forget();
+            propsArg.forget();
         }
         callExpr?.forget();
         cls.addProperty({
@@ -177,9 +185,9 @@ function applyTransformsToClasses(clones) {
             });
             ensureReferenceIsExported(file, optionsTypeName, 'interface');
         }
+        ensureReferenceIsExported(file, clsNewName, 'class');
         decorator.remove();
         decorator.forget();
-        ensureReferenceIsExported(file, clsNewName, 'class');
         const printer = ts_morph_1.ts.createPrinter({ removeComments: true });
         const cleanText = printer.printFile(file.compilerNode).replace(/^\s*[\r\n]/gm, '');
         file.replaceWithText(cleanText);

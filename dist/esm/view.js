@@ -51,7 +51,7 @@ class View extends Emitter {
         this.generateUiSelections();
         this.app.loadViewStyles(this);
         if (this.options.preventDefault) {
-            this.on('click', (val, ev) => ev.preventDefault());
+            this.on('click', (args) => args.ev.preventDefault());
         }
         await this.onRender();
         if (this.isDestroyed)
@@ -176,7 +176,8 @@ class View extends Emitter {
     renderTemplate() {
         if (this.compiledTemplate && !this.isDestroyed) {
             this.el.innerHTML = this.compiledTemplate(this.getTemplateOptions());
-            this.on('click', (val, ev) => {
+            this.on('click', (args) => {
+                const { ev } = args;
                 if (ev.defaultPrevented)
                     return;
                 let target = ev.target;
