@@ -1,9 +1,6 @@
-import Zeyon, { RouteViewOptions } from 'zeyon';
+import Zeyon from 'zeyon';
 import homeTemplate from '../templates/home.hbs';
-
-interface HomeRouteOptions extends RouteViewOptions {
-  test: string;
-}
+import { HomeRouteOptions } from './homeRouteOptions';
 
 @Zeyon.registerRouteView<HomeRouteOptions>('route-home', {
   template: homeTemplate,

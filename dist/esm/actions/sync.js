@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Project, SyntaxKind } from 'ts-morph';
+import { Project, SyntaxKind, ts } from 'ts-morph';
 import { getRandomAlphaNumeric } from '../util/string';
 const DECORATOR_TO_CLASS_CATEGORY = {
     registerModel: 'Model',
@@ -21,7 +21,7 @@ function filterSourceFiles(project) {
     return files;
 }
 function writeClonesAndGetClassRefs(files, projectRoot) {
-    const transformDetails = [];
+    const clones = [];
     function calculateNewImportPath(originalFilePath, clonedFilePath, importPath) {
         if (!importPath.startsWith('.')) {
             return importPath;
@@ -52,12 +52,11 @@ function writeClonesAndGetClassRefs(files, projectRoot) {
             const updatedImportPath = calculateNewImportPath(filePath, clonedFilePath, imp.getModuleSpecifierValue());
             imp.setModuleSpecifier(updatedImportPath);
         });
-        newFile.insertStatements(0, '// @ts-nocheck');
         newFile.getClasses().forEach((cls) => {
             const dec = cls.getDecorators().find((d) => DECORATOR_TO_CLASS_CATEGORY.hasOwnProperty(d.getName()));
             const filePath = path.relative(zeyonDir, clonedFilePath).replace(/\.ts$/g, '').replace(/\\/g, '/');
             if (dec) {
-                transformDetails.push({
+                clones.push({
                     file: newFile,
                     cls,
                     hash,
@@ -66,19 +65,93 @@ function writeClonesAndGetClassRefs(files, projectRoot) {
             }
         });
     });
-    return transformDetails;
+    return clones;
 }
-function applyTransformToClass(transformDetails, projectRoot) {
-    const fullTransformDetails = [];
-    transformDetails.forEach(({ file, cls, hash, filePath }) => {
-        if (!file || !cls || !hash || !filePath)
-            return;
+export function ensureReferenceIsExported(file, name, type) {
+    const exportedDeclarations = file.getExportedDeclarations();
+    const importedDeclarations = file.getImportDeclarations();
+    if (exportedDeclarations.has(name))
+        return;
+    if (name.includes('.')) {
+        return;
+    }
+    const isImportedByName = () => {
+        for (const imp of importedDeclarations) {
+            for (const namedImport of imp.getNamedImports()) {
+                if (namedImport.getName() === name)
+                    return true;
+                if (namedImport.getAliasNode()?.getText() === name)
+                    return true;
+            }
+        }
+        return false;
+    };
+    if (isImportedByName()) {
+        for (const imp of importedDeclarations) {
+            for (const namedImport of imp.getNamedImports()) {
+                if (namedImport.getName() === name) {
+                    const fromPath = imp.getModuleSpecifierValue();
+                    file.addStatements(`export { ${name} } from '${fromPath}';`);
+                    return;
+                }
+                if (namedImport.getAliasNode()?.getText() === name) {
+                }
+            }
+        }
+        return;
+    }
+    switch (type) {
+        case 'interface':
+            const iface = file.getInterface(name);
+            const ifaceName = iface?.getName();
+            if (iface && (ifaceName ? !exportedDeclarations.has(ifaceName) : !iface.isExported())) {
+                iface.setIsExported(true);
+                return;
+            }
+            break;
+        case 'class':
+            const cls = file.getClass(name);
+            const clsName = cls?.getName();
+            if (cls && (clsName ? !exportedDeclarations.has(clsName) : !cls.isExported())) {
+                cls.setIsExported(true);
+                return;
+            }
+            break;
+    }
+    file.addStatements(`export type ${name} = ${name};`);
+}
+function applyTransformsToClasses(clones) {
+    const transformDetails = [];
+    clones.forEach(({ file, cls, hash, filePath }) => {
         const decorator = cls.getDecorators().find((d) => DECORATOR_TO_CLASS_CATEGORY.hasOwnProperty(d.getName()));
-        const [registrationIdArg, propsArg] = decorator.getArguments();
-        const registrationId = registrationIdArg.getText().replace(/'/g, '');
-        const category = DECORATOR_TO_CLASS_CATEGORY[decorator.getName()];
         const callExpr = decorator.getCallExpression();
+        const [registrationIdArg, propsArg] = decorator.getArguments();
+        const category = DECORATOR_TO_CLASS_CATEGORY[decorator.getName()];
+        const registrationId = registrationIdArg.getText().replace(/'/g, '');
+        registrationIdArg?.forget();
         const typeArgs = callExpr?.getTypeArguments() || [];
+        const optionsTypeName = typeArgs.length > 0 ? typeArgs[0].getText() : '';
+        const clsOldName = cls.getName() || '';
+        const clsNewName = `${clsOldName || 'UNNAMED_CLASS'}_${hash}`;
+        cls.rename(clsNewName);
+        if (propsArg) {
+            propsArg
+                .asKind(SyntaxKind.ObjectLiteralExpression)
+                ?.getProperties()
+                .forEach((prop) => {
+                if (prop.isKind(SyntaxKind.PropertyAssignment)) {
+                    const name = prop.getName();
+                    const initializer = prop.getInitializer()?.getText() || 'undefined';
+                    cls.addProperty({
+                        isStatic: true,
+                        name,
+                        initializer,
+                    });
+                }
+            });
+            propsArg?.forget();
+        }
+        callExpr?.forget();
         cls.addProperty({
             isStatic: true,
             name: 'registrationId',
@@ -87,80 +160,84 @@ function applyTransformToClass(transformDetails, projectRoot) {
         cls.addProperty({
             isStatic: true,
             name: 'originalName',
-            initializer: `'${cls.getName()}'`,
+            initializer: `'${clsOldName}'`,
         });
-        if (propsArg) {
-            const propsObject = propsArg.asKind(SyntaxKind.ObjectLiteralExpression);
-            if (propsObject) {
-                propsObject.getProperties().forEach((prop) => {
-                    if (prop.isKind(SyntaxKind.PropertyAssignment)) {
-                        const name = prop.getName();
-                        const initializer = prop.getInitializer()?.getText() || 'undefined';
-                        cls.addProperty({
-                            isStatic: true,
-                            name,
-                            initializer,
-                        });
-                    }
-                });
-            }
-        }
-        if (typeArgs.length > 0) {
-            const optionsTypeText = typeArgs[0].getText();
+        if (optionsTypeName) {
             cls.addProperty({
                 name: 'options',
                 hasDeclareKeyword: true,
-                type: optionsTypeText,
+                type: optionsTypeName,
             });
+            ensureReferenceIsExported(file, optionsTypeName, 'interface');
         }
-        cls.rename(`${cls.getName()}_${hash}`);
         decorator.remove();
+        decorator.forget();
+        ensureReferenceIsExported(file, clsNewName, 'class');
+        const printer = ts.createPrinter({ removeComments: true });
+        const cleanText = printer.printFile(file.compilerNode).replace(/^\s*[\r\n]/gm, '');
+        file.replaceWithText(cleanText);
+        file.insertStatements(0, '// @ts-nocheck');
         file.saveSync();
-        fullTransformDetails.push({
-            file,
-            cls,
+        transformDetails.push({
+            clsName: clsNewName,
             hash,
             category,
             registrationId,
             filePath,
+            optionsTypeName,
         });
     });
-    return fullTransformDetails;
+    return transformDetails;
 }
 function writeClassMapDataFile(details, projectRoot) {
-    const imports = details.map((d) => `import { ${d.cls.getName()} } from './${d.filePath}';`).join('\n');
+    const imports = details.map((d) => `import {${d.clsName}} from './${d.filePath}';`).join('\n');
     const classMapEntries = details
-        .map((d) => `
-    '${d.registrationId}': {
-      classRef: ${d.cls.getName()},
-      type: '${d.category}'
-    }`)
-        .join(',');
-    const content = `
-    ${imports}
-
-    export const classMapData = {
-      ${classMapEntries}
-    };
-  `;
+        .map((d) => ` '${d.registrationId}': {\n  classRef: ${d.clsName},\n  type: '${d.category}'\n }`)
+        .join(',\n');
+    const content = `${imports}\n\nexport const classMapData = {\n${classMapEntries}\n};\n`;
     fs.writeFileSync(path.join(projectRoot, '.Zeyon/classMapData.ts'), content);
 }
 function writeZeyonTypesFile(details, projectRoot) {
-    const typeDeclarations = details.reduce((acc, d) => {
-        const typeInterface = `ClassMapType${d.category}`;
-        return `${acc}
-    interface ${typeInterface} {
-      '${d.registrationId}': {
-        classRef: typeof import('./${d.filePath}').${d.cls.getName()};
-        options: unknown;
-      };
-    }`;
-    }, '');
-    const content = `
-    declare module 'zeyon/src/_maps' {
-    ${typeDeclarations}
-  }`;
-    fs.writeFileSync(path.join(projectRoot, '.Zeyon/ZeyonTypes.d.ts'), content);
+    const createEntry = (d) => {
+        const importFrom = `import('./${d.filePath}')`;
+        const optionsType = d.optionsTypeName ? `${importFrom}.${d.optionsTypeName}` : 'never';
+        return `  '${d.registrationId}': {\n   classRef: typeof ${importFrom}.${d.clsName};\n   options: ${optionsType};\n  }`;
+    };
+    const maps = {
+        Model: [],
+        Collection: [],
+        View: [],
+        RouteView: [],
+        CollectionView: [],
+    };
+    details.forEach((detail) => {
+        maps[detail.category].push(createEntry(detail));
+    });
+    let entriesString = '';
+    Object.entries(maps).forEach(([category, lines], i) => {
+        entriesString += ` interface ClassMapType${category} {`;
+        if (!lines.length) {
+            entriesString += '}';
+        }
+        else {
+            entriesString += '\n' + lines.join('\n') + '\n }';
+        }
+        if (i + 1 < Object.keys(maps).length) {
+            entriesString += '\n';
+        }
+    });
+    const content = [
+        `declare module 'zeyon/src/_maps' {`,
+        entriesString,
+        ' type ClassMapKey =',
+        '  | (string & keyof ClassMapTypeView)',
+        '  | (string & keyof ClassMapTypeRouteView)',
+        '  | (string & keyof ClassMapTypeModel)',
+        '  | (string & keyof ClassMapTypeCollection)',
+        '  | (string & keyof ClassMapTypeCollectionView)',
+        '}',
+    ];
+    fs.writeFileSync(path.join(projectRoot, '.Zeyon/ZeyonTypes.d.ts'), content.join('\n'));
 }
 export default async function () {
     const projectRoot = process.cwd();
@@ -190,8 +267,8 @@ export default async function () {
         return;
     }
     const files = filterSourceFiles(new Project({ tsConfigFilePath }));
-    const partialTransformDetails = writeClonesAndGetClassRefs(files, projectRoot);
-    const transformDetails = applyTransformToClass(partialTransformDetails, projectRoot);
+    const clonesAndClasses = writeClonesAndGetClassRefs(files, projectRoot);
+    const transformDetails = applyTransformsToClasses(clonesAndClasses);
     writeClassMapDataFile(transformDetails, projectRoot);
     writeZeyonTypesFile(transformDetails, projectRoot);
 }
