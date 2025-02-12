@@ -1,10 +1,10 @@
-import type { ClassMapTypeRouteView } from '../_maps';
+import type { ClassMapTypeRouteView } from 'zeyon/_maps';
 export interface RouterOptions {
     routes: RouteConfig[];
     urlPrefix?: string;
 }
 export interface RouteConfig<CustomRouteProps extends {} = {}> {
-    registrationId: keyof ClassMapTypeRouteView;
+    registrationId: string & keyof ClassMapTypeRouteView;
     urlFragment: string;
     is404?: boolean;
     childRoutes?: RouteConfig<CustomRouteProps>[];

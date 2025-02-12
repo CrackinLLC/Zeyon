@@ -269,7 +269,7 @@ export default class Router extends Emitter {
             ...(hash ? { hash } : {}),
             attachTo: this.app.el,
           })
-          .then((routeView) => routeView.render());
+          .then((routeView: RouteView) => routeView.render());
 
         this.currentRouteConfig = route;
         this.emit('navigate', { regId: route.registrationId, ...(route.custom || {}) });

@@ -17,6 +17,17 @@
     "./app": {
       "import": "./dist/esm/create/_create.js",
       "require": "./dist/cjs/create/_create.js"
+    },
+    "./_maps": {
+      "import": "./dist/esm/_maps.js",
+      "require": "./dist/cjs/_maps.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "_maps": [
+        "dist/esm/_maps.d.ts"
+      ]
     }
   },
   "files": [

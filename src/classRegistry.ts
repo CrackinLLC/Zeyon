@@ -1,13 +1,29 @@
+import type { ClassMapKey } from 'zeyon/_maps';
 import { classMapData } from 'zeyonRootAlias/classMapData';
-import type { ClassMapKey } from './_maps';
 import Emitter from './emitter';
 import type { ZeyonAppLike } from './imports/app';
-import type { AnyDefinition, ClassMapEntry, ClassRegistryOptions } from './imports/classRegistry';
+import type { AnyDefinition, ClassRegistryOptions } from './imports/classRegistry';
+
+export type ClassCategory = 'Model' | 'Collection' | 'View' | 'RouteView' | 'CollectionView';
+type ClassMapStored = Map<string, AnyDefinition>;
 
 export default class ClassRegistry extends Emitter {
   static override registrationId: string = 'zeyon-registry';
 
-  private classMap: Map<string, AnyDefinition> = new Map();
+  private classMap: ClassMapStored = new Map();
+  private classMapByType: {
+    Model: ClassMapStored;
+    Collection: ClassMapStored;
+    View: ClassMapStored;
+    RouteView: ClassMapStored;
+    CollectionView: ClassMapStored;
+  } = {
+    Model: new Map(),
+    Collection: new Map(),
+    View: new Map(),
+    RouteView: new Map(),
+    CollectionView: new Map(),
+  };
 
   constructor(options: ClassRegistryOptions = {}, app: ZeyonAppLike) {
     super(
@@ -19,10 +35,12 @@ export default class ClassRegistry extends Emitter {
     );
 
     // Eagerly register all classes discovered in classMapData
-    for (const entry of Object.values(classMapData)) {
+    for (const entry of Object.values(
+      classMapData as Record<string, { classRef: AnyDefinition; type: ClassCategory }>,
+    )) {
       // TODO: Entries might include classRef, but also may include fetch meta. Need to differenciate the two here?
 
-      this.registerClass((entry as ClassMapEntry).classRef);
+      this.registerClass(entry.classRef, entry.type);
     }
   }
 
@@ -30,7 +48,7 @@ export default class ClassRegistry extends Emitter {
    * Registers a single class entry with the registry.
    * @param c - The constructor function to register (must have a static registrationId).
    */
-  public registerClass(c: AnyDefinition): void {
+  public registerClass(c: AnyDefinition, t?: ClassCategory): void {
     const id = c.registrationId;
 
     if (typeof c === 'function' && c.registrationId && c.prototype instanceof Emitter) {
@@ -39,6 +57,11 @@ export default class ClassRegistry extends Emitter {
       }
 
       this.classMap.set(id, c);
+
+      if (t) {
+        this.classMapByType[t].set(id, c);
+      }
+
       this.emit('registered', { id });
     } else {
       console.warn(
@@ -62,6 +85,11 @@ export default class ClassRegistry extends Emitter {
     return entry;
   }
 
+  /**
+   * Make a request to server to retrieve a registered class that we have not yet loaded into the client
+   * @param id
+   * @returns
+   */
   private async fetchClass(id: ClassMapKey): Promise<AnyDefinition | undefined> {
     // TODO: Use existing ClassMapEntry (import from registry imports) to determine how to fetch classRef
 
@@ -79,5 +107,17 @@ export default class ClassRegistry extends Emitter {
    */
   public hasClass(identifier: string): boolean {
     return this.classMap.has(identifier);
+  }
+
+  /**
+   * Get a set that includes registration ids of all potential classes
+   * @returns
+   */
+  public getClassIds(type?: ClassCategory): Set<string> {
+    if (type) {
+      return new Set(this.classMapByType[type].keys());
+    }
+
+    return new Set(this.classMap.keys());
   }
 }

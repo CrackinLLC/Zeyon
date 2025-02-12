@@ -1,4 +1,4 @@
-import type { ClassMapTypeView } from './_maps';
+import { ClassMapTypeView } from 'zeyon/_maps';
 import Emitter from './emitter';
 import type { ZeyonAppLike } from './imports/app';
 import { NativeEventArg } from './imports/emitter';
@@ -315,24 +315,25 @@ export default abstract class View extends Emitter {
     };
   }
 
-  public async newChild<K extends keyof ClassMapTypeView>(
+  public async newChild<K extends string>(
     registrationId: K,
-    viewOptions: ClassMapTypeView[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeView[K]['classRef']>> {
+    childOptions?: K extends keyof ClassMapTypeView ? ClassMapTypeView[K]['options'] : ViewOptions,
+  ): Promise<K extends keyof ClassMapTypeView ? InstanceType<ClassMapTypeView[K]['classRef']> : never> {
     if (this.isDestroyed) {
       return Promise.reject(new Error('Component is destroyed'));
     }
 
-    return this.app.newView(registrationId, viewOptions).then((child) => {
-      if (this.isDestroyed) {
-        child.destroy();
-        return Promise.reject(new Error('Component is destroyed'));
-      }
+    const child: View = await this.app.newView(registrationId, childOptions);
 
-      child.render();
-      this.children[child.getViewId()] = child;
-      return child;
-    });
+    if (this.isDestroyed) {
+      child.destroy(); // If view was destroyed while instantiating child, nuke child and bail
+      return Promise.reject(new Error('Component is destroyed'));
+    }
+
+    child.render();
+    this.children[child.getViewId()] = child;
+
+    return child as K extends keyof ClassMapTypeView ? InstanceType<ClassMapTypeView[K]['classRef']> : never;
   }
 
   getChildById<T extends View>(id: string): T | undefined {

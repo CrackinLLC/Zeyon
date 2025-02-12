@@ -1,4 +1,4 @@
-import type { ClassMapTypeCollection, ClassMapTypeModel, ClassMapTypeView } from './_maps';
+import type { ClassMapTypeCollection, ClassMapTypeModel, ClassMapTypeView } from 'zeyon/_maps';
 import { AttributeDefinition } from './imports/model';
 
 import Collection from './collection';
@@ -8,13 +8,12 @@ import Model from './model';
 import RouteView from './routeView';
 import View from './view';
 
-import type { CollectionOptions } from './imports/collection';
-import type { CollectionViewOptions } from './imports/collectionView';
-import type { EmitterOptions } from './imports/emitter';
-import type { Attributes, ModelOptions } from './imports/model';
-import type { RouteViewOptions } from './imports/routeView';
-import type { ViewOptions } from './imports/view';
-export { CollectionOptions, CollectionViewOptions, EmitterOptions, ModelOptions, RouteViewOptions, ViewOptions };
+import { CollectionOptions } from './imports/collection';
+import { CollectionViewOptions } from './imports/collectionView';
+import { EmitterOptions } from './imports/emitter';
+import { Attributes, ModelOptions } from './imports/model';
+import { RouteViewOptions } from './imports/routeView';
+import { ViewOptions } from './imports/view';
 
 interface RegisterEmitterProps {
   // Any global props that apply to all classes?
@@ -25,7 +24,7 @@ interface RegisterModelProps extends RegisterEmitterProps {
 }
 
 interface RegisterCollectionProps extends RegisterEmitterProps {
-  modelRegistrationId: keyof ClassMapTypeModel;
+  modelRegistrationId: string & keyof ClassMapTypeModel;
 }
 
 interface RegisterViewProps extends RegisterEmitterProps {
@@ -40,8 +39,8 @@ interface RegisterViewProps extends RegisterEmitterProps {
 interface RegisterRouteViewProps extends RegisterViewProps {}
 
 interface RegisterCollectionViewProps extends RegisterRouteViewProps {
-  modelViewRegistrationId: keyof ClassMapTypeView;
-  collectionRegistrationId: keyof ClassMapTypeCollection;
+  modelViewRegistrationId: string & keyof ClassMapTypeView;
+  collectionRegistrationId: string & keyof ClassMapTypeCollection;
 }
 
 export default {
@@ -119,6 +118,8 @@ export default {
   RouteView,
   CollectionView,
 };
+
+export type { CollectionOptions, CollectionViewOptions, EmitterOptions, ModelOptions, RouteViewOptions, ViewOptions };
 
 export type {
   AnyEventHandler,

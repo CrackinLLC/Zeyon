@@ -9,6 +9,6 @@
     "allowJs": false,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*", "declarations.d.ts"],
+  "include": ["src/**/*", "declarations.d.ts", "./.Zeyon/ZeyonTypes.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

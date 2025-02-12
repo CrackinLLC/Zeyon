@@ -1,7 +1,9 @@
-import Zeyon from 'zeyon';
+import Zeyon, { ViewOptions } from 'zeyon';
 import styles from '../styles/header.scss';
 
-@Zeyon.registerView('component-header', {
+interface HeaderOptions extends ViewOptions {}
+
+@Zeyon.registerView<HeaderOptions>('component-header', {
   styles,
   tagName: 'header',
 })
@@ -9,7 +11,6 @@ export class Header extends Zeyon.View {
   protected async onRender() {
     this.app
       .newView('component-button', {
-        // @ts-ignore
         label: 'Home',
         attachTo: this.el,
         onClick: () => {
@@ -20,7 +21,6 @@ export class Header extends Zeyon.View {
       .then((view) => view.render());
     this.app
       .newView('component-button', {
-        // @ts-ignore
         label: 'About',
         attachTo: this.el,
         onClick: () => {
@@ -31,7 +31,6 @@ export class Header extends Zeyon.View {
       .then((view) => view.render());
     this.app
       .newView('component-button', {
-        // @ts-ignore
         label: 'Careers',
         attachTo: this.el,
         onClick: () => {
@@ -43,7 +42,6 @@ export class Header extends Zeyon.View {
 
     this.app
       .newView('component-button', {
-        // @ts-ignore
         label: 'Not Found',
         attachTo: this.el,
         onClick: () => {

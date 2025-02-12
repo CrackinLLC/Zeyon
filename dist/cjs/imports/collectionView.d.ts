@@ -1,9 +1,9 @@
-import type { ClassMapTypeCollection } from '../_maps';
+import type { ClassMapTypeCollection } from 'zeyon/_maps';
 import type Collection from '../collection';
 import type { ViewOptions } from './view';
 export interface CollectionViewOptions extends ViewOptions {
     collection?: Collection;
-    collectionRegistrationId?: keyof ClassMapTypeCollection;
+    collectionRegistrationId?: string & keyof ClassMapTypeCollection;
     collectionOptions?: unknown;
     modelViewOptions?: unknown;
 }

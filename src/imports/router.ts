@@ -1,4 +1,4 @@
-import type { ClassMapTypeRouteView } from '../_maps';
+import type { ClassMapTypeRouteView } from 'zeyon/_maps';
 
 export interface RouterOptions {
   routes: RouteConfig[];
@@ -7,7 +7,7 @@ export interface RouterOptions {
 
 // TODO: Extend to allow for metadata instead and support dynamic fetching
 export interface RouteConfig<CustomRouteProps extends {} = {}> {
-  registrationId: keyof ClassMapTypeRouteView;
+  registrationId: string & keyof ClassMapTypeRouteView;
   urlFragment: string; // Fragment to append to the url path (excludes leading/trailing slashes)
   is404?: boolean; // Defines the 404 page for the application (last one defined takes precedence)
   childRoutes?: RouteConfig<CustomRouteProps>[];

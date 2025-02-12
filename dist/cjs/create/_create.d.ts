@@ -1,4 +1,4 @@
-import '../_maps';
+import 'zeyon/_maps';
 import '../util/polyfill';
 import '../util/template';
 import ZeyonApp from '../app';

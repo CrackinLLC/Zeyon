@@ -6,6 +6,11 @@
     "strict": true,
     "esModuleInterop": true,
 
+    "baseUrl": ".",
+    "paths": {
+      "zeyon/_maps": ["./src/_maps"]
+    },
+
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
@@ -29,5 +34,5 @@
   },
 
   "include": ["src/**/*.ts", "src/**/*.d.ts"],
-  "exclude": ["node_modules", "**/*.test.ts", "tests", "**/*_OLD.ts", "**/*_TEST.ts"]
+  "exclude": ["node_modules", "tests", "**/*_TEST.ts"]
 }

@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ZeyonApp = void 0;
-require("../_maps");
+require("zeyon/_maps");
 require("../util/polyfill");
 require("../util/template");
 const app_1 = __importDefault(require("../app"));

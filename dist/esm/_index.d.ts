@@ -1,4 +1,4 @@
-import type { ClassMapTypeCollection, ClassMapTypeModel, ClassMapTypeView } from './_maps';
+import type { ClassMapTypeCollection, ClassMapTypeModel, ClassMapTypeView } from 'zeyon/_maps';
 import { AttributeDefinition } from './imports/model';
 import Collection from './collection';
 import CollectionView from './collectionView';
@@ -6,20 +6,19 @@ import Emitter from './emitter';
 import Model from './model';
 import RouteView from './routeView';
 import View from './view';
-import type { CollectionOptions } from './imports/collection';
-import type { CollectionViewOptions } from './imports/collectionView';
-import type { EmitterOptions } from './imports/emitter';
-import type { Attributes, ModelOptions } from './imports/model';
-import type { RouteViewOptions } from './imports/routeView';
-import type { ViewOptions } from './imports/view';
-export { CollectionOptions, CollectionViewOptions, EmitterOptions, ModelOptions, RouteViewOptions, ViewOptions };
+import { CollectionOptions } from './imports/collection';
+import { CollectionViewOptions } from './imports/collectionView';
+import { EmitterOptions } from './imports/emitter';
+import { Attributes, ModelOptions } from './imports/model';
+import { RouteViewOptions } from './imports/routeView';
+import { ViewOptions } from './imports/view';
 interface RegisterEmitterProps {
 }
 interface RegisterModelProps extends RegisterEmitterProps {
     attributes: Record<string, AttributeDefinition>;
 }
 interface RegisterCollectionProps extends RegisterEmitterProps {
-    modelRegistrationId: keyof ClassMapTypeModel;
+    modelRegistrationId: string & keyof ClassMapTypeModel;
 }
 interface RegisterViewProps extends RegisterEmitterProps {
     tagName?: string;
@@ -34,8 +33,8 @@ interface RegisterViewProps extends RegisterEmitterProps {
 interface RegisterRouteViewProps extends RegisterViewProps {
 }
 interface RegisterCollectionViewProps extends RegisterRouteViewProps {
-    modelViewRegistrationId: keyof ClassMapTypeView;
-    collectionRegistrationId: keyof ClassMapTypeCollection;
+    modelViewRegistrationId: string & keyof ClassMapTypeView;
+    collectionRegistrationId: string & keyof ClassMapTypeCollection;
 }
 declare const _default: {
     registerEmitter<O extends EmitterOptions = EmitterOptions>(registrationId: string, props?: RegisterEmitterProps): <T extends {
@@ -64,5 +63,6 @@ declare const _default: {
     CollectionView: typeof CollectionView;
 };
 export default _default;
+export type { CollectionOptions, CollectionViewOptions, EmitterOptions, ModelOptions, RouteViewOptions, ViewOptions };
 export type { AnyEventHandler, ClassConfigurationOptions, EventHandlerApply, NativeEventHandler, NormalEventHandler, WildcardEventHandler, } from './imports/emitter';
 //# sourceMappingURL=_index.d.ts.map

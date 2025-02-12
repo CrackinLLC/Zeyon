@@ -5,10 +5,12 @@ import type {
   ClassMapTypeModel,
   ClassMapTypeRouteView,
   ClassMapTypeView,
-} from './_maps';
-import ClassRegistry from './classRegistry';
+} from 'zeyon/_maps';
+import ClassRegistry, { ClassCategory } from './classRegistry';
 import type Emitter from './emitter';
 import type { ZeyonAppLike, ZeyonAppOptions } from './imports/app';
+import type { RouteViewOptions } from './imports/routeView';
+import type { ViewOptions } from './imports/view';
 import Router from './router';
 import { loaderTemplate } from './util/loader';
 import type View from './view';
@@ -113,60 +115,123 @@ export default class ZeyonApp implements ZeyonAppLike {
     return this;
   }
 
-  public async newView<K extends keyof ClassMapTypeView>(
+  public newView<K extends string>(
     registrationId: K,
-    options?: ClassMapTypeView[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeView[K]['classRef']>> {
-    return this.newInstance<InstanceType<ClassMapTypeView[K]['classRef']>>(registrationId, options);
+    options?: K extends keyof ClassMapTypeView ? ClassMapTypeView[K]['options'] : ViewOptions,
+  ): Promise<K extends keyof ClassMapTypeView ? InstanceType<ClassMapTypeView[K]['classRef']> : never> {
+    const isViewKey = (key: string): key is string & keyof ClassMapTypeView => {
+      return !this.getClassIds('View').has(registrationId);
+    };
+
+    if (isViewKey(registrationId)) {
+      throw new Error(`Unknown VIEW ID: ${registrationId}`);
+    }
+
+    type ViewType = K extends keyof ClassMapTypeView ? InstanceType<ClassMapTypeView[K]['classRef']> : never;
+    return this.newInstance<ViewType>(registrationId, options);
   }
 
-  // Similar to newView, but returns the renders the view and returns the application, rather than the unrendered view instance
-  public async renderNewView<K extends keyof ClassMapTypeView>(
+  // Similar to newView, but renders the view and returns the application, rather than the unrendered view instance
+  public async renderNewView<K extends string>(
     registrationId: K,
-    options?: ClassMapTypeView[K]['options'],
+    options?: K extends keyof ClassMapTypeView ? ClassMapTypeView[K]['options'] : ViewOptions,
   ): Promise<this> {
-    await this.newView(registrationId, options).then((view) => view.render());
+    const view = await this.newView(registrationId, options);
+    (view as View).render();
     return this;
   }
 
-  public newRouteView<K extends keyof ClassMapTypeRouteView>(
+  public async newRouteView<K extends string>(
     registrationId: K,
-    options?: ClassMapTypeRouteView[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeRouteView[K]['classRef']>> {
-    return this.newInstance<InstanceType<ClassMapTypeRouteView[K]['classRef']>>(registrationId, options);
+    options?: K extends keyof ClassMapTypeRouteView ? ClassMapTypeRouteView[K]['options'] : RouteViewOptions,
+  ): Promise<K extends keyof ClassMapTypeRouteView ? InstanceType<ClassMapTypeRouteView[K]['classRef']> : never> {
+    const isRouteViewKey = (key: string): key is string & keyof ClassMapTypeRouteView => {
+      return !this.getClassIds('RouteView').has(registrationId);
+    };
+
+    if (isRouteViewKey(registrationId)) {
+      throw new Error(`Unknown ROUTEVIEW ID: ${registrationId}`);
+    }
+
+    type RouteViewType = K extends keyof ClassMapTypeRouteView
+      ? InstanceType<ClassMapTypeRouteView[K]['classRef']>
+      : never;
+
+    return this.newInstance<RouteViewType>(registrationId, options);
   }
 
-  public newModel<K extends keyof ClassMapTypeModel>(
+  public newModel<K extends string>(
     registrationId: K,
-    options?: ClassMapTypeModel[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeModel[K]['classRef']>> {
-    return this.newInstance<InstanceType<ClassMapTypeModel[K]['classRef']>>(registrationId, options);
+    options?: K extends keyof ClassMapTypeModel ? ClassMapTypeModel[K]['options'] : ViewOptions,
+  ): Promise<K extends keyof ClassMapTypeModel ? InstanceType<ClassMapTypeModel[K]['classRef']> : never> {
+    const isModelKey = (key: string): key is string & keyof ClassMapTypeModel => {
+      return !this.getClassIds('Model').has(registrationId);
+    };
+
+    if (isModelKey(registrationId)) {
+      throw new Error(`Unknown MODEL ID: ${registrationId}`);
+    }
+
+    type ModelType = K extends keyof ClassMapTypeModel ? InstanceType<ClassMapTypeModel[K]['classRef']> : never;
+    return this.newInstance<ModelType>(registrationId, options);
   }
 
-  public newCollection<K extends keyof ClassMapTypeCollection>(
+  public newCollection<K extends string>(
     registrationId: K,
-    options?: ClassMapTypeCollection[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeCollection[K]['classRef']>> {
-    return this.newInstance<InstanceType<ClassMapTypeCollection[K]['classRef']>>(registrationId, options);
+    options?: K extends keyof ClassMapTypeCollection ? ClassMapTypeCollection[K]['options'] : ViewOptions,
+  ): Promise<K extends keyof ClassMapTypeCollection ? InstanceType<ClassMapTypeCollection[K]['classRef']> : never> {
+    const isCollectionKey = (key: string): key is string & keyof ClassMapTypeCollection => {
+      return !this.getClassIds('Collection').has(registrationId);
+    };
+
+    if (isCollectionKey(registrationId)) {
+      throw new Error(`Unknown COLLECTION ID: ${registrationId}`);
+    }
+
+    type CollectionType = K extends keyof ClassMapTypeCollection
+      ? InstanceType<ClassMapTypeCollection[K]['classRef']>
+      : never;
+    return this.newInstance<CollectionType>(registrationId, options);
   }
 
-  public newCollectionView<K extends keyof ClassMapTypeCollectionView>(
+  public newCollectionView<K extends string>(
     registrationId: K,
-    options?: ClassMapTypeCollectionView[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeCollectionView[K]['classRef']>> {
-    return this.newInstance<InstanceType<ClassMapTypeCollectionView[K]['classRef']>>(registrationId, options);
+    options?: K extends keyof ClassMapTypeCollectionView ? ClassMapTypeCollectionView[K]['options'] : ViewOptions,
+  ): Promise<
+    K extends keyof ClassMapTypeCollectionView ? InstanceType<ClassMapTypeCollectionView[K]['classRef']> : never
+  > {
+    const isCollectionViewKey = (key: string): key is string & keyof ClassMapTypeCollectionView => {
+      return !this.getClassIds('Collection').has(registrationId);
+    };
+
+    if (isCollectionViewKey(registrationId)) {
+      throw new Error(`Unknown COLLECTION ID: ${registrationId}`);
+    }
+
+    type CollectionViewType = K extends keyof ClassMapTypeCollectionView
+      ? InstanceType<ClassMapTypeCollectionView[K]['classRef']>
+      : never;
+    return this.newInstance<CollectionViewType>(registrationId, options);
   }
 
-  private async newInstance<T extends Emitter>(registrationId: ClassMapKey, options?: unknown): Promise<T> {
+  private async newInstance<T>(registrationId: ClassMapKey, options?: unknown): Promise<T> {
     const def = await this.registry.getClass(registrationId);
     if (!def) throw new Error(`No class with id: ${registrationId}`);
 
     const instance = new def(options || {}, this) as T;
-    if (instance.isReady instanceof Promise) {
-      await instance.isReady;
+    if ((instance as Emitter).isReady instanceof Promise) {
+      await (instance as Emitter).isReady;
     }
 
     return instance;
+  }
+
+  /**
+   * Get a set that includes registration ids of all potential classes
+   * @returns
+   */
+  public getClassIds(type?: ClassCategory): Set<string> {
+    return this.registry.getClassIds(type);
   }
 
   /**

@@ -1,4 +1,4 @@
-import type { ClassMapKey } from './_maps';
+import type { ClassMapKey } from 'zeyon/_maps';
 import type { ZeyonAppLike } from './imports/app';
 import type {
   AnyEventHandler,

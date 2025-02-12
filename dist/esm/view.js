@@ -220,19 +220,18 @@ class View extends Emitter {
             ...optionValues,
         };
     }
-    async newChild(registrationId, viewOptions) {
+    async newChild(registrationId, childOptions) {
         if (this.isDestroyed) {
             return Promise.reject(new Error('Component is destroyed'));
         }
-        return this.app.newView(registrationId, viewOptions).then((child) => {
-            if (this.isDestroyed) {
-                child.destroy();
-                return Promise.reject(new Error('Component is destroyed'));
-            }
-            child.render();
-            this.children[child.getViewId()] = child;
-            return child;
-        });
+        const child = await this.app.newView(registrationId, childOptions);
+        if (this.isDestroyed) {
+            child.destroy();
+            return Promise.reject(new Error('Component is destroyed'));
+        }
+        child.render();
+        this.children[child.getViewId()] = child;
+        return child;
     }
     getChildById(id) {
         const child = this.children[id];

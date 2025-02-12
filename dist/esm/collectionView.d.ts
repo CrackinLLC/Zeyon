@@ -1,4 +1,4 @@
-import { ClassMapTypeCollection, ClassMapTypeView } from './_maps';
+import { ClassMapTypeCollection, ClassMapTypeView } from 'zeyon/_maps';
 import Collection from './collection';
 import type { ZeyonAppLike } from './imports/app';
 import { CollectionViewOptions } from './imports/collectionView';
@@ -6,10 +6,10 @@ import View from './view';
 export default abstract class CollectionView extends View {
     options: CollectionViewOptions;
     defaultOptions: CollectionViewOptions;
-    abstract modelViewRegistrationId: keyof ClassMapTypeView;
+    abstract modelViewRegistrationId: string & keyof ClassMapTypeView;
     protected modelViews: View[];
     protected collection?: Collection;
-    protected collectionRegistrationId?: keyof ClassMapTypeCollection;
+    protected collectionRegistrationId?: string & keyof ClassMapTypeCollection;
     constructor(options: CollectionViewOptions, app: ZeyonAppLike);
     protected getTemplateOptions(): Record<string, unknown>;
     loadCollection(collection?: Collection): Promise<void>;

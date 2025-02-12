@@ -37,23 +37,54 @@ export default class ZeyonApp {
         }
         return this;
     }
-    async newView(registrationId, options) {
+    newView(registrationId, options) {
+        const isViewKey = (key) => {
+            return !this.getClassIds('View').has(registrationId);
+        };
+        if (isViewKey(registrationId)) {
+            throw new Error(`Unknown VIEW ID: ${registrationId}`);
+        }
         return this.newInstance(registrationId, options);
     }
     async renderNewView(registrationId, options) {
-        await this.newView(registrationId, options).then((view) => view.render());
+        const view = await this.newView(registrationId, options);
+        view.render();
         return this;
     }
-    newRouteView(registrationId, options) {
+    async newRouteView(registrationId, options) {
+        const isRouteViewKey = (key) => {
+            return !this.getClassIds('RouteView').has(registrationId);
+        };
+        if (isRouteViewKey(registrationId)) {
+            throw new Error(`Unknown ROUTEVIEW ID: ${registrationId}`);
+        }
         return this.newInstance(registrationId, options);
     }
     newModel(registrationId, options) {
+        const isModelKey = (key) => {
+            return !this.getClassIds('Model').has(registrationId);
+        };
+        if (isModelKey(registrationId)) {
+            throw new Error(`Unknown MODEL ID: ${registrationId}`);
+        }
         return this.newInstance(registrationId, options);
     }
     newCollection(registrationId, options) {
+        const isCollectionKey = (key) => {
+            return !this.getClassIds('Collection').has(registrationId);
+        };
+        if (isCollectionKey(registrationId)) {
+            throw new Error(`Unknown COLLECTION ID: ${registrationId}`);
+        }
         return this.newInstance(registrationId, options);
     }
     newCollectionView(registrationId, options) {
+        const isCollectionViewKey = (key) => {
+            return !this.getClassIds('Collection').has(registrationId);
+        };
+        if (isCollectionViewKey(registrationId)) {
+            throw new Error(`Unknown COLLECTION ID: ${registrationId}`);
+        }
         return this.newInstance(registrationId, options);
     }
     async newInstance(registrationId, options) {
@@ -65,6 +96,9 @@ export default class ZeyonApp {
             await instance.isReady;
         }
         return instance;
+    }
+    getClassIds(type) {
+        return this.registry.getClassIds(type);
     }
     toggleClass(className, add) {
         this.el.classList.toggle(className, add);

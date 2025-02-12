@@ -1,4 +1,4 @@
-import type { ClassMapTypeModel } from './_maps';
+import type { ClassMapTypeModel } from 'zeyon/_maps';
 import Emitter from './emitter';
 import { ZeyonAppLike } from './imports/app';
 import { CollectionFilterDefinition, CollectionFilterOptions, CollectionOptions } from './imports/collection';
@@ -6,7 +6,7 @@ export default abstract class Collection extends Emitter {
     protected app: ZeyonAppLike;
     options: CollectionOptions;
     defaultOptions: CollectionOptions;
-    abstract modelRegistrationId: keyof ClassMapTypeModel;
+    abstract modelRegistrationId: string & keyof ClassMapTypeModel;
     modelConstructor: ClassMapTypeModel[this['modelRegistrationId']]['classRef'];
     model: InstanceType<this['modelConstructor']>;
     attrib: this['model']['attrib'];
@@ -21,7 +21,7 @@ export default abstract class Collection extends Emitter {
     newModel(attributes: Partial<this['attrib']> | Partial<this['attrib']>[], silent?: boolean): Promise<this>;
     add(models: this['model'] | this['model'][], silent?: boolean): this;
     remove(itemIds: number | number[] | undefined, silent?: boolean): this['model'] | this['model'][] | undefined;
-    getModelType(): keyof ClassMapTypeModel;
+    getModelType(): string & keyof ClassMapTypeModel;
     getItems(): this['model'][];
     getAttributes(): object[];
     getAttributeKeys(): string[];

@@ -241,17 +241,7 @@ function writeZeyonTypesFile(details, projectRoot) {
             entriesString += '\n';
         }
     });
-    const content = [
-        `declare module 'zeyon/src/_maps' {`,
-        entriesString,
-        ' type ClassMapKey =',
-        '  | (string & keyof ClassMapTypeView)',
-        '  | (string & keyof ClassMapTypeRouteView)',
-        '  | (string & keyof ClassMapTypeModel)',
-        '  | (string & keyof ClassMapTypeCollection)',
-        '  | (string & keyof ClassMapTypeCollectionView)',
-        '}',
-    ];
+    const content = [`declare module 'zeyon/_maps' {`, entriesString, '}'];
     fs_1.default.writeFileSync(path_1.default.join(projectRoot, '.Zeyon/ZeyonTypes.d.ts'), content.join('\n'));
 }
 async function default_1() {

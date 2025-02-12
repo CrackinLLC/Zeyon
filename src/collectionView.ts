@@ -1,4 +1,4 @@
-import { ClassMapTypeCollection, ClassMapTypeView } from './_maps';
+import { ClassMapTypeCollection, ClassMapTypeView } from 'zeyon/_maps';
 import Collection from './collection';
 import type { ZeyonAppLike } from './imports/app';
 import { CollectionViewOptions, collectionViewEvents } from './imports/collectionView';
@@ -15,7 +15,7 @@ export default abstract class CollectionView extends View {
   /**
    * The view class used to render each visible model within the collection.
    */
-  abstract modelViewRegistrationId: keyof ClassMapTypeView;
+  abstract modelViewRegistrationId: string & keyof ClassMapTypeView;
 
   /**
    * An array of instantiated model views for each visible model.
@@ -26,7 +26,7 @@ export default abstract class CollectionView extends View {
    * The collection being managed by this view.
    */
   protected collection?: Collection;
-  protected collectionRegistrationId?: keyof ClassMapTypeCollection;
+  protected collectionRegistrationId?: string & keyof ClassMapTypeCollection;
 
   constructor(options: CollectionViewOptions, app: ZeyonAppLike) {
     super(options, app);
@@ -111,7 +111,7 @@ export default abstract class CollectionView extends View {
         }),
       );
 
-      modelViews.forEach((modelView) => {
+      modelViews.forEach((modelView: View) => {
         modelView.render();
         this.children[modelView.getViewId()] = modelView;
         this.modelViews.push(modelView);

@@ -30,9 +30,11 @@ export interface ClassMapTypeCollectionView {
   [registrationId: string]: { classRef: typeof ColectionView; options: CollectionViewOptions };
 }
 
-export type ClassMapKey =
-  | keyof ClassMapTypeView
-  | keyof ClassMapTypeRouteView
-  | keyof ClassMapTypeModel
-  | keyof ClassMapTypeCollection
-  | keyof ClassMapTypeCollectionView;
+export type ClassMapKey = string &
+  (
+    | keyof ClassMapTypeView
+    | keyof ClassMapTypeRouteView
+    | keyof ClassMapTypeModel
+    | keyof ClassMapTypeCollection
+    | keyof ClassMapTypeCollectionView
+  );

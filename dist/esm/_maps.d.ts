@@ -38,5 +38,5 @@ export interface ClassMapTypeCollectionView {
         options: CollectionViewOptions;
     };
 }
-export type ClassMapKey = keyof ClassMapTypeView | keyof ClassMapTypeRouteView | keyof ClassMapTypeModel | keyof ClassMapTypeCollection | keyof ClassMapTypeCollectionView;
+export type ClassMapKey = string & (keyof ClassMapTypeView | keyof ClassMapTypeRouteView | keyof ClassMapTypeModel | keyof ClassMapTypeCollection | keyof ClassMapTypeCollectionView);
 //# sourceMappingURL=_maps.d.ts.map
