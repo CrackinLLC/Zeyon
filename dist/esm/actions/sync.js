@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Project, SyntaxKind, ts } from 'ts-morph';
-import { getRandomAlphaNumeric } from '../util/string';
+import { random } from '../util/string';
 const DECORATOR_TO_CLASS_CATEGORY = {
     registerModel: 'Model',
     registerCollection: 'Collection',
@@ -43,7 +43,7 @@ function writeClonesAndGetClassRefs(files, projectRoot) {
     fs.mkdirSync(genDir, { recursive: true });
     files.forEach((file) => {
         const filePath = file.getFilePath();
-        const hash = getRandomAlphaNumeric({ toUpper: true });
+        const hash = random({ toUpper: true });
         const parsed = path.parse(file.getBaseName());
         const newName = `${parsed.name}_${hash}${parsed.ext}`;
         const clonedFilePath = path.join(genDir, newName);

@@ -12,6 +12,9 @@ import { EmitterOptions } from './imports/emitter';
 import { Attributes, ModelOptions } from './imports/model';
 import { RouteViewOptions } from './imports/routeView';
 import { ViewOptions } from './imports/view';
+import * as loader from './util/loader';
+import * as object from './util/object';
+import * as string from './util/string';
 interface RegisterEmitterProps {
 }
 interface RegisterModelProps extends RegisterEmitterProps {
@@ -61,6 +64,9 @@ declare const _default: {
     View: typeof View;
     RouteView: typeof RouteView;
     CollectionView: typeof CollectionView;
+    string: typeof string;
+    loader: typeof loader;
+    object: typeof object;
 };
 export default _default;
 export type { CollectionOptions, CollectionViewOptions, EmitterOptions, ModelOptions, RouteViewOptions, ViewOptions };

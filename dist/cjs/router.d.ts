@@ -1,6 +1,6 @@
 import Emitter from './emitter';
 import type { ZeyonAppLike } from './imports/app';
-import type { RouteConfig, RouterOptions, SiteMapRouteConfig } from './imports/router';
+import type { NavigateOptions, RouteConfig, RouterOptions, SiteMapRouteConfig } from './imports/router';
 import type RouteView from './routeView';
 export default class Router extends Emitter {
     static registrationId: string;
@@ -20,17 +20,13 @@ export default class Router extends Emitter {
     getCurrentPath(): string;
     getCurrentRoute(): RouteView | undefined;
     getCurrentRouteConfig(): RouteConfig | undefined;
-    getRouteById(regId: string): RouteConfig | undefined;
+    getPathByRegistrationId(regId: string): string | undefined;
     getSiteMap(urlPath?: string): SiteMapRouteConfig | SiteMapRouteConfig[];
     setQueryParams(params: {
         [key: string]: string | null | undefined;
     }): void;
     navigateToRoot(): void;
-    navigate({ path, preserveQuery, force, }: {
-        path?: string;
-        preserveQuery?: boolean;
-        force?: boolean;
-    }): Promise<void>;
+    navigate({ route, toHome, force, preserveQuery, registrationId, }: NavigateOptions): Promise<void>;
     back(): void;
     private loadRouteFromUrl;
     private matchPathToRoute;

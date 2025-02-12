@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { ClassDeclaration, Project, SourceFile, SyntaxKind, ts } from 'ts-morph';
-import { getRandomAlphaNumeric } from '../util/string';
+import { random } from '../util/string';
 
 interface Clone {
   file: SourceFile;
@@ -94,7 +94,7 @@ function writeClonesAndGetClassRefs(files: SourceFile[], projectRoot: string): C
   // Begin writing clones to gen directory
   files.forEach((file) => {
     const filePath = file.getFilePath();
-    const hash = getRandomAlphaNumeric({ toUpper: true });
+    const hash = random({ toUpper: true });
     const parsed = path.parse(file.getBaseName());
     const newName = `${parsed.name}_${hash}${parsed.ext}`;
     const clonedFilePath = path.join(genDir, newName);

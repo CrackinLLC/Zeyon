@@ -9,6 +9,7 @@ import type {
 import ClassRegistry, { ClassCategory } from './classRegistry';
 import type Emitter from './emitter';
 import type { ZeyonAppLike, ZeyonAppOptions } from './imports/app';
+import { NavigateOptions } from './imports/router';
 import type { RouteViewOptions } from './imports/routeView';
 import type { ViewOptions } from './imports/view';
 import Router from './router';
@@ -99,17 +100,20 @@ export default class ZeyonApp implements ZeyonAppLike {
 
   /**
    * Navigates to a specified URL fragment.
-   * @param urlFragment - The URL fragment to navigate to.
-   * @param openNewTab - Whether to open the URL in a new tab.
+   * @param path - The URL to navigate to.
+   * @param options
    */
-  public navigate(urlFragment: string, openNewTab = false): this {
+  public navigate(path: string, options: NavigateOptions = {}): this {
     const baseUrl = new URL(document.baseURI);
-    const url = new URL(urlFragment, baseUrl);
+    const url = new URL(path, baseUrl);
 
-    if (url.origin !== baseUrl.origin || openNewTab) {
+    if (url.origin !== baseUrl.origin || options.newTab) {
       window.open(url.href, '_blank');
     } else {
-      this.router.navigate({ path: urlFragment });
+      this.router.navigate({
+        ...options,
+        route: path,
+      });
     }
 
     return this;

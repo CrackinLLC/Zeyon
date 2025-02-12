@@ -32,7 +32,7 @@ class Router extends emitter_1.default {
                 throw new Error(`Route collision: another route already exists at "${fullPath}".`);
             }
             this.urlMap[fullPath] = route;
-            this.registrationIdMap[String(route.registrationId)] = route;
+            this.registrationIdMap[String(route.registrationId)] = fullPath;
             if (fullPath === '/') {
                 if (this.root) {
                     console.warn('Multiple root routes defined. Only the last one will be used.');
@@ -75,7 +75,7 @@ class Router extends emitter_1.default {
     getCurrentRouteConfig() {
         return this.currentRouteConfig;
     }
-    getRouteById(regId) {
+    getPathByRegistrationId(regId) {
         return this.registrationIdMap[regId];
     }
     getSiteMap(urlPath) {
@@ -113,11 +113,24 @@ class Router extends emitter_1.default {
     }
     navigateToRoot() {
         if (this.root) {
-            this.navigate({ path: '/' });
+            this.navigate({ toHome: true });
         }
     }
-    async navigate({ path = this.app.window.location.pathname, preserveQuery = false, force = false, }) {
-        path = this.standardizeUrl(path);
+    async navigate({ route = this.app.window.location.pathname, toHome = false, force = false, preserveQuery = false, registrationId = false, }) {
+        let path;
+        if (toHome) {
+            path = '/';
+        }
+        else if (registrationId) {
+            path = this.getPathByRegistrationId(route);
+            if (!path) {
+                console.error(`No route found for registrationId: "${route}"`);
+                return;
+            }
+        }
+        else {
+            path = this.standardizeUrl(route);
+        }
         let canProceed = true;
         if (this.currentRoute?.onBeforeNavigate) {
             canProceed = await this.currentRoute.onBeforeNavigate(path);

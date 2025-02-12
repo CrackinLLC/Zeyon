@@ -166,7 +166,7 @@ export const getUniqueId = () => {
   return result;
 };
 
-export function getRandomAlphaNumeric({ len, toUpper }: { len?: number; toUpper?: boolean } = {}) {
+export function random({ len, toUpper }: { len?: number; toUpper?: boolean } = {}) {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
 

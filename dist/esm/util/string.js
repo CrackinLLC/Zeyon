@@ -139,7 +139,7 @@ export const getUniqueId = () => {
     }
     return result;
 };
-export function getRandomAlphaNumeric({ len, toUpper } = {}) {
+export function random({ len, toUpper } = {}) {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < (len || 8); i++) {

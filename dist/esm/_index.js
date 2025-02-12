@@ -4,6 +4,9 @@ import Emitter from './emitter';
 import Model from './model';
 import RouteView from './routeView';
 import View from './view';
+import * as loader from './util/loader';
+import * as object from './util/object';
+import * as string from './util/string';
 export default {
     registerEmitter(registrationId, props) {
         return function (constructor) {
@@ -47,5 +50,8 @@ export default {
     View,
     RouteView,
     CollectionView,
+    string,
+    loader,
+    object,
 };
 //# sourceMappingURL=_index.js.map

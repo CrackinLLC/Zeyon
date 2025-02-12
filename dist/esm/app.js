@@ -26,14 +26,17 @@ export default class ZeyonApp {
         }
         return this;
     }
-    navigate(urlFragment, openNewTab = false) {
+    navigate(path, options = {}) {
         const baseUrl = new URL(document.baseURI);
-        const url = new URL(urlFragment, baseUrl);
-        if (url.origin !== baseUrl.origin || openNewTab) {
+        const url = new URL(path, baseUrl);
+        if (url.origin !== baseUrl.origin || options.newTab) {
             window.open(url.href, '_blank');
         }
         else {
-            this.router.navigate({ path: urlFragment });
+            this.router.navigate({
+                ...options,
+                route: path,
+            });
         }
         return this;
     }

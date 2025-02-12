@@ -30,6 +30,13 @@ Handlebars.registerHelper('math', function (lvalue: number, operator: string, rv
   }[operator];
 });
 
+/**
+ * Console log from a template
+ */
+Handlebars.registerHelper('log', function (output) {
+  console.log(output);
+});
+
 ///////////////////////////
 // Conditional helpers
 

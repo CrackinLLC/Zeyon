@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "npx zeyon sync && webpack --config webpack.config.js",
-    "serve": "serve ."
+    "serve": "serve --single ."
   },
   "dependencies": {
     "circular-dependency-plugin": "^5.2.2",

@@ -1,6 +1,13 @@
 import Emitter from './emitter';
 import type { ZeyonAppLike } from './imports/app';
-import type { FlatMap, RouteConfig, RouterOptions, SiteMap, SiteMapRouteConfig } from './imports/router';
+import type {
+  FlatMap,
+  NavigateOptions,
+  RouteConfig,
+  RouterOptions,
+  SiteMap,
+  SiteMapRouteConfig,
+} from './imports/router';
 import type RouteView from './routeView';
 
 export default class Router extends Emitter {
@@ -16,14 +23,14 @@ export default class Router extends Emitter {
   private routes: RouteConfig[] = [];
 
   /**
-   * Flat dictionary from 'fullUrl' => route
+   * A flattened map of each defined fullPath => RouteView
    */
   private urlMap: FlatMap = {};
 
   /**
-   * Flat dictionary from 'registrationId' => route
+   * Dictionary for registrationId => fullPath
    */
-  private registrationIdMap: FlatMap = {};
+  private registrationIdMap: Record<string, string> = {};
 
   /**
    * a
@@ -73,7 +80,7 @@ export default class Router extends Emitter {
 
       // Store route on both our flat maps
       this.urlMap[fullPath] = route;
-      this.registrationIdMap[String(route.registrationId)] = route;
+      this.registrationIdMap[String(route.registrationId)] = fullPath;
 
       if (fullPath === '/') {
         if (this.root) {
@@ -132,7 +139,7 @@ export default class Router extends Emitter {
     return this.currentRouteConfig;
   }
 
-  public getRouteById(regId: string): RouteConfig | undefined {
+  public getPathByRegistrationId(regId: string): string | undefined {
     return this.registrationIdMap[regId];
   }
 
@@ -188,20 +195,31 @@ export default class Router extends Emitter {
   public navigateToRoot() {
     // TODO: Either strictly enforce at least one root route, or design handling for "no root defined"
     if (this.root) {
-      this.navigate({ path: '/' });
+      this.navigate({ toHome: true });
     }
   }
 
   public async navigate({
-    path = this.app.window.location.pathname,
-    preserveQuery = false,
+    route = this.app.window.location.pathname,
+    toHome = false,
     force = false,
-  }: {
-    path?: string;
-    preserveQuery?: boolean;
-    force?: boolean;
-  }) {
-    path = this.standardizeUrl(path);
+    preserveQuery = false,
+    registrationId = false,
+  }: NavigateOptions) {
+    let path: string | undefined;
+
+    if (toHome) {
+      path = '/';
+    } else if (registrationId) {
+      path = this.getPathByRegistrationId(route);
+
+      if (!path) {
+        console.error(`No route found for registrationId: "${route}"`);
+        return;
+      }
+    } else {
+      path = this.standardizeUrl(route);
+    }
 
     // Hook to allow a view to prevent navigation if needed
     let canProceed = true;

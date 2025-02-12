@@ -3,6 +3,14 @@ export interface RouterOptions {
     routes: RouteConfig[];
     urlPrefix?: string;
 }
+export interface NavigateOptions {
+    route?: string;
+    registrationId?: boolean;
+    preserveQuery?: boolean;
+    toHome?: boolean;
+    newTab?: boolean;
+    force?: boolean;
+}
 export interface RouteConfig<CustomRouteProps extends {} = {}> {
     registrationId: string & keyof ClassMapTypeRouteView;
     urlFragment: string;
@@ -11,7 +19,7 @@ export interface RouteConfig<CustomRouteProps extends {} = {}> {
     custom?: CustomRouteProps;
 }
 export type FlatMap<CustomRouteProps extends {} = {}> = {
-    [idOrPath: string]: RouteConfig<CustomRouteProps>;
+    [str: string]: RouteConfig<CustomRouteProps>;
 };
 export interface SiteMapRouteConfig extends Omit<RouteConfig, 'urlFragment' | 'is404' | 'childRoutes'> {
     fullUrl: string;

@@ -34,7 +34,7 @@
     "dist/**/*"
   ],
   "scripts": {
-    "start": "http-server -p 3000 .",
+    "check": "tsc -p tsconfig.json --noEmit",
     "build": "npm run build:esm && npm run build:cjs",
     "build:esm": "tsc -p tsconfig.esm.json",
     "build:cjs": "tsc -p tsconfig.cjs.json",

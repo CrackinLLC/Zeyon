@@ -5,6 +5,19 @@ export interface RouterOptions {
   urlPrefix?: string; // A custom url prefix used across the entire application
 }
 
+/**
+ * Options for the navigate method
+ */
+export interface NavigateOptions {
+  route?: string;
+  registrationId?: boolean;
+  preserveQuery?: boolean;
+
+  toHome?: boolean; // If true, will navigate to the root route
+  newTab?: boolean; // If true, will open the URL in a new tab
+  force?: boolean;
+}
+
 // TODO: Extend to allow for metadata instead and support dynamic fetching
 export interface RouteConfig<CustomRouteProps extends {} = {}> {
   registrationId: string & keyof ClassMapTypeRouteView;
@@ -16,9 +29,9 @@ export interface RouteConfig<CustomRouteProps extends {} = {}> {
   custom?: CustomRouteProps;
 }
 
-// Flat object intended to store all routes by their full path string
+// A flat object intended to store routes by an identifying string
 export type FlatMap<CustomRouteProps extends {} = {}> = {
-  [idOrPath: string]: RouteConfig<CustomRouteProps>;
+  [str: string]: RouteConfig<CustomRouteProps>;
 };
 
 // Similar to our RouteConfig, but specifically intended for our sitemap

@@ -2,6 +2,7 @@ import type { ClassMapTypeCollection, ClassMapTypeCollectionView, ClassMapTypeMo
 import type { ClassCategory } from '../classRegistry';
 import type View from '../view';
 import type { RouteConfig } from './router';
+import { NavigateOptions } from './router';
 import type { RouteViewOptions } from './routeView';
 import type { ViewOptions } from './view';
 export interface ZeyonAppOptions {
@@ -23,7 +24,7 @@ export interface ZeyonAppLike {
     isReady: Promise<this>;
     window: Window;
     start(): Promise<this>;
-    navigate(urlFragment: string, openNewTab?: boolean): this;
+    navigate(path: string, options?: NavigateOptions): this;
     newView<K extends string>(registrationId: K, options?: K extends keyof ClassMapTypeView ? ClassMapTypeView[K]['options'] : ViewOptions): Promise<K extends keyof ClassMapTypeView ? InstanceType<ClassMapTypeView[K]['classRef']> : never>;
     renderNewView<K extends string>(registrationId: K, options?: K extends keyof ClassMapTypeView ? ClassMapTypeView[K]['options'] : ViewOptions): Promise<this>;
     newRouteView<K extends string>(registrationId: K, options?: K extends keyof ClassMapTypeRouteView ? ClassMapTypeRouteView[K]['options'] : RouteViewOptions): Promise<K extends keyof ClassMapTypeRouteView ? InstanceType<ClassMapTypeRouteView[K]['classRef']> : never>;

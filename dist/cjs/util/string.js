@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUniqueId = exports.toSpaceCase = exports.toPascalCase = exports.toCamelCase = exports.toSnakeCase = exports.toHyphenCase = exports.convertObjectKeys = exports.toUpperCaseFirst = void 0;
-exports.getRandomAlphaNumeric = getRandomAlphaNumeric;
+exports.random = random;
 const toUpperCaseFirst = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 exports.toUpperCaseFirst = toUpperCaseFirst;
 const convertObjectKeys = (object, casing) => {
@@ -151,7 +151,7 @@ const getUniqueId = () => {
     return result;
 };
 exports.getUniqueId = getUniqueId;
-function getRandomAlphaNumeric({ len, toUpper } = {}) {
+function random({ len, toUpper } = {}) {
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < (len || 8); i++) {

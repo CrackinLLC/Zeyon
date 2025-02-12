@@ -26,6 +26,9 @@ handlebars_1.default.registerHelper('math', function (lvalue, operator, rvalue) 
         '%': lvalue % rvalue,
     }[operator];
 });
+handlebars_1.default.registerHelper('log', function (output) {
+    console.log(output);
+});
 handlebars_1.default.registerHelper('if', function (v1, operator, v2, options) {
     let result = false;
     switch (operator) {

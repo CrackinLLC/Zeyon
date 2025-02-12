@@ -5,7 +5,8 @@ interface CustomRouteProps {
   displayName?: string;
 }
 
-const app = await Zeyon.create({
+// @ts-ignore
+window.ZAPP = await Zeyon.create({
   el: document.getElementById('ZeyonApp')!,
   name: 'MyTestApplication',
   routes: Zeyon.defineRoutes<CustomRouteProps>([

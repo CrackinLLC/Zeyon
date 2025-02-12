@@ -50,7 +50,7 @@ function writeClonesAndGetClassRefs(files, projectRoot) {
     fs_1.default.mkdirSync(genDir, { recursive: true });
     files.forEach((file) => {
         const filePath = file.getFilePath();
-        const hash = (0, string_1.getRandomAlphaNumeric)({ toUpper: true });
+        const hash = (0, string_1.random)({ toUpper: true });
         const parsed = path_1.default.parse(file.getBaseName());
         const newName = `${parsed.name}_${hash}${parsed.ext}`;
         const clonedFilePath = path_1.default.join(genDir, newName);

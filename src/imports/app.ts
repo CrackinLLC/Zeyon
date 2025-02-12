@@ -8,6 +8,7 @@ import type {
 import type { ClassCategory } from '../classRegistry';
 import type View from '../view';
 import type { RouteConfig } from './router';
+import { NavigateOptions } from './router';
 import type { RouteViewOptions } from './routeView';
 import type { ViewOptions } from './view';
 
@@ -34,7 +35,7 @@ export interface ZeyonAppLike {
   window: Window;
 
   start(): Promise<this>;
-  navigate(urlFragment: string, openNewTab?: boolean): this;
+  navigate(path: string, options?: NavigateOptions): this;
 
   newView<K extends string>(
     registrationId: K,

@@ -15,6 +15,10 @@ import { Attributes, ModelOptions } from './imports/model';
 import { RouteViewOptions } from './imports/routeView';
 import { ViewOptions } from './imports/view';
 
+import * as loader from './util/loader';
+import * as object from './util/object';
+import * as string from './util/string';
+
 interface RegisterEmitterProps {
   // Any global props that apply to all classes?
 }
@@ -111,12 +115,18 @@ export default {
     };
   },
 
+  // Class definition references
   Emitter,
   Model,
   Collection,
   View,
   RouteView,
   CollectionView,
+
+  // Utility function references
+  string,
+  loader,
+  object,
 };
 
 export type { CollectionOptions, CollectionViewOptions, EmitterOptions, ModelOptions, RouteViewOptions, ViewOptions };
