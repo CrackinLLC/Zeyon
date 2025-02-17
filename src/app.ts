@@ -1,17 +1,23 @@
-import type {
+import {
+  Attributes,
+  ClassCategory,
   ClassMapKey,
   ClassMapTypeCollection,
   ClassMapTypeCollectionView,
   ClassMapTypeModel,
   ClassMapTypeRouteView,
   ClassMapTypeView,
-} from 'zeyon/_maps';
-import ClassRegistry, { ClassCategory } from './classRegistry';
+  CollectionOptions,
+  CollectionViewOptions,
+  ModelOptions,
+  NavigateOptions,
+  RouteViewOptions,
+  ViewOptions,
+  ZeyonAppLike,
+  ZeyonAppOptions,
+} from 'zeyon/imports';
+import ClassRegistry from './classRegistry';
 import type Emitter from './emitter';
-import type { ZeyonAppLike, ZeyonAppOptions } from './imports/app';
-import { NavigateOptions } from './imports/router';
-import type { RouteViewOptions } from './imports/routeView';
-import type { ViewOptions } from './imports/view';
 import Router from './router';
 import { loaderTemplate } from './util/loader';
 import type View from './view';
@@ -103,17 +109,15 @@ export default class ZeyonApp implements ZeyonAppLike {
    * @param path - The URL to navigate to.
    * @param options
    */
-  public navigate(path: string, options: NavigateOptions = {}): this {
+  public navigate(options: NavigateOptions = {}): this {
+    const { route } = options;
     const baseUrl = new URL(document.baseURI);
-    const url = new URL(path, baseUrl);
+    const url = new URL(route || '/', baseUrl);
 
     if (url.origin !== baseUrl.origin || options.newTab) {
       window.open(url.href, '_blank');
     } else {
-      this.router.navigate({
-        ...options,
-        route: path,
-      });
+      this.router.navigate(options);
     }
 
     return this;
@@ -166,7 +170,7 @@ export default class ZeyonApp implements ZeyonAppLike {
 
   public newModel<K extends string>(
     registrationId: K,
-    options?: K extends keyof ClassMapTypeModel ? ClassMapTypeModel[K]['options'] : ViewOptions,
+    options?: K extends keyof ClassMapTypeModel ? ClassMapTypeModel[K]['options'] : ModelOptions<Attributes>,
   ): Promise<K extends keyof ClassMapTypeModel ? InstanceType<ClassMapTypeModel[K]['classRef']> : never> {
     const isModelKey = (key: string): key is string & keyof ClassMapTypeModel => {
       return !this.getClassIds('Model').has(registrationId);
@@ -182,7 +186,7 @@ export default class ZeyonApp implements ZeyonAppLike {
 
   public newCollection<K extends string>(
     registrationId: K,
-    options?: K extends keyof ClassMapTypeCollection ? ClassMapTypeCollection[K]['options'] : ViewOptions,
+    options?: K extends keyof ClassMapTypeCollection ? ClassMapTypeCollection[K]['options'] : CollectionOptions,
   ): Promise<K extends keyof ClassMapTypeCollection ? InstanceType<ClassMapTypeCollection[K]['classRef']> : never> {
     const isCollectionKey = (key: string): key is string & keyof ClassMapTypeCollection => {
       return !this.getClassIds('Collection').has(registrationId);
@@ -200,7 +204,9 @@ export default class ZeyonApp implements ZeyonAppLike {
 
   public newCollectionView<K extends string>(
     registrationId: K,
-    options?: K extends keyof ClassMapTypeCollectionView ? ClassMapTypeCollectionView[K]['options'] : ViewOptions,
+    options?: K extends keyof ClassMapTypeCollectionView
+      ? ClassMapTypeCollectionView[K]['options']
+      : CollectionViewOptions,
   ): Promise<
     K extends keyof ClassMapTypeCollectionView ? InstanceType<ClassMapTypeCollectionView[K]['classRef']> : never
   > {

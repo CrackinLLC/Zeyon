@@ -1,8 +1,5 @@
-import type { ClassMapKey } from 'zeyon/_maps';
+import { AnyDefinition, ClassCategory, ClassMapKey, ClassRegistryOptions, ZeyonAppLike } from 'zeyon/imports';
 import Emitter from './emitter';
-import type { ZeyonAppLike } from './imports/app';
-import type { AnyDefinition, ClassRegistryOptions } from './imports/classRegistry';
-export type ClassCategory = 'Model' | 'Collection' | 'View' | 'RouteView' | 'CollectionView';
 export default class ClassRegistry extends Emitter {
     static registrationId: string;
     private classMap;

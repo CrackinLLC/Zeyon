@@ -1,4 +1,4 @@
-import type { EmitterOptions } from './emitter';
+import { EmitterOptions } from 'zeyon/imports';
 export interface CollectionOptions extends EmitterOptions {
     ids?: number[];
 }
@@ -12,5 +12,4 @@ export interface CollectionFilterDefinition {
     values?: string[];
     textInput?: boolean;
 }
-export declare const collectionEvents: string[];
 //# sourceMappingURL=collection.d.ts.map

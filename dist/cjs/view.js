@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isAttachReference = isAttachReference;
+const _events_1 = require("./_events");
 const emitter_1 = __importDefault(require("./emitter"));
-const view_1 = require("./imports/view");
 const model_1 = __importDefault(require("./model"));
 const element_1 = require("./util/element");
 const error_1 = require("./util/error");
@@ -15,7 +15,7 @@ class View extends emitter_1.default {
     constructor(options = {}, app) {
         super({
             ...options,
-            events: view_1.nativeEvents,
+            events: _events_1.viewEvents,
         }, app);
         this._viewId = (0, string_1.getUniqueId)();
         this._ui = {};
@@ -203,7 +203,7 @@ class View extends emitter_1.default {
                     const linkUrl = new URL(href, window.location.href);
                     const sameHost = linkUrl.hostname === window.location.hostname && linkUrl.port === (window.location.port || '');
                     if (sameHost) {
-                        this.app.navigate(linkUrl.pathname + linkUrl.search + linkUrl.hash);
+                        this.app.navigate({ route: linkUrl.pathname + linkUrl.search + linkUrl.hash });
                     }
                     else {
                         const targetAttr = anchor.getAttribute('target') || '_self';
@@ -326,7 +326,7 @@ class View extends emitter_1.default {
         this.removeClass('is-error');
     }
     isNativeEvent(eventName) {
-        return !!this.el && view_1.nativeEvents.includes(eventName);
+        return !!this.el && _events_1.viewEvents.includes(eventName);
     }
     destroy(silent = false) {
         if (this.isDestroyed)

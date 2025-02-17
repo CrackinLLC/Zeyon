@@ -1,3 +1,4 @@
+import path from 'path';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -7,6 +8,11 @@ export default defineConfig({
     include: ['tests/unit/**/*.{test,spec}.ts'],
     coverage: {
       reporter: ['text', 'html'],
+    },
+  },
+  resolve: {
+    alias: {
+      'zeyonRootAlias/classMapData': path.resolve(__dirname, './tests/util/test_classMapData.ts'),
     },
   },
 });

@@ -1,12 +1,12 @@
-import type { ClassMapTypeModel } from 'zeyon/_maps';
-import Emitter from './emitter';
-import { ZeyonAppLike } from './imports/app';
 import {
-  collectionEvents,
+  ClassMapTypeModel,
   CollectionFilterDefinition,
   CollectionFilterOptions,
   CollectionOptions,
-} from './imports/collection';
+  ZeyonAppLike,
+} from 'zeyon/imports';
+import { collectionEvents } from './_events';
+import Emitter from './emitter';
 import type Model from './model';
 import { debounce } from './util/debounce';
 

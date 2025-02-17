@@ -1,13 +1,16 @@
+import {
+  Attributes,
+  CollectionOptions,
+  CollectionViewOptions,
+  EmitterOptions,
+  ModelOptions,
+  RouterOptions,
+  ViewOptions,
+  ZeyonAppLike,
+} from '../_imports';
 import type Collection from '../collection';
 import type CollectionView from '../collectionView';
 import type Emitter from '../emitter';
-import type { ZeyonAppLike } from '../imports/app';
-import type { CollectionOptions } from '../imports/collection';
-import type { CollectionViewOptions } from '../imports/collectionView';
-import type { EmitterOptions } from '../imports/emitter';
-import type { Attributes, ModelOptions } from '../imports/model';
-import type { RouterOptions } from '../imports/router';
-import type { ViewOptions } from '../imports/view';
 import type Model from '../model';
 import type RouteView from '../routeView';
 import type View from '../view';
@@ -82,3 +85,5 @@ export interface ClassMapEntry {
 export interface ClassMapData {
   [registrationId: string]: ClassMapEntry;
 }
+
+export type ClassCategory = 'Model' | 'Collection' | 'View' | 'RouteView' | 'CollectionView';

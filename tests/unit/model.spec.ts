@@ -1,8 +1,6 @@
-import '../util/testClassMapType';
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ModelOptions } from '../../src/imports/model';
-import Model from '../../src/model';
+import { ModelOptions } from 'zeyon/imports';
+import Model from '../../dist/esm/model';
 import { getPrivate } from '../util/driver';
 import { TestZeyonApp } from '../util/testApp';
 import { TestCollection } from '../util/testCollection';
@@ -52,9 +50,9 @@ describe('Model', () => {
 
     // Event assertions
     expect(changeSpy).toHaveBeenCalledTimes(1);
-    expect(changeSpy.mock.calls[0][0]).toEqual({ name: 'Bob' });
+    expect(changeSpy.mock.calls[0][0].data).toEqual({ name: 'Bob' });
     expect(nameChangeSpy).toHaveBeenCalledTimes(1);
-    expect(nameChangeSpy.mock.calls[0][0]).toEqual({
+    expect(nameChangeSpy.mock.calls[0][0].data).toEqual({
       value: 'Bob',
       previous: 'Alice',
     });
@@ -110,8 +108,9 @@ describe('Model', () => {
     model.on('selected', selectedSpy);
 
     model.select(true);
-    expect(selectedSpy.mock.calls[0][0]).toBe(true);
-    expect(selectedSpy.mock.calls[0][1]).toBeInstanceOf(CustomEvent);
+
+    expect(selectedSpy.mock.calls[0][0].data).toBe(true);
+    expect(selectedSpy.mock.calls[0][0].ev).toBeInstanceOf(CustomEvent);
     expect(model.isSelected()).toBe(true);
 
     model.select(false);

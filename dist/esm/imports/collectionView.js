@@ -1,6 +1,2 @@
-export const collectionViewEvents = [
-    'collection:update',
-    'collection:filter',
-    'collection:sort',
-];
+export {};
 //# sourceMappingURL=collectionView.js.map

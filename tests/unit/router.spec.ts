@@ -1,8 +1,6 @@
-import '../util/testClassMapType';
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { RouteConfig } from '../../src/imports/router';
-import Router from '../../src/router';
+import { RouteConfig } from 'zeyon/imports';
+import Router from '../../dist/esm/router';
 import { TestZeyonApp } from '../util/testApp';
 
 describe('Router', () => {
@@ -48,12 +46,14 @@ describe('Router', () => {
       // Check urlMap
       expect(router['urlMap']['/']).toEqual(sampleRoutes[0]);
       expect(router['urlMap']['/about']).toEqual(sampleRoutes[1]);
+
       // child route
       expect(router['urlMap']['/about/team']).toEqual(sampleRoutes[1].childRoutes?.[0]);
 
       // Check registrationIdMap
-      expect(router['registrationIdMap']['route-home']).toEqual(sampleRoutes[0]);
-      expect(router['registrationIdMap']['route-about']).toEqual(sampleRoutes[1]);
+      expect(router['registrationIdMap']['route-home']).toEqual('/');
+      expect(router['registrationIdMap']['route-about']).toEqual('/about');
+      expect(router['registrationIdMap']['route-team']).toEqual('/about/team');
 
       // Check siteMap
       const siteMap = router.getSiteMap();
@@ -87,7 +87,7 @@ describe('Router', () => {
     it('navigates to existing route', async () => {
       // mock some scenario
       const loadRouteSpy = vi.spyOn(router as any, 'loadRouteFromUrl');
-      await router.navigate({ path: '/about' });
+      await router.navigate({ route: '/about' });
       expect(loadRouteSpy).toHaveBeenCalled();
       // check if currentRoute or currentRouteConfig is correct
       expect(router.getCurrentRouteConfig()?.registrationId).toBe('route-about');
@@ -95,7 +95,7 @@ describe('Router', () => {
 
     it('falls back to notFound if route not found', async () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      await router.navigate({ path: '/garbage' });
+      await router.navigate({ route: '/garbage' });
       // Because notFound is defined, it loads that route
       expect(router.getCurrentRouteConfig()?.registrationId).toBe('route-404');
       expect(warnSpy).not.toHaveBeenCalledWith(expect.stringContaining('No matching route found'));
@@ -110,7 +110,7 @@ describe('Router', () => {
         },
         app,
       );
-      await localRouter.navigate({ path: '/bogus' });
+      await localRouter.navigate({ route: '/bogus' });
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('No matching route found'));
     });
   });
@@ -124,7 +124,7 @@ describe('Router', () => {
         },
       ];
       const localRouter = new Router({ routes: dynamicRoutes }, app);
-      await localRouter.navigate({ path: '/user/123' });
+      await localRouter.navigate({ route: '/user/123' });
       expect(localRouter.getCurrentRouteConfig()?.registrationId).toBe('route-user');
       // might check the param
       // you'd have to expose the param or check "currentRoute" logic

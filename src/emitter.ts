@@ -1,21 +1,17 @@
-import type { ClassMapKey } from 'zeyon/_maps';
-import type { ZeyonAppLike } from './imports/app';
 import type {
   AnyEventHandler,
   ClassConfigurationOptions,
+  ClassMapKey,
   EmitterOptions,
   EventHandlerApply,
   NativeEventArg,
   NativeEventHandler,
   NormalEventHandler,
   WildcardEventHandler,
-} from './imports/emitter';
+  ZeyonAppLike,
+} from 'zeyon/imports';
+import { emitterEvents } from './_events';
 import { debounce } from './util/debounce';
-
-const generalEvents = [
-  '*', // Triggered for all events, with an additional "event name" supplied as the first argument.
-  'destroyed', // When the class instance is destroyed.
-];
 
 /**
  * The base class providing event handling capabilities.
@@ -58,7 +54,7 @@ export default abstract class Emitter {
       this.resolveIsReady = resolve;
     });
 
-    const eventList = [...generalEvents, ...events, ...(config.events || [])];
+    const eventList = [...emitterEvents, ...events, ...(config.events || [])];
     this.extendValidEvents(eventList);
   }
 

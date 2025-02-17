@@ -1,7 +1,6 @@
-import { ClassMapTypeCollection, ClassMapTypeView } from 'zeyon/_maps';
+import { ClassMapTypeCollection, ClassMapTypeView, CollectionViewOptions, ZeyonAppLike } from 'zeyon/imports';
+import { collectionViewEvents } from './_events';
 import Collection from './collection';
-import type { ZeyonAppLike } from './imports/app';
-import { CollectionViewOptions, collectionViewEvents } from './imports/collectionView';
 import { debounce } from './util/debounce';
 import View from './view';
 

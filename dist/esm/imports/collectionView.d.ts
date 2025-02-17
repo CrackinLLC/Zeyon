@@ -1,4 +1,4 @@
-import type { ClassMapTypeCollection } from 'zeyon/_maps';
+import { ClassMapTypeCollection } from 'zeyon/imports';
 import type Collection from '../collection';
 import type { ViewOptions } from './view';
 export interface CollectionViewOptions extends ViewOptions {
@@ -7,5 +7,4 @@ export interface CollectionViewOptions extends ViewOptions {
     collectionOptions?: unknown;
     modelViewOptions?: unknown;
 }
-export declare const collectionViewEvents: string[];
 //# sourceMappingURL=collectionView.d.ts.map

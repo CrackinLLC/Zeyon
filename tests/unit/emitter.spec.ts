@@ -1,5 +1,3 @@
-import '../util/testClassMapType';
-
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TestZeyonApp } from '../util/testApp';
 import { TestEmitter } from '../util/testEmitter';
@@ -38,15 +36,11 @@ describe('Emitter', () => {
     emitter.on('customEvent', handler);
     emitter.emit('customEvent', { some: 'data' });
 
-    // In new design:
-    // handler is "NormalEventHandler": (data: any, ev?: CustomEvent)
-    // So calls[0] => [ {some:'data'}, CustomEvent ]
     expect(handler).toHaveBeenCalledTimes(1);
 
-    const [dataArg, eventArg] = handler.mock.calls[0];
-    expect(dataArg).toEqual({ some: 'data' });
-    expect(eventArg).toBeInstanceOf(CustomEvent);
-    expect(eventArg.detail).toEqual({ some: 'data' });
+    const spy = handler.mock.calls[0][0];
+    expect(spy.data).toEqual({ some: 'data' });
+    expect(spy.ev).toBeInstanceOf(CustomEvent);
   });
 
   it('warns on invalid events', () => {
@@ -64,8 +58,8 @@ describe('Emitter', () => {
     emitter.emit('testEvent', 123);
     expect(handler).toHaveBeenCalledTimes(1);
 
-    const [dataArg] = handler.mock.calls[0];
-    expect(dataArg).toBe(123);
+    const spy = handler.mock.calls[0][0];
+    expect(spy.data).toBe(123);
 
     // Now remove
     emitter.off({ event: 'testEvent', handler });
@@ -83,9 +77,9 @@ describe('Emitter', () => {
     expect(handler).toHaveBeenCalledTimes(1);
 
     // With new design, calls[0] => [ {val:1}, CustomEvent ]
-    const [dataArg, eventArg] = handler.mock.calls[0];
-    expect(dataArg).toEqual({ val: 1 });
-    expect(eventArg).toBeInstanceOf(CustomEvent);
+    const spy = handler.mock.calls[0][0];
+    expect(spy.data).toEqual({ val: 1 });
+    expect(spy.ev).toBeInstanceOf(CustomEvent);
   });
 
   it('supports the "*" wildcard event', () => {
@@ -96,12 +90,10 @@ describe('Emitter', () => {
     emitter.emit('testEvent', { x: 10 });
     expect(starHandler).toHaveBeenCalledTimes(1);
 
-    // New design: wildcard handler => (eventName, data, customEvent?)
-    // So calls[0] => [ 'testEvent', { x:10 }, CustomEvent ]
-    const [eventNameArg, dataArg, eventObj] = starHandler.mock.calls[0];
-    expect(eventNameArg).toBe('testEvent');
-    expect(dataArg).toEqual({ x: 10 });
-    expect(eventObj).toBeInstanceOf(CustomEvent);
+    const spy = starHandler.mock.calls[0][0];
+    expect(spy.eventName).toBe('testEvent');
+    expect(spy.data).toEqual({ x: 10 });
+    expect(spy.ev).toBeInstanceOf(CustomEvent);
   });
 
   it('debouncedEmit aggregates payload if requested', async () => {
@@ -118,11 +110,9 @@ describe('Emitter', () => {
     // Should have been called once with aggregated array
     expect(handler).toHaveBeenCalledTimes(1);
 
-    // calls[0] => [ [ {val:1}, {val:2} ], CustomEvent ]
-    const [dataArg, eventArg] = handler.mock.calls[0];
-    expect(dataArg).toEqual([{ val: 1 }, { val: 2 }]);
-    expect(eventArg).toBeInstanceOf(CustomEvent);
-    expect(eventArg.detail).toEqual([{ val: 1 }, { val: 2 }]);
+    const spy = handler.mock.calls[0][0];
+    expect(spy.data).toEqual([{ val: 1 }, { val: 2 }]);
+    expect(spy.ev).toBeInstanceOf(CustomEvent);
   });
 
   it('destroy sets isDestroyed and emits destroyed event', () => {

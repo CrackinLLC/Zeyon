@@ -1,5 +1,5 @@
+import { viewEvents } from './_events';
 import Emitter from './emitter';
-import { nativeEvents } from './imports/view';
 import Model from './model';
 import { convertToRootElement } from './util/element';
 import { errorTemplate } from './util/error';
@@ -9,7 +9,7 @@ class View extends Emitter {
     constructor(options = {}, app) {
         super({
             ...options,
-            events: nativeEvents,
+            events: viewEvents,
         }, app);
         this._viewId = getUniqueId();
         this._ui = {};
@@ -197,7 +197,7 @@ class View extends Emitter {
                     const linkUrl = new URL(href, window.location.href);
                     const sameHost = linkUrl.hostname === window.location.hostname && linkUrl.port === (window.location.port || '');
                     if (sameHost) {
-                        this.app.navigate(linkUrl.pathname + linkUrl.search + linkUrl.hash);
+                        this.app.navigate({ route: linkUrl.pathname + linkUrl.search + linkUrl.hash });
                     }
                     else {
                         const targetAttr = anchor.getAttribute('target') || '_self';
@@ -320,7 +320,7 @@ class View extends Emitter {
         this.removeClass('is-error');
     }
     isNativeEvent(eventName) {
-        return !!this.el && nativeEvents.includes(eventName);
+        return !!this.el && viewEvents.includes(eventName);
     }
     destroy(silent = false) {
         if (this.isDestroyed)

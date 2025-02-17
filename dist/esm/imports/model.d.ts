@@ -1,5 +1,5 @@
+import { EmitterOptions } from 'zeyon/imports';
 import type Collection from '../collection';
-import { EmitterOptions } from './emitter';
 export interface ModelOptions<A extends Attributes> extends EmitterOptions {
     attributes?: Partial<A>;
     collection?: Collection;
@@ -19,5 +19,4 @@ export interface AttributeDefinition {
     minLength?: number;
     maxLength?: number;
 }
-export declare const modelEvents: string[];
 //# sourceMappingURL=model.d.ts.map

@@ -1,4 +1,4 @@
-import type { RouteViewOptions } from './imports/routeView';
+import { RouteViewOptions } from 'zeyon/imports';
 import View from './view';
 
 export default abstract class RouteView extends View {

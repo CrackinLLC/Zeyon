@@ -1,10 +1,11 @@
 import { classMapData } from 'zeyonRootAlias/classMapData';
+import { registryEvents } from './_events';
 import Emitter from './emitter';
 class ClassRegistry extends Emitter {
     constructor(options = {}, app) {
         super({
             ...options,
-            events: [...(options.events || []), 'registered'],
+            events: [...(options.events || []), ...registryEvents],
         }, app);
         this.classMap = new Map();
         this.classMapByType = {
@@ -31,7 +32,7 @@ class ClassRegistry extends Emitter {
             this.emit('registered', { id });
         }
         else {
-            console.warn(`Skipping unknown entry in classMapData. It may not have registrationId or is not an Emitter-based class.`);
+            console.warn(`Skipping unknown entry. It may not have registrationId or is not an Emitter-based class.`);
         }
     }
     async getClass(id) {

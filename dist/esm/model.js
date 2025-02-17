@@ -1,5 +1,5 @@
+import { modelEvents } from './_events';
 import Emitter from './emitter';
-import { modelEvents } from './imports/model';
 import { isEqual } from './util/object';
 class Model extends Emitter {
     constructor(options, app) {

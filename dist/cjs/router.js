@@ -3,15 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const _events_1 = require("./_events");
 const emitter_1 = __importDefault(require("./emitter"));
 class Router extends emitter_1.default {
     constructor({ urlPrefix, routes }, app) {
-        super({
-            events: [
-                'navigate',
-                'query',
-            ],
-        }, app);
+        super({ events: _events_1.routerEvents }, app);
         this.currentPath = '';
         this.routes = [];
         this.urlMap = {};

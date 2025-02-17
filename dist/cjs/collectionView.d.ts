@@ -1,7 +1,5 @@
-import { ClassMapTypeCollection, ClassMapTypeView } from 'zeyon/_maps';
+import { ClassMapTypeCollection, ClassMapTypeView, CollectionViewOptions, ZeyonAppLike } from 'zeyon/imports';
 import Collection from './collection';
-import type { ZeyonAppLike } from './imports/app';
-import { CollectionViewOptions } from './imports/collectionView';
 import View from './view';
 export default abstract class CollectionView extends View {
     options: CollectionViewOptions;

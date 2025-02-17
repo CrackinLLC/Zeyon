@@ -1,8 +1,8 @@
-import { ClassMapTypeModel } from '../../src/_index.d';
-import Collection from '../../src/collection';
+import Zeyon from 'zeyon';
+import { ClassMapTypeModel } from 'zeyon/imports';
 
-export class TestCollection extends Collection {
+export class TestCollection extends Zeyon.Collection {
   static registrationId = 'test-collection';
 
-  modelRegistrationId: keyof ClassMapTypeModel = 'test-model';
+  modelRegistrationId: string & keyof ClassMapTypeModel = 'test-model';
 }

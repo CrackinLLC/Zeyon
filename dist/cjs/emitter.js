@@ -1,10 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const _events_1 = require("./_events");
 const debounce_1 = require("./util/debounce");
-const generalEvents = [
-    '*',
-    'destroyed',
-];
 class Emitter {
     constructor(options = {}, app) {
         this.app = app;
@@ -20,7 +17,7 @@ class Emitter {
         this.isReady = new Promise((resolve) => {
             this.resolveIsReady = resolve;
         });
-        const eventList = [...generalEvents, ...events, ...(config.events || [])];
+        const eventList = [..._events_1.emitterEvents, ...events, ...(config.events || [])];
         this.extendValidEvents(eventList);
     }
     markAsReady() {

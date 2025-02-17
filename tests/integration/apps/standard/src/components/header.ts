@@ -15,7 +15,7 @@ export class Header extends Zeyon.View {
         attachTo: this.el,
         onClick: () => {
           console.log('Clicked navigate: HOME');
-          this.app.navigate('/');
+          this.app.navigate({ route: '/' });
         },
       })
       .then((view) => view.render());
@@ -25,7 +25,7 @@ export class Header extends Zeyon.View {
         attachTo: this.el,
         onClick: () => {
           console.log('Clicked navigate: ABOUT');
-          this.app.navigate('route-about', { registrationId: true });
+          this.app.navigate({ route: 'route-about', registrationId: true });
         },
       })
       .then((view) => view.render());
@@ -35,7 +35,7 @@ export class Header extends Zeyon.View {
         attachTo: this.el,
         onClick: () => {
           console.log('Clicked navigate: Careers');
-          this.app.navigate(`about/career/${Math.ceil(Math.random() * 100)}`);
+          this.app.navigate({ route: `about/career/${Math.ceil(Math.random() * 100)}` });
         },
       })
       .then((view) => view.render());
@@ -46,7 +46,7 @@ export class Header extends Zeyon.View {
         attachTo: this.el,
         onClick: () => {
           console.log('Clicked navigate: BAD LINK');
-          this.app.navigate(Zeyon.string.random({ len: 10 }));
+          this.app.navigate({ route: Zeyon.string.random({ len: 10 }) });
         },
       })
       .then((view) => view.render());

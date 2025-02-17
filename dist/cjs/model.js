@@ -3,14 +3,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const _events_1 = require("./_events");
 const emitter_1 = __importDefault(require("./emitter"));
-const model_1 = require("./imports/model");
 const object_1 = require("./util/object");
 class Model extends emitter_1.default {
     constructor(options, app) {
         super({
             ...options,
-            events: [...(options.events || []), ...model_1.modelEvents],
+            events: [...(options.events || []), ..._events_1.modelEvents],
         }, app);
         this.app = app;
         this.hasUnsavedChanges = false;

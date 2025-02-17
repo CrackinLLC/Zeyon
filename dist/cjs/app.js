@@ -31,17 +31,15 @@ class ZeyonApp {
         }
         return this;
     }
-    navigate(path, options = {}) {
+    navigate(options = {}) {
+        const { route } = options;
         const baseUrl = new URL(document.baseURI);
-        const url = new URL(path, baseUrl);
+        const url = new URL(route || '/', baseUrl);
         if (url.origin !== baseUrl.origin || options.newTab) {
             window.open(url.href, '_blank');
         }
         else {
-            this.router.navigate({
-                ...options,
-                route: path,
-            });
+            this.router.navigate(options);
         }
         return this;
     }

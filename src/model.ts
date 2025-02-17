@@ -1,7 +1,7 @@
+import { AttributeDefinition, Attributes, ModelOptions, ZeyonAppLike } from 'zeyon/imports';
+import { modelEvents } from './_events';
 import type Collection from './collection';
 import Emitter from './emitter';
-import type { ZeyonAppLike } from './imports/app';
-import { AttributeDefinition, Attributes, modelEvents, ModelOptions } from './imports/model';
 import { isEqual } from './util/object';
 
 /**

@@ -1,6 +1,6 @@
+import { EmitterOptions } from 'zeyon/imports';
 import type Model from '../model';
 import type View from '../view';
-import { EmitterOptions } from './emitter';
 export interface ViewOptions extends Omit<EmitterOptions, 'includeNativeEvents'> {
     id?: string;
     classNames?: string[];
@@ -21,5 +21,4 @@ export interface AttachReference {
     view: View;
     id: string;
 }
-export declare const nativeEvents: string[];
 //# sourceMappingURL=view.d.ts.map

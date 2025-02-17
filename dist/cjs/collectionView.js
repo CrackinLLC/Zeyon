@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const collectionView_1 = require("./imports/collectionView");
+const _events_1 = require("./_events");
 const debounce_1 = require("./util/debounce");
 const view_1 = __importDefault(require("./view"));
 class CollectionView extends view_1.default {
@@ -14,7 +14,7 @@ class CollectionView extends view_1.default {
             wait: 10,
             shouldAggregate: false,
         });
-        this.extendValidEvents(collectionView_1.collectionViewEvents);
+        this.extendValidEvents(_events_1.collectionViewEvents);
         if (this.options.collection) {
             this.loadCollection(this.options.collection);
         }

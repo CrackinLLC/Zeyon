@@ -1,5 +1,5 @@
+import { collectionEvents } from './_events';
 import Emitter from './emitter';
-import { collectionEvents, } from './imports/collection';
 import { debounce } from './util/debounce';
 export default class Collection extends Emitter {
     constructor(options = {}, app) {

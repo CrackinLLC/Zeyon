@@ -1,4 +1,4 @@
-import type { ClassMapTypeRouteView } from 'zeyon/_maps';
+import { ClassMapTypeRouteView } from 'zeyon/imports';
 export interface RouterOptions {
     routes: RouteConfig[];
     urlPrefix?: string;

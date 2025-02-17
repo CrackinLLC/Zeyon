@@ -1,5 +1,3 @@
-import Emitter from './emitter';
-import type { ZeyonAppLike } from './imports/app';
 import type {
   FlatMap,
   NavigateOptions,
@@ -7,7 +5,10 @@ import type {
   RouterOptions,
   SiteMap,
   SiteMapRouteConfig,
-} from './imports/router';
+  ZeyonAppLike,
+} from 'zeyon/imports';
+import { routerEvents } from './_events';
+import Emitter from './emitter';
 import type RouteView from './routeView';
 
 export default class Router extends Emitter {
@@ -43,15 +44,7 @@ export default class Router extends Emitter {
   private urlPrefix: string | undefined;
 
   constructor({ urlPrefix, routes }: RouterOptions, app: ZeyonAppLike) {
-    super(
-      {
-        events: [
-          'navigate', // A new route was loaded
-          'query', // The query parameter has changed
-        ],
-      },
-      app,
-    );
+    super({ events: routerEvents }, app);
 
     this.urlPrefix = urlPrefix;
     this.currentPath = this.standardizeUrl(new URL(this.app.window.location.href).pathname);

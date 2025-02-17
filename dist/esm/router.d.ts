@@ -1,6 +1,5 @@
+import type { NavigateOptions, RouteConfig, RouterOptions, SiteMapRouteConfig, ZeyonAppLike } from 'zeyon/imports';
 import Emitter from './emitter';
-import type { ZeyonAppLike } from './imports/app';
-import type { NavigateOptions, RouteConfig, RouterOptions, SiteMapRouteConfig } from './imports/router';
 import type RouteView from './routeView';
 export default class Router extends Emitter {
     static registrationId: string;

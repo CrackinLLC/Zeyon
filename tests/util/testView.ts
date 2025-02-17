@@ -1,9 +1,7 @@
-import View from '../../src/view';
+import Zeyon from 'zeyon';
 
-export class TestView extends View {
+export class TestView extends Zeyon.View {
   static registrationId = 'test-view';
-
-  protected ui = { testKey: 'my-selector' };
-
-  template = '<div data-js="my-selector" id="match"></div>';
+  static ui = { testKey: 'my-selector' };
+  static template = '<div data-js="my-selector" id="match"></div>';
 }

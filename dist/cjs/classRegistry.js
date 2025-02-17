@@ -4,12 +4,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const classMapData_1 = require("zeyonRootAlias/classMapData");
+const _events_1 = require("./_events");
 const emitter_1 = __importDefault(require("./emitter"));
 class ClassRegistry extends emitter_1.default {
     constructor(options = {}, app) {
         super({
             ...options,
-            events: [...(options.events || []), 'registered'],
+            events: [...(options.events || []), ..._events_1.registryEvents],
         }, app);
         this.classMap = new Map();
         this.classMapByType = {
@@ -36,7 +37,7 @@ class ClassRegistry extends emitter_1.default {
             this.emit('registered', { id });
         }
         else {
-            console.warn(`Skipping unknown entry in classMapData. It may not have registrationId or is not an Emitter-based class.`);
+            console.warn(`Skipping unknown entry. It may not have registrationId or is not an Emitter-based class.`);
         }
     }
     async getClass(id) {

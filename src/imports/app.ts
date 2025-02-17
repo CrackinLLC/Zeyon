@@ -1,28 +1,26 @@
-import type {
+import {
+  Attributes,
+  ClassCategory,
   ClassMapTypeCollection,
   ClassMapTypeCollectionView,
   ClassMapTypeModel,
   ClassMapTypeRouteView,
   ClassMapTypeView,
-} from 'zeyon/_maps';
-import type { ClassCategory } from '../classRegistry';
+  CollectionOptions,
+  CollectionViewOptions,
+  ModelOptions,
+  NavigateOptions,
+  RouteConfig,
+  RouteViewOptions,
+  ViewOptions,
+} from 'zeyon/imports';
 import type View from '../view';
-import type { RouteConfig } from './router';
-import { NavigateOptions } from './router';
-import type { RouteViewOptions } from './routeView';
-import type { ViewOptions } from './view';
 
 export interface ZeyonAppOptions {
   el: HTMLElement;
   routes: RouteConfig[];
   name?: string;
   urlPrefix?: string;
-}
-
-export interface GlobalViewConfig {
-  registrationId: keyof ClassMapTypeView;
-  selector: string;
-  options?: ViewOptions;
 }
 
 export interface ZeyonAppLike {
@@ -35,7 +33,7 @@ export interface ZeyonAppLike {
   window: Window;
 
   start(): Promise<this>;
-  navigate(path: string, options?: NavigateOptions): this;
+  navigate(options: NavigateOptions): this;
 
   newView<K extends string>(
     registrationId: K,
@@ -54,17 +52,19 @@ export interface ZeyonAppLike {
 
   newModel<K extends string>(
     registrationId: K,
-    options?: K extends keyof ClassMapTypeModel ? ClassMapTypeModel[K]['options'] : ViewOptions,
+    options?: K extends keyof ClassMapTypeModel ? ClassMapTypeModel[K]['options'] : ModelOptions<Attributes>,
   ): Promise<K extends keyof ClassMapTypeModel ? InstanceType<ClassMapTypeModel[K]['classRef']> : never>;
 
   newCollection<K extends string>(
     registrationId: K,
-    options?: K extends keyof ClassMapTypeCollection ? ClassMapTypeCollection[K]['options'] : ViewOptions,
+    options?: K extends keyof ClassMapTypeCollection ? ClassMapTypeCollection[K]['options'] : CollectionOptions,
   ): Promise<K extends keyof ClassMapTypeCollection ? InstanceType<ClassMapTypeCollection[K]['classRef']> : never>;
 
   newCollectionView<K extends string>(
     registrationId: K,
-    options?: K extends keyof ClassMapTypeCollectionView ? ClassMapTypeCollectionView[K]['options'] : ViewOptions,
+    options?: K extends keyof ClassMapTypeCollectionView
+      ? ClassMapTypeCollectionView[K]['options']
+      : CollectionViewOptions,
   ): Promise<
     K extends keyof ClassMapTypeCollectionView ? InstanceType<ClassMapTypeCollectionView[K]['classRef']> : never
   >;

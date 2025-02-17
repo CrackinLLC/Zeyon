@@ -1,6 +1,6 @@
-import Model from '../../src/model';
+import Zeyon from 'zeyon';
 
-export class TestModel extends Model {
+export class TestModel extends Zeyon.Model {
   static registrationId = 'test-model';
 
   declare attrib: {

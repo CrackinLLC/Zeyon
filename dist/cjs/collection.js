@@ -3,14 +3,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const _events_1 = require("./_events");
 const emitter_1 = __importDefault(require("./emitter"));
-const collection_1 = require("./imports/collection");
 const debounce_1 = require("./util/debounce");
 class Collection extends emitter_1.default {
     constructor(options = {}, app) {
         super({
             ...options,
-            events: [...(options.events || []), ...collection_1.collectionEvents],
+            events: [...(options.events || []), ..._events_1.collectionEvents],
         }, app);
         this.app = app;
         this.items = [];

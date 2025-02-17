@@ -1,7 +1,5 @@
-import '../util/testClassMapType';
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CollectionViewOptions } from '../../src/imports/collectionView';
+import { CollectionViewOptions } from 'zeyon/imports';
 import { getPrivate, milliseconds } from '../util/driver';
 import { TestZeyonApp } from '../util/testApp';
 import { TestCollection } from '../util/testCollection';
@@ -79,7 +77,8 @@ describe('CollectionView', () => {
     await milliseconds(20); // Wait a short time for the debounced re-render
 
     expect(collUpdateSpy).toHaveBeenCalledTimes(1);
-    expect(collUpdateSpy.mock.calls[0][0]).toBe(collection);
+    expect(collUpdateSpy.mock.calls[0][0].emitter).toBe(collectionView);
+    expect(collUpdateSpy.mock.calls[0][0].data).toBe(collection);
   });
 
   it('destroy() cleans up modelViews and unsubscribes from collection', async () => {

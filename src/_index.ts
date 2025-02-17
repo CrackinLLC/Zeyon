@@ -1,19 +1,22 @@
-import type { ClassMapTypeCollection, ClassMapTypeModel, ClassMapTypeView } from 'zeyon/_maps';
-import { AttributeDefinition } from './imports/model';
-
+import {
+  AttributeDefinition,
+  Attributes,
+  ClassMapTypeCollection,
+  ClassMapTypeModel,
+  ClassMapTypeView,
+  CollectionOptions,
+  CollectionViewOptions,
+  EmitterOptions,
+  ModelOptions,
+  RouteViewOptions,
+  ViewOptions,
+} from 'zeyon/imports';
 import Collection from './collection';
 import CollectionView from './collectionView';
 import Emitter from './emitter';
 import Model from './model';
 import RouteView from './routeView';
 import View from './view';
-
-import { CollectionOptions } from './imports/collection';
-import { CollectionViewOptions } from './imports/collectionView';
-import { EmitterOptions } from './imports/emitter';
-import { Attributes, ModelOptions } from './imports/model';
-import { RouteViewOptions } from './imports/routeView';
-import { ViewOptions } from './imports/view';
 
 import * as loader from './util/loader';
 import * as object from './util/object';
@@ -130,12 +133,3 @@ export default {
 };
 
 export type { CollectionOptions, CollectionViewOptions, EmitterOptions, ModelOptions, RouteViewOptions, ViewOptions };
-
-export type {
-  AnyEventHandler,
-  ClassConfigurationOptions,
-  EventHandlerApply,
-  NativeEventHandler,
-  NormalEventHandler,
-  WildcardEventHandler,
-} from './imports/emitter';

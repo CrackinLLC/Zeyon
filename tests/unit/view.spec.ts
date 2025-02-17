@@ -1,9 +1,7 @@
-import '../util/testClassMapType';
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ViewOptions } from '../../src/imports/view';
-import { nativeEvents } from '../../src/imports/view';
-import View from '../../src/view';
+import { ViewOptions } from 'zeyon/imports';
+import { viewEvents } from '../../dist/esm/_events';
+import View from '../../dist/esm/view';
 import { getPrivate } from '../util/driver';
 import { TestZeyonApp } from '../util/testApp';
 import { TestModel } from '../util/testModel';
@@ -32,7 +30,7 @@ describe('View', () => {
     expect(el).toBeInstanceOf(HTMLElement);
     expect(typeof view.isRendered?.then).toBe('function');
     expect(view.getViewId()).toBeTruthy();
-    expect(view.options).toEqual({ ...options, events: nativeEvents });
+    expect(view.options).toEqual({ ...options, events: viewEvents });
   });
 
   it('setModel handles no-op, string regId, and pre-instantiated model', async () => {

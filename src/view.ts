@@ -1,8 +1,13 @@
-import { ClassMapTypeView } from 'zeyon/_maps';
+import {
+  AttachReference,
+  ClassMapTypeView,
+  NativeEventArg,
+  RenderOptions,
+  ViewOptions,
+  ZeyonAppLike,
+} from 'zeyon/imports';
+import { viewEvents } from './_events';
 import Emitter from './emitter';
-import type { ZeyonAppLike } from './imports/app';
-import { NativeEventArg } from './imports/emitter';
-import { AttachReference, nativeEvents, RenderOptions, ViewOptions } from './imports/view';
 import Model from './model';
 import { convertToRootElement, RootElement } from './util/element';
 import { ErrorStateOptions, errorTemplate } from './util/error';
@@ -39,7 +44,7 @@ export default abstract class View extends Emitter {
     super(
       {
         ...options,
-        events: nativeEvents,
+        events: viewEvents,
       },
       app,
     );
@@ -291,7 +296,7 @@ export default abstract class View extends Emitter {
 
           if (sameHost) {
             // Local link => call app.navigate
-            this.app.navigate(linkUrl.pathname + linkUrl.search + linkUrl.hash);
+            this.app.navigate({ route: linkUrl.pathname + linkUrl.search + linkUrl.hash });
           } else {
             // External => open in same or new tab
             const targetAttr = anchor.getAttribute('target') || '_self';
@@ -460,7 +465,7 @@ export default abstract class View extends Emitter {
 
   protected isNativeEvent(eventName: string): boolean {
     // If we have this.el and the event is in the known DOM events list
-    return !!this.el && nativeEvents.includes(eventName);
+    return !!this.el && viewEvents.includes(eventName);
   }
 
   /**

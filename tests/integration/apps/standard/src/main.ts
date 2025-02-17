@@ -1,4 +1,4 @@
-import Zeyon from 'zeyon/app';
+import ZeyonApp from 'zeyon/new';
 
 // Define route props
 interface CustomRouteProps {
@@ -6,10 +6,10 @@ interface CustomRouteProps {
 }
 
 // @ts-ignore
-window.ZAPP = await Zeyon.create({
+window.ZAPP = await ZeyonApp.create({
   el: document.getElementById('ZeyonApp')!,
   name: 'MyTestApplication',
-  routes: Zeyon.defineRoutes<CustomRouteProps>([
+  routes: ZeyonApp.defineRoutes<CustomRouteProps>([
     {
       registrationId: 'route-home',
       urlFragment: '',

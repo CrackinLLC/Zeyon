@@ -11,17 +11,24 @@
       "require": "./dist/cjs/_index.js"
     },
     "./build": {
-      "import": "./dist/esm/build/_build.js",
-      "require": "./dist/cjs/build/_build.js"
+      "import": "./dist/esm/build/_index.js",
+      "require": "./dist/cjs/build/_index.js"
     },
-    "./app": {
-      "import": "./dist/esm/create/_create.js",
-      "require": "./dist/cjs/create/_create.js"
+    "./new": {
+      "import": "./dist/esm/_newApp.js",
+      "require": "./dist/cjs/_newApp.js"
     },
-    "./_maps": {
-      "import": "./dist/esm/_maps.js",
-      "require": "./dist/cjs/_maps.js"
+    "./maps": {
+      "import": "./dist/esm/_maps.d.ts",
+      "require": "./dist/cjs/_maps.d.ts"
+    },
+    "./imports": {
+      "import": "./dist/esm/_imports.d.ts",
+      "require": "./dist/cjs/_imports.d.ts"
     }
+  },
+  "bin": {
+    "zeyon": "./dist/cjs/cli/_index.js"
   },
   "typesVersions": {
     "*": {
@@ -43,9 +50,6 @@
     "pretest:integration": "npm run build",
     "test:integration": "start-server-and-test 'npm run start' http://localhost:3000 'cypress run'",
     "test": "npm run test:unit:nowatch && npm run test:integration"
-  },
-  "bin": {
-    "zeyon": "./dist/cjs/actions/_actions.js"
   },
   "repository": {
     "type": "git",

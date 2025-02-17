@@ -1,12 +1,22 @@
 import type {
+  Attributes,
+  ClassCategory,
   ClassMapTypeCollection,
   ClassMapTypeCollectionView,
   ClassMapTypeModel,
   ClassMapTypeRouteView,
   ClassMapTypeView,
-} from '../../src/_index.d';
-import type { GlobalViewConfig, ZeyonAppLike, ZeyonAppOptions } from '../../src/imports/app';
-import type Router from '../../src/router';
+  CollectionOptions,
+  CollectionViewOptions,
+  ModelOptions,
+  NavigateOptions,
+  RouteViewOptions,
+  ViewOptions,
+  ZeyonAppLike,
+  ZeyonAppOptions,
+} from 'zeyon/imports';
+import type Router from '../../dist/esm/router';
+import type View from '../../dist/esm/view';
 import { TestCollection } from './testCollection';
 import { TestCollectionView } from './TestCollectionView';
 import { TestModel } from './testModel';
@@ -33,66 +43,84 @@ export class TestZeyonApp implements ZeyonAppLike {
     this.window = window;
   }
 
-  public renderGlobalView(layouts: GlobalViewConfig | GlobalViewConfig[]): this {
-    return this;
-  }
-
   public async start(): Promise<this> {
     return this;
   }
 
-  public navigate(urlFragment: string, openNewTab = false): this {
+  public navigate(options: NavigateOptions): this {
     return this;
   }
 
-  public async newView<K extends keyof ClassMapTypeView>(
+  public newView<K extends string>(
     registrationId: K,
-    options?: ClassMapTypeView[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeView[K]['definition']>> {
+    options?: K extends keyof ClassMapTypeView ? ClassMapTypeView[K]['options'] : ViewOptions,
+  ): Promise<K extends keyof ClassMapTypeView ? InstanceType<ClassMapTypeView[K]['classRef']> : never> {
     const view = new TestView(options || {}, this);
-    // view.registrationId = registrationId;
-
-    return view as InstanceType<ClassMapTypeView[K]['definition']>;
+    return Promise.resolve(
+      view as unknown as K extends keyof ClassMapTypeView ? InstanceType<ClassMapTypeView[K]['classRef']> : never,
+    );
   }
 
-  public async newRouteView<K extends keyof ClassMapTypeRouteView>(
+  public async renderNewView<K extends string>(
     registrationId: K,
-    options?: ClassMapTypeRouteView[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeRouteView[K]['definition']>> {
+    options?: K extends keyof ClassMapTypeView ? ClassMapTypeView[K]['options'] : ViewOptions,
+  ): Promise<this> {
+    new TestRouteView(options || {}, this);
+    return Promise.resolve(this);
+  }
+
+  public async newRouteView<K extends string>(
+    registrationId: K,
+    options?: K extends keyof ClassMapTypeRouteView ? ClassMapTypeRouteView[K]['options'] : RouteViewOptions,
+  ): Promise<K extends keyof ClassMapTypeRouteView ? InstanceType<ClassMapTypeRouteView[K]['classRef']> : never> {
     const routeView = new TestRouteView(options || {}, this);
-    // routeView.registrationId = registrationId;
-
-    return routeView as InstanceType<ClassMapTypeRouteView[K]['definition']>;
+    return Promise.resolve(
+      routeView as unknown as K extends keyof ClassMapTypeRouteView
+        ? InstanceType<ClassMapTypeRouteView[K]['classRef']>
+        : never,
+    );
   }
 
-  public async newModel<K extends keyof ClassMapTypeModel>(
+  public newModel<K extends string>(
     registrationId: K,
-    options?: ClassMapTypeModel[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeModel[K]['definition']>> {
+    options?: K extends keyof ClassMapTypeModel ? ClassMapTypeModel[K]['options'] : ModelOptions<Attributes>,
+  ): Promise<K extends keyof ClassMapTypeModel ? InstanceType<ClassMapTypeModel[K]['classRef']> : never> {
     const model = new TestModel(options || {}, this);
-    // model.registrationId = registrationId;
-
-    return model as InstanceType<ClassMapTypeModel[K]['definition']>;
+    return Promise.resolve(
+      model as unknown as K extends keyof ClassMapTypeModel ? InstanceType<ClassMapTypeModel[K]['classRef']> : never,
+    );
   }
 
-  public async newCollection<K extends keyof ClassMapTypeCollection>(
+  public newCollection<K extends string>(
     registrationId: K,
-    options?: ClassMapTypeCollection[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeCollection[K]['definition']>> {
+    options?: K extends keyof ClassMapTypeCollection ? ClassMapTypeCollection[K]['options'] : CollectionOptions,
+  ): Promise<K extends keyof ClassMapTypeCollection ? InstanceType<ClassMapTypeCollection[K]['classRef']> : never> {
     const collection = new TestCollection(options || {}, this);
-    // collection.registrationId = registrationId;
-
-    return collection as InstanceType<ClassMapTypeCollection[K]['definition']>;
+    return Promise.resolve(
+      collection as unknown as K extends keyof ClassMapTypeCollection
+        ? InstanceType<ClassMapTypeCollection[K]['classRef']>
+        : never,
+    );
   }
 
-  public async newCollectionView<K extends keyof ClassMapTypeCollectionView>(
+  public newCollectionView<K extends string>(
     registrationId: K,
-    options?: ClassMapTypeCollectionView[K]['options'],
-  ): Promise<InstanceType<ClassMapTypeCollectionView[K]['definition']>> {
+    options?: K extends keyof ClassMapTypeCollectionView
+      ? ClassMapTypeCollectionView[K]['options']
+      : CollectionViewOptions,
+  ): Promise<
+    K extends keyof ClassMapTypeCollectionView ? InstanceType<ClassMapTypeCollectionView[K]['classRef']> : never
+  > {
     const collectionView = new TestCollectionView(options || {}, this);
-    // collectionView.registrationId = registrationId;
+    return Promise.resolve(
+      collectionView as unknown as K extends keyof ClassMapTypeCollectionView
+        ? InstanceType<ClassMapTypeCollectionView[K]['classRef']>
+        : never,
+    );
+  }
 
-    return collectionView as InstanceType<ClassMapTypeCollectionView[K]['definition']>;
+  public getClassIds(type?: ClassCategory): Set<string> {
+    return new Set<string>(['dummy-view', 'dummy-model', 'dummy-collection']);
   }
 
   public toggleClass(className: string, add?: boolean): this {
@@ -101,5 +129,9 @@ export class TestZeyonApp implements ZeyonAppLike {
 
   public setLoadingState(show?: boolean): boolean {
     return false;
+  }
+
+  public loadViewStyles(view: View): this {
+    return this;
   }
 }

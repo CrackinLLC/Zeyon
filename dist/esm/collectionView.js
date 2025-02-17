@@ -1,4 +1,4 @@
-import { collectionViewEvents } from './imports/collectionView';
+import { collectionViewEvents } from './_events';
 import { debounce } from './util/debounce';
 import View from './view';
 export default class CollectionView extends View {

@@ -1,4 +1,4 @@
-import type { ClassMapTypeCollection } from 'zeyon/_maps';
+import { ClassMapTypeCollection } from 'zeyon/imports';
 import type Collection from '../collection';
 import type { ViewOptions } from './view';
 
@@ -8,9 +8,3 @@ export interface CollectionViewOptions extends ViewOptions {
   collectionOptions?: unknown;
   modelViewOptions?: unknown;
 }
-
-export const collectionViewEvents = [
-  'collection:update', // When the collection is updated.
-  'collection:filter', // When the collection is filtered.
-  'collection:sort', // When the collection is sorted.
-];

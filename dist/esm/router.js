@@ -1,12 +1,8 @@
+import { routerEvents } from './_events';
 import Emitter from './emitter';
 class Router extends Emitter {
     constructor({ urlPrefix, routes }, app) {
-        super({
-            events: [
-                'navigate',
-                'query',
-            ],
-        }, app);
+        super({ events: routerEvents }, app);
         this.currentPath = '';
         this.routes = [];
         this.urlMap = {};

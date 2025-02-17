@@ -1,10 +1,8 @@
-import type { ClassMapKey } from 'zeyon/_maps';
+import { AnyDefinition, ClassCategory, ClassMapKey, ClassRegistryOptions, ZeyonAppLike } from 'zeyon/imports';
 import { classMapData } from 'zeyonRootAlias/classMapData';
+import { registryEvents } from './_events';
 import Emitter from './emitter';
-import type { ZeyonAppLike } from './imports/app';
-import type { AnyDefinition, ClassRegistryOptions } from './imports/classRegistry';
 
-export type ClassCategory = 'Model' | 'Collection' | 'View' | 'RouteView' | 'CollectionView';
 type ClassMapStored = Map<string, AnyDefinition>;
 
 export default class ClassRegistry extends Emitter {
@@ -29,7 +27,7 @@ export default class ClassRegistry extends Emitter {
     super(
       {
         ...options,
-        events: [...(options.events || []), 'registered'],
+        events: [...(options.events || []), ...registryEvents],
       },
       app,
     );
@@ -64,9 +62,7 @@ export default class ClassRegistry extends Emitter {
 
       this.emit('registered', { id });
     } else {
-      console.warn(
-        `Skipping unknown entry in classMapData. It may not have registrationId or is not an Emitter-based class.`,
-      );
+      console.warn(`Skipping unknown entry. It may not have registrationId or is not an Emitter-based class.`);
     }
   }
 

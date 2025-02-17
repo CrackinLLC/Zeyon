@@ -1,6 +1,6 @@
+import { EmitterOptions } from 'zeyon/imports';
 import type Model from '../model';
 import type View from '../view';
-import { EmitterOptions } from './emitter';
 
 export interface ViewOptions extends Omit<EmitterOptions, 'includeNativeEvents'> {
   id?: string;
@@ -26,29 +26,3 @@ export interface AttachReference {
   view: View; // The view to attach the element within
   id: string; // The ui id of the element to attach to
 }
-
-// Native events supported by browsers. Used in view class only.
-export const nativeEvents = [
-  'beforeinput',
-  'blur',
-  'click',
-  'contextmenu',
-  'copy',
-  'dblclick',
-  'focus',
-  'focusin',
-  'focusout',
-  'input',
-  'keydown',
-  'keypress',
-  'keyup',
-  'mousedown',
-  'mouseenter',
-  'mouseleave',
-  'mousemove',
-  'mouseout',
-  'mouseover',
-  'mouseup',
-  'paste',
-  'scroll',
-];

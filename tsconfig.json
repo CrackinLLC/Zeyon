@@ -8,7 +8,8 @@
 
     "baseUrl": ".",
     "paths": {
-      "zeyon/_maps": ["./src/_maps"]
+      "zeyon/imports": ["./src/_imports"],
+      "zeyon/maps": ["./src/_maps"]
     },
 
     "declaration": true,

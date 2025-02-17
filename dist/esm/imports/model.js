@@ -1,8 +1,2 @@
-export const modelEvents = [
-    'add',
-    'remove',
-    'change',
-    'reset',
-    'selected',
-];
+export {};
 //# sourceMappingURL=model.js.map

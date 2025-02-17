@@ -1,6 +1,4 @@
-import type { ClassMapKey } from 'zeyon/_maps';
-import type { ZeyonAppLike } from './imports/app';
-import type { AnyEventHandler, ClassConfigurationOptions, EmitterOptions } from './imports/emitter';
+import type { AnyEventHandler, ClassConfigurationOptions, ClassMapKey, EmitterOptions, ZeyonAppLike } from 'zeyon/imports';
 export default abstract class Emitter {
     protected app: ZeyonAppLike;
     static [key: string]: unknown;

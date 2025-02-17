@@ -1,8 +1,8 @@
-import { ClassMapTypeView } from '../../src/_index.d';
-import CollectionView from '../../src/collectionView';
+import Zeyon from 'zeyon';
+import { ClassMapTypeView } from 'zeyon/imports';
 
-export class TestCollectionView extends CollectionView {
+export class TestCollectionView extends Zeyon.CollectionView {
   static registrationId = 'test-collection-view';
 
-  modelViewRegistrationId: keyof ClassMapTypeView = 'test-view';
+  modelViewRegistrationId: string & keyof ClassMapTypeView = 'test-view';
 }
